@@ -1,3 +1,5 @@
+using RouteWise.Api.Optimizers;
+using RouteWise.Api.Services;
 
 namespace RouteWise.Api
 {
@@ -10,9 +12,12 @@ namespace RouteWise.Api
             // Add services to the container.
 
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            builder.Services.AddScoped<RouteOptimizationService>();
+            builder.Services.AddScoped<IRouteOptimizer, OriginalOrderOptimizer>();
+            builder.Services.AddScoped<IRouteOptimizer, NearestNeighborOptimizer>();
 
             var app = builder.Build();
 
@@ -29,6 +34,7 @@ namespace RouteWise.Api
 
 
             app.MapControllers();
+
 
             app.Run();
         }

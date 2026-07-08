@@ -11,10 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Contracts\Responses\" />
     <Folder Include="Options\" />
-    <Folder Include="Services\" />
-    <Folder Include="Optimizers\" />
     <Folder Include="Providers\Geocoding\" />
     <Folder Include="Providers\Routing\" />
   </ItemGroup>
