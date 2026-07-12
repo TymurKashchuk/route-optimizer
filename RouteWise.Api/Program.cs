@@ -1,5 +1,7 @@
 using RouteWise.Api.Optimizers;
 using RouteWise.Api.Services;
+using RouteWise.Api.Providers.Geocoding;
+using RouteWise.Api.Providers.Routing;
 
 namespace RouteWise.Api
 {
@@ -18,6 +20,9 @@ namespace RouteWise.Api
             builder.Services.AddScoped<RouteOptimizationService>();
             builder.Services.AddScoped<IRouteOptimizer, OriginalOrderOptimizer>();
             builder.Services.AddScoped<IRouteOptimizer, NearestNeighborOptimizer>();
+
+            builder.Services.AddScoped<IGeocodingProvider, StaticGeocodingProvider>();
+            builder.Services.AddScoped<IRouteProvider, StaticRouteProvider>();
 
             var app = builder.Build();
 
