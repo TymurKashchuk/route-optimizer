@@ -18,6 +18,8 @@ namespace RouteWise.Api
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddScoped<RouteOptimizationService>();
+            builder.Services.AddScoped<RouteMatrixService>();
+
             builder.Services.AddScoped<IRouteOptimizer, OriginalOrderOptimizer>();
             builder.Services.AddScoped<IRouteOptimizer, NearestNeighborOptimizer>();
 

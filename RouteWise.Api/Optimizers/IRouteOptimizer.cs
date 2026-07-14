@@ -6,6 +6,6 @@ namespace RouteWise.Api.Optimizers
     {
         string AlgorithmName { get; }
 
-        OptimizationResult Optimize(List<RouteStop> stops);
+        OptimizationResult Optimize(List<RouteStop> stops, RouteMatrix matrix);
     }
 }
