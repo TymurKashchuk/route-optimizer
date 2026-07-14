@@ -18,7 +18,10 @@ namespace RouteWise.Api.Controllers
 
         [HttpPost("optimize")]
         public ActionResult<OptimizeRouteResponse> Optimize(OptimizeRouteRequest request) {
-            var optimizationResult = _routeOptimizationService.Optimize(request.Algorithm, request.Stops);
+            var optimizationResult = _routeOptimizationService.Optimize(
+                request.Algorithm,
+                request.Start,
+                request.Stops);
 
             var totalServiceMinutes = optimizationResult.OrderedStops.Sum(stop => stop.ServiceMinutes);
 
