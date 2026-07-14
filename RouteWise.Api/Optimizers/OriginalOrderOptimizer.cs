@@ -6,11 +6,13 @@ namespace RouteWise.Api.Optimizers
     {
         public string AlgorithmName => "original";
 
-        public OptimizationResult Optimize(List<RouteStop> stops) {
+        public OptimizationResult Optimize(List<RouteStop> stops, RouteMatrix matrix)
+        {
             return new OptimizationResult
             {
                 Algorithm = AlgorithmName,
-                OrderedStops = stops.ToList()
+                OrderedStops = stops.ToList(),
+                OrderedStopIndices = Enumerable.Range(0, stops.Count).ToList()
             };
         }
     }
