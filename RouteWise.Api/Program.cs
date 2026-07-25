@@ -26,6 +26,9 @@ namespace RouteWise.Api
             builder.Services.AddScoped<IGeocodingProvider, StaticGeocodingProvider>();
             builder.Services.AddScoped<IRouteProvider, StaticRouteProvider>();
 
+            builder.Services.AddScoped<MetricsService>();
+            builder.Services.AddScoped<TimelineService>();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

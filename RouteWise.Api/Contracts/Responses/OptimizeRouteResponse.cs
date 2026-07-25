@@ -3,12 +3,11 @@
     public class OptimizeRouteResponse
     {
         public string Algorithm { get; set; } = string.Empty;
-        public int TotalStops { get; set; }
 
-        public string StartLabel { get; set; } = string.Empty;
+        public RouteMetricsDto Optimized { get; set; } = new();
 
         public List<string> OrderedStops { get; set; } = new();
 
-        public int TotalServiceMinutes { get; set; }
+        public List<TimelineItemDto> Timeline { get; set; } = new();
     }
 }

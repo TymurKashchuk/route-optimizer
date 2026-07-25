@@ -10,28 +10,61 @@ namespace RouteWise.Api.Controllers
     public class RouteOptimizationController : ControllerBase
     {
         private readonly RouteOptimizationService _routeOptimizationService;
+        private readonly RouteMatrixService _routeMatrixService;
+        private readonly MetricsService _metricsService;
+        private readonly TimelineService _timelineService;
 
-        public RouteOptimizationController(RouteOptimizationService routeOptimizationService)
+        public RouteOptimizationController(
+            RouteOptimizationService routeOptimizationService, 
+            RouteMatrixService routeMatrixService, 
+            MetricsService metricsService, 
+            TimelineService timelineService)
         {
             _routeOptimizationService = routeOptimizationService;
+            _routeMatrixService = routeMatrixService;
+            _metricsService = metricsService;
+            _timelineService = timelineService;
         }
 
         [HttpPost("optimize")]
         public ActionResult<OptimizeRouteResponse> Optimize(OptimizeRouteRequest request) {
+            var matrixResult = _routeMatrixService.BuildMatrix(request.Start, request.Stops);
+            
             var optimizationResult = _routeOptimizationService.Optimize(
                 request.Algorithm,
                 request.Start,
                 request.Stops);
 
-            var totalServiceMinutes = optimizationResult.OrderedStops.Sum(stop => stop.ServiceMinutes);
+            var metrics = _metricsService.Calculate(
+                optimizationResult.OrderedStops,
+                optimizationResult.OrderedStopIndices,
+                matrixResult.Matrix);
+
+            var timeline = _timelineService.Build(
+                request.Start,
+                request.DepartureTime,
+                optimizationResult.OrderedStops,
+                optimizationResult.OrderedStopIndices,
+                matrixResult.Matrix);
 
             var response = new OptimizeRouteResponse
             {
                 Algorithm = optimizationResult.Algorithm,
-                TotalStops = optimizationResult.OrderedStops.Count,
-                StartLabel = request.Start.Label,
-                OrderedStops = optimizationResult.OrderedStops.Select(stop => stop.Label).ToList(),
-                TotalServiceMinutes = totalServiceMinutes
+                OrderedStops = optimizationResult.OrderedStops
+                .Select(stop => stop.Label)
+                .ToList(),
+                Optimized = new RouteMetricsDto
+                {
+                    TotalTravelMinutes = metrics.TotalTravelMinutes,
+                    TotalDistanceKm = metrics.TotalDistanceKm,
+                    TotalServiceMinutes = metrics.TotalServiceMinutes
+                },
+                Timeline = timeline.Select(item => new TimelineItemDto
+                {
+                    Label = item.Label,
+                    ArrivalTime = item.ArrivalTime,
+                    DepartureTime = item.DepartureTime
+                }).ToList()
             };
 
             return Ok(response);
