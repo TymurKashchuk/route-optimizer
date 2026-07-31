@@ -28,7 +28,9 @@ namespace RouteWise.Api.Providers.Geocoding
                 return location;
             }
 
-            throw new InvalidOperationException($"Unknown address: {address}");
+            var availableAddresses = string.Join(",", _knownAddresses.Keys);
+
+            throw new InvalidOperationException($"Unknown address: {address}. Available demo addresses: {availableAddresses}");
         }
     }
 }
