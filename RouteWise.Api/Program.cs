@@ -29,6 +29,9 @@ namespace RouteWise.Api
             builder.Services.AddScoped<MetricsService>();
             builder.Services.AddScoped<TimelineService>();
 
+            builder.Services.AddScoped<RouteComparisonService>();
+            builder.Services.AddScoped<RouteExecutionService>();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
