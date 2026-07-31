@@ -2,6 +2,10 @@ using RouteWise.Api.Optimizers;
 using RouteWise.Api.Services;
 using RouteWise.Api.Providers.Geocoding;
 using RouteWise.Api.Providers.Routing;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using RouteWise.Api.Validators;
+using System.Reflection;
 
 namespace RouteWise.Api
 {
@@ -14,6 +18,10 @@ namespace RouteWise.Api
             // Add services to the container.
 
             builder.Services.AddControllers();
+            builder.Services.AddFluentValidationAutoValidation();
+
+            builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
