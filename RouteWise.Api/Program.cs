@@ -40,6 +40,8 @@ namespace RouteWise.Api
             builder.Services.AddScoped<RouteComparisonService>();
             builder.Services.AddScoped<RouteExecutionService>();
 
+            builder.Services.AddScoped<RouteExplanationService>();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

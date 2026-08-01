@@ -11,19 +11,22 @@ namespace RouteWise.Api.Services
         private readonly MetricsService _metricsService;
         private readonly TimelineService _timelineService;
         private readonly RouteComparisonService _routeComparisonService;
+        private readonly RouteExplanationService _routeExplanationService;
 
         public RouteExecutionService(
             RouteMatrixService routeMatrixService,
             IEnumerable<IRouteOptimizer> optimizers,
             MetricsService metricsService,
             TimelineService timelineService,
-            RouteComparisonService routeComparisonService)
+            RouteComparisonService routeComparisonService,
+            RouteExplanationService routeExplanationService)
         {
             _routeMatrixService = routeMatrixService;
             _optimizers = optimizers;
             _metricsService = metricsService;
             _timelineService = timelineService;
             _routeComparisonService = routeComparisonService;
+            _routeExplanationService = routeExplanationService;
         }
 
         public OptimizeRouteResponse Execute(
@@ -67,6 +70,12 @@ namespace RouteWise.Api.Services
                 optimizedResult.OrderedStopIndices,
                 matrixResult.Matrix);
 
+            var explanationSteps = _routeExplanationService.Build(
+                start,
+                optimizedResult.OrderedStops,
+                optimizedResult.OrderedStopIndices,
+                matrixResult.Matrix);
+
             return new OptimizeRouteResponse
             {
                 Algorithm = optimizedResult.Algorithm,
@@ -85,6 +94,7 @@ namespace RouteWise.Api.Services
                 SavedMinutes = comparison.SavedMinutes,
                 SavedDistanceKm = comparison.SavedDistanceKm,
                 ImprovementPercent = comparison.ImprovementPercent,
+                ExplanationSteps = explanationSteps,
                 OrderedStops = optimizedResult.OrderedStops
                     .Select(stop => stop.Label)
                     .ToList(),
