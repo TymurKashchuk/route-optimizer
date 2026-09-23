@@ -30,6 +30,7 @@ namespace RouteWise.Api
 
             builder.Services.AddScoped<IRouteOptimizer, OriginalOrderOptimizer>();
             builder.Services.AddScoped<IRouteOptimizer, NearestNeighborOptimizer>();
+            builder.Services.AddScoped<IRouteOptimizer, TwoOptOptimizer>();
 
             builder.Services.AddScoped<IGeocodingProvider, StaticGeocodingProvider>();
             builder.Services.AddScoped<IRouteProvider, StaticRouteProvider>();
