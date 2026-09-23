@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using RouteWise.Api.Contracts.Requests;
 using RouteWise.Api.Validators;
 
@@ -11,8 +11,10 @@ namespace RouteWise.Api.Validators
             RuleFor(x => x.Algorithm)
                 .NotEmpty()
                 .WithMessage("Algorithm is required")
-                .Must(a => a == "original" || a == "nearest-neighbor")
-                .WithMessage("Algorithm must be either 'original' or 'nearest-neighbor'");
+                .Must(a => string.Equals(a, "original", StringComparison.OrdinalIgnoreCase) ||
+                           string.Equals(a, "nearest-neighbor", StringComparison.OrdinalIgnoreCase) ||
+                           string.Equals(a, "two-opt", StringComparison.OrdinalIgnoreCase))
+                .WithMessage("Algorithm must be either 'original', 'nearest-neighbor' or 'two-opt'");
 
             RuleFor(x => x.Start)
                 .NotNull()
