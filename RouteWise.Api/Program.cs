@@ -5,6 +5,8 @@ using RouteWise.Api.Providers.Routing;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using RouteWise.Api.Validators;
+using RouteWise.Api.Options;
+using Microsoft.Extensions.Options;
 using System.Reflection;
 
 namespace RouteWise.Api
@@ -42,6 +44,16 @@ namespace RouteWise.Api
             builder.Services.AddScoped<RouteExecutionService>();
 
             builder.Services.AddScoped<RouteExplanationService>();
+
+            builder.Services.Configure<OpenRouteServiceOptions>(
+                builder.Configuration.GetSection(OpenRouteServiceOptions.SectionName));
+
+            builder.Services.AddHttpClient<OpenRouteServiceRouteProvider>((serviceProvider, httpClient) =>
+            {
+                var options = serviceProvider.GetRequiredService<IOptions<OpenRouteServiceOptions>>().Value;
+                httpClient.BaseAddress = new Uri(options.BaseUrl);
+                httpClient.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
+            });
 
             var app = builder.Build();
 
