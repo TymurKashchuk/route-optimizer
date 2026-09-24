@@ -1,4 +1,4 @@
-﻿using RouteWise.Api.Models;
+using RouteWise.Api.Models;
 using RouteWise.Api.Providers.Geocoding;
 using RouteWise.Api.Providers.Routing;
 
@@ -17,7 +17,10 @@ namespace RouteWise.Api.Services
             _routeProvider = routeProvider;
         }
 
-        public RouteMatrixResult BuildMatrix(AddressInput start, List<RouteStop> stops)
+        public async Task<RouteMatrixResult> BuildMatrixAsync(
+            AddressInput start,
+            List<RouteStop> stops,
+            CancellationToken cancellationToken = default)
         {
             var locations = new List<LocationPoint>();
 
@@ -30,7 +33,7 @@ namespace RouteWise.Api.Services
                 locations.Add(stopLocation);
             }
 
-            var matrix = _routeProvider.BuildMatrix(locations);
+            var matrix = await _routeProvider.BuildMatrixAsync(locations, cancellationToken);
 
             return new RouteMatrixResult
             {
