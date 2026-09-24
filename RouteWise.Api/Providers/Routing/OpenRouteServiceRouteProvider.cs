@@ -1,5 +1,8 @@
+using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Microsoft.Extensions.Options;
+using RouteWise.Api.Exceptions;
 using RouteWise.Api.Models;
 using RouteWise.Api.Options;
 using RouteWise.Api.Providers.Routing.OpenRouteService;
@@ -19,11 +22,15 @@ namespace RouteWise.Api.Providers.Routing
             _options = options.Value;
         }
 
-
         public async Task<RouteMatrix> BuildMatrixAsync(
             List<LocationPoint> locations,
             CancellationToken cancellationToken = default)
         {
+            if (string.IsNullOrWhiteSpace(_options.ApiKey))
+            {
+                throw new OpenRouteServiceException("OpenRouteService API key is missing. Please configure it in settings.");
+            }
+
             var requestBody = new OrsMatrixRequest
             {
                 Locations = locations
@@ -37,29 +44,78 @@ namespace RouteWise.Api.Providers.Routing
                 Content = JsonContent.Create(requestBody)
             };
 
-            if (!string.IsNullOrWhiteSpace(_options.ApiKey))
+            httpRequest.Headers.TryAddWithoutValidation("Authorization", _options.ApiKey);
+
+            HttpResponseMessage response;
+            try
             {
-                httpRequest.Headers.TryAddWithoutValidation("Authorization", _options.ApiKey);
+                response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            }
+            catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested)
+            {
+                throw new OpenRouteServiceException("Request to OpenRouteService timed out.", ex);
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new OpenRouteServiceException("Network error occurred while connecting to OpenRouteService.", ex);
             }
 
-            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
-            response.EnsureSuccessStatusCode();
-
-            var matrixResponse = await response.Content.ReadFromJsonAsync<OrsMatrixResponse>(cancellationToken: cancellationToken);
-
-            if (matrixResponse?.Durations is null || matrixResponse.Distances is null)
+            using (response)
             {
-                throw new InvalidOperationException("OpenRouteService matrix response is empty or invalid.");
+                if (!response.IsSuccessStatusCode)
+                {
+                    HandleErrorStatusCode(response.StatusCode);
+                }
+
+                OrsMatrixResponse? matrixResponse;
+                try
+                {
+                    matrixResponse = await response.Content.ReadFromJsonAsync<OrsMatrixResponse>(cancellationToken: cancellationToken);
+                }
+                catch (JsonException ex)
+                {
+                    throw new OpenRouteServiceException("Failed to parse response from OpenRouteService.", ex);
+                }
+
+                if (matrixResponse?.Durations is null || matrixResponse.Distances is null)
+                {
+                    throw new OpenRouteServiceException("OpenRouteService returned an empty or invalid matrix response.");
+                }
+
+                return MapToRouteMatrix(matrixResponse, locations.Count);
+            }
+        }
+
+        private static void HandleErrorStatusCode(HttpStatusCode statusCode)
+        {
+            if (statusCode == HttpStatusCode.Unauthorized)
+            {
+                throw new OpenRouteServiceException("Invalid or unauthorized OpenRouteService API key.", statusCode);
             }
 
-            return MapToRouteMatrix(matrixResponse, locations.Count);
+            if (statusCode == HttpStatusCode.Forbidden)
+            {
+                throw new OpenRouteServiceException("Access to OpenRouteService is forbidden.", statusCode);
+            }
+
+            if (statusCode == HttpStatusCode.TooManyRequests)
+            {
+                throw new OpenRouteServiceException("OpenRouteService rate limit exceeded. Please try again later.", statusCode);
+            }
+
+            if ((int)statusCode >= 500)
+            {
+                throw new OpenRouteServiceException("OpenRouteService server error encountered. Service may be temporarily unavailable.", statusCode);
+            }
+
+            throw new OpenRouteServiceException($"OpenRouteService returned an unexpected error ({(int)statusCode}).", statusCode);
         }
 
         private static RouteMatrix MapToRouteMatrix(OrsMatrixResponse response, int expectedCount)
         {
             if (response.Durations!.Count != expectedCount || response.Distances!.Count != expectedCount)
             {
-                throw new InvalidOperationException("OpenRouteService matrix size does not match requested locations count.");
+                throw new OpenRouteServiceException("OpenRouteService matrix size does not match requested locations count.");
             }
 
             var travelTimesMinutes = new List<List<int>>();
@@ -72,7 +128,7 @@ namespace RouteWise.Api.Providers.Routing
 
                 if (durationRow.Count != expectedCount || distanceRow.Count != expectedCount)
                 {
-                    throw new InvalidOperationException("OpenRouteService matrix row size is invalid.");
+                    throw new OpenRouteServiceException("OpenRouteService matrix row size is invalid.");
                 }
 
                 var timeMinutesRow = new List<int>();
@@ -85,7 +141,7 @@ namespace RouteWise.Api.Providers.Routing
 
                     if (!durationSeconds.HasValue || !distanceMeters.HasValue)
                     {
-                        throw new InvalidOperationException($"Route between location {i} and {j} is unreachable.");
+                        throw new OpenRouteServiceException($"Route between location {i} and {j} is unreachable.");
                     }
 
                     timeMinutesRow.Add((int)Math.Round(durationSeconds.Value / 60.0));
