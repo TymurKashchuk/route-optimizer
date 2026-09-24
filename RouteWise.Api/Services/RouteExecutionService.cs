@@ -1,4 +1,4 @@
-﻿using RouteWise.Api.Contracts.Responses;
+using RouteWise.Api.Contracts.Responses;
 using RouteWise.Api.Models;
 using RouteWise.Api.Optimizers;
 
@@ -29,13 +29,14 @@ namespace RouteWise.Api.Services
             _routeExplanationService = routeExplanationService;
         }
 
-        public OptimizeRouteResponse Execute(
+        public async Task<OptimizeRouteResponse> ExecuteAsync(
             string algorithm,
             AddressInput start,
             DateTime departureTime,
-            List<RouteStop> stops)
+            List<RouteStop> stops,
+            CancellationToken cancellationToken = default)
         {
-            var matrixResult = _routeMatrixService.BuildMatrix(start, stops);
+            var matrixResult = await _routeMatrixService.BuildMatrixAsync(start, stops, cancellationToken);
 
             var originalOptimizer = _optimizers.First(o =>
                 o.AlgorithmName.Equals("original", StringComparison.OrdinalIgnoreCase));

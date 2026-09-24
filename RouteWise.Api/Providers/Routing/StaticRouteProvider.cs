@@ -1,12 +1,14 @@
-﻿using RouteWise.Api.Models;
+using RouteWise.Api.Models;
 
 namespace RouteWise.Api.Providers.Routing
 {
     public class StaticRouteProvider : IRouteProvider
     {
-        public RouteMatrix BuildMatrix(List<LocationPoint> locations)
+        public Task<RouteMatrix> BuildMatrixAsync(
+            List<LocationPoint> locations,
+            CancellationToken cancellationToken = default)
         {
-            return new RouteMatrix
+            var matrix = new RouteMatrix
             {
                 TravelTimesMinutes = new List<List<int>>
                 {
@@ -21,6 +23,8 @@ namespace RouteWise.Api.Providers.Routing
                     new() { 8.0, 4.0, 0 }
                 }
             };
+
+            return Task.FromResult(matrix);
         }
     }
 }

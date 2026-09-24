@@ -1,9 +1,11 @@
-﻿using RouteWise.Api.Models;
+using RouteWise.Api.Models;
 
 namespace RouteWise.Api.Providers.Routing
 {
     public interface IRouteProvider
     {
-        RouteMatrix BuildMatrix(List<LocationPoint> locations);
+        Task<RouteMatrix> BuildMatrixAsync(
+            List<LocationPoint> locations,
+            CancellationToken cancellationToken = default);
     }
 }

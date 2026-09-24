@@ -1,4 +1,4 @@
-﻿using RouteWise.Api.Models;
+using RouteWise.Api.Models;
 using RouteWise.Api.Optimizers;
 
 namespace RouteWise.Api.Services
@@ -16,10 +16,11 @@ namespace RouteWise.Api.Services
             _routeMatrixService = routeMatrixService;
         }
 
-        public OptimizationResult Optimize(
+        public async Task<OptimizationResult> OptimizeAsync(
             string algorithm,
             AddressInput start,
-            List<RouteStop> stops)
+            List<RouteStop> stops,
+            CancellationToken cancellationToken = default)
         {
             var optimizer = _optimizers.FirstOrDefault(o =>
                 o.AlgorithmName.Equals(algorithm, StringComparison.OrdinalIgnoreCase));
@@ -29,7 +30,7 @@ namespace RouteWise.Api.Services
                 throw new InvalidOperationException($"Unknown algorithm: {algorithm}");
             }
 
-            var matrixResult = _routeMatrixService.BuildMatrix(start, stops);
+            var matrixResult = await _routeMatrixService.BuildMatrixAsync(start, stops, cancellationToken);
 
             return optimizer.Optimize(stops, matrixResult.Matrix);
         }

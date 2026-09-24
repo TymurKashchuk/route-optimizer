@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using RouteWise.Api.Contracts.Requests;
 using RouteWise.Api.Contracts.Responses;
 using RouteWise.Api.Services;
@@ -11,18 +11,22 @@ namespace RouteWise.Api.Controllers
     {
         private readonly RouteExecutionService _routeExecutionService;
 
-        public RouteOptimizationController(RouteExecutionService routeExecutionService){
+        public RouteOptimizationController(RouteExecutionService routeExecutionService)
+        {
             _routeExecutionService = routeExecutionService;
         }
 
         [HttpPost("optimize")]
-        public ActionResult<OptimizeRouteResponse> Optimize(OptimizeRouteRequest request) {
-            var response = _routeExecutionService.Execute(
+        public async Task<ActionResult<OptimizeRouteResponse>> Optimize(
+            OptimizeRouteRequest request,
+            CancellationToken cancellationToken)
+        {
+            var response = await _routeExecutionService.ExecuteAsync(
                 request.Algorithm,
                 request.Start,
                 request.DepartureTime,
-                request.Stops
-                );
+                request.Stops,
+                cancellationToken);
 
             return Ok(response);
         }

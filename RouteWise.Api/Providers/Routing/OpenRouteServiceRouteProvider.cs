@@ -19,10 +19,6 @@ namespace RouteWise.Api.Providers.Routing
             _options = options.Value;
         }
 
-        public RouteMatrix BuildMatrix(List<LocationPoint> locations)
-        {
-            return BuildMatrixAsync(locations).GetAwaiter().GetResult();
-        }
 
         public async Task<RouteMatrix> BuildMatrixAsync(
             List<LocationPoint> locations,
