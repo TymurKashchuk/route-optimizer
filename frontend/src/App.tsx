@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import './App.css';
 import { Header } from './components/Header';
 import { RouteFormSection } from './components/RouteFormSection';
 import { StopsSection } from './components/StopsSection';
 import { ResultsSection } from './components/ResultsSection';
+import { Toast } from './components/Toast';
 import type { AddressInput, AlgorithmType, OptimizeRouteResponse, RouteStop } from './types/route';
+import { optimizeRoute } from './api/routeClient';
 
 const DEFAULT_START: AddressInput = {
   label: 'Start Depot',
@@ -38,6 +40,8 @@ export const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<OptimizeRouteResponse | null>(null);
 
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   const handleAddStop = () => {
     if (stops.length >= 10) return;
     const newStop: RouteStop = {
@@ -60,25 +64,47 @@ export const App: React.FC = () => {
     );
   };
 
-  const handleOptimize = () => {
+  const handleOptimize = async () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setIsLoading(true);
     setError(null);
-    setResult(null);
 
-    // Simulated response until backend integration
-    setTimeout(() => {
-      setIsLoading(false);
-      console.log('Optimize request payload:', {
-        algorithm,
-        departureTime,
-        start,
-        stops,
-      });
-    }, 600);
+    try {
+      const data = await optimizeRoute(
+        {
+          algorithm,
+          departureTime,
+          start,
+          stops,
+        },
+        controller.signal
+      );
+      setResult(data);
+    } catch (err: unknown) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        return;
+      }
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred while calculating the route.');
+      }
+    } finally {
+      if (abortControllerRef.current === controller) {
+        setIsLoading(false);
+      }
+    }
   };
 
   return (
     <div className="app-root">
+      <Toast message={error} onClose={() => setError(null)} />
       <Header />
       <main className="main-container">
         <div className="planner-grid">
@@ -102,7 +128,7 @@ export const App: React.FC = () => {
             />
           </div>
           <div className="right-column">
-            <ResultsSection result={result} isLoading={isLoading} error={error} />
+            <ResultsSection result={result} isLoading={isLoading} />
           </div>
         </div>
       </main>

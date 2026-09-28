@@ -4,10 +4,9 @@ import type { OptimizeRouteResponse } from '../types/route';
 interface ResultsSectionProps {
   result: OptimizeRouteResponse | null;
   isLoading: boolean;
-  error: string | null;
 }
 
-export const ResultsSection: React.FC<ResultsSectionProps> = ({ result, isLoading, error }) => {
+export const ResultsSection: React.FC<ResultsSectionProps> = ({ result, isLoading }) => {
   return (
     <section className="card results-section" aria-labelledby="results-section-title">
       <div className="section-header">
@@ -18,12 +17,6 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ result, isLoadin
         {!isLoading && result && <span className="badge-muted">Optimized ({result.algorithm})</span>}
         {!isLoading && !result && <span className="badge-muted">Waiting for execution</span>}
       </div>
-
-      {error && (
-        <div className="alert-error" role="alert">
-          <p className="alert-text">{error}</p>
-        </div>
-      )}
 
       {/* Empty State before first optimization */}
       {!result && (
