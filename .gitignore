@@ -15,3 +15,8 @@ obj/
 # OS
 .DS_Store
 Thumbs.db
+
+# Node / Frontend
+node_modules/
+dist/
+*.local
