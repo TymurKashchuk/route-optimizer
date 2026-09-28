@@ -8,9 +8,13 @@ namespace RouteWise.Api.Optimizers
 
         public string AlgorithmName => "two-opt";
 
-        public TwoOptOptimizer(IRouteOptimizer? initialOptimizer = null)
+        public TwoOptOptimizer() : this(new NearestNeighborOptimizer())
         {
-            _initialOptimizer = initialOptimizer ?? new NearestNeighborOptimizer();
+        }
+
+        public TwoOptOptimizer(IRouteOptimizer initialOptimizer)
+        {
+            _initialOptimizer = initialOptimizer;
         }
 
         public OptimizationResult Optimize(List<RouteStop> stops, RouteMatrix matrix)
