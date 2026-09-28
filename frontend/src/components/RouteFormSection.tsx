@@ -1,6 +1,27 @@
 import React from 'react';
+import type { AddressInput, AlgorithmType } from '../types/route';
 
-export const RouteFormSection: React.FC = () => {
+interface RouteFormSectionProps {
+  start: AddressInput;
+  onStartChange: (start: AddressInput) => void;
+  departureTime: string;
+  onDepartureTimeChange: (time: string) => void;
+  algorithm: AlgorithmType;
+  onAlgorithmChange: (algorithm: AlgorithmType) => void;
+  isLoading: boolean;
+  onOptimize: () => void;
+}
+
+export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
+  start,
+  onStartChange,
+  departureTime,
+  onDepartureTimeChange,
+  algorithm,
+  onAlgorithmChange,
+  isLoading,
+  onOptimize,
+}) => {
   return (
     <section className="card form-section" aria-labelledby="route-params-title">
       <h2 id="route-params-title" className="section-title">
@@ -17,16 +38,18 @@ export const RouteFormSection: React.FC = () => {
             type="text"
             className="form-input start-label-input"
             placeholder="Label (e.g. Depot)"
-            defaultValue="Start Depot"
-            readOnly
+            value={start.label}
+            onChange={(e) => onStartChange({ ...start, label: e.target.value })}
+            disabled={isLoading}
           />
           <input
             id="start-address"
             type="text"
             className="form-input"
             placeholder="Address (e.g. Khreshchatyk 1, Kyiv)"
-            defaultValue="Khreshchatyk 1, Kyiv"
-            readOnly
+            value={start.address}
+            onChange={(e) => onStartChange({ ...start, address: e.target.value })}
+            disabled={isLoading}
           />
         </div>
       </div>
@@ -40,8 +63,9 @@ export const RouteFormSection: React.FC = () => {
             id="departure-time"
             type="datetime-local"
             className="form-input"
-            defaultValue="2026-09-28T09:00"
-            readOnly
+            value={departureTime}
+            onChange={(e) => onDepartureTimeChange(e.target.value)}
+            disabled={isLoading}
           />
         </div>
 
@@ -49,7 +73,13 @@ export const RouteFormSection: React.FC = () => {
           <label className="form-label" htmlFor="algorithm-select">
             Optimization Algorithm
           </label>
-          <select id="algorithm-select" className="form-select" defaultValue="two-opt" disabled>
+          <select
+            id="algorithm-select"
+            className="form-select"
+            value={algorithm}
+            onChange={(e) => onAlgorithmChange(e.target.value as AlgorithmType)}
+            disabled={isLoading}
+          >
             <option value="nearest-neighbor">Nearest Neighbor (Fast Greedy)</option>
             <option value="two-opt">2-Opt Heuristic (Optimized)</option>
             <option value="original">Original Order (Baseline)</option>
@@ -57,8 +87,13 @@ export const RouteFormSection: React.FC = () => {
         </div>
       </div>
 
-      <button type="button" className="btn btn-primary btn-block" disabled>
-        Optimize Route
+      <button
+        type="button"
+        className="btn btn-primary btn-block"
+        onClick={onOptimize}
+        disabled={isLoading}
+      >
+        {isLoading ? 'Optimizing Route...' : 'Optimize Route'}
       </button>
     </section>
   );
