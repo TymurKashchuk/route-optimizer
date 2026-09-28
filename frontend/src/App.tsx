@@ -9,21 +9,21 @@ import type { AddressInput, AlgorithmType, OptimizeRouteResponse, RouteStop } fr
 import { optimizeRoute } from './api/routeClient';
 
 const DEFAULT_START: AddressInput = {
-  label: 'Start Depot',
-  address: 'Khreshchatyk 1, Kyiv',
+  label: 'Central Depot',
+  address: 'Zhytomyr Central Square',
 };
 
 const DEFAULT_STOPS: RouteStop[] = [
   {
     id: 'stop-1',
-    label: 'Client A',
-    address: 'Bohdana Khmelnytskoho 10, Kyiv',
+    label: 'Railway Station',
+    address: 'Zhytomyr Railway Station',
     serviceMinutes: 15,
   },
   {
     id: 'stop-2',
-    label: 'Client B',
-    address: 'Volodymyrska 24, Kyiv',
+    label: 'City Hospital',
+    address: 'Zhytomyr City Hospital',
     serviceMinutes: 20,
   },
 ];
