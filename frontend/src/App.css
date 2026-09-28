@@ -114,6 +114,44 @@
   }
 }
 
+@media (max-width: 540px) {
+  .form-row {
+    flex-direction: column;
+  }
+
+  .input-group {
+    flex-direction: column;
+  }
+
+  .start-label-input {
+    max-width: 100%;
+  }
+
+  .header-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-badge {
+    align-self: flex-start;
+  }
+
+  .explanation-step-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .step-transit {
+    width: 100%;
+    align-items: flex-start;
+  }
+
+  .step-line {
+    display: none;
+  }
+}
+
 /* Cards & Sections */
 .card {
   background-color: var(--bg-card);
@@ -292,12 +330,33 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
   font-weight: 500;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 0.15s ease;
   border: 1px solid transparent;
   padding: 0.625rem 1rem;
+}
+
+.btn-spinner {
+  animation: spin 0.75s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.text-primary {
+  color: var(--primary);
 }
 
 .btn:disabled {
@@ -473,6 +532,75 @@
   border-radius: var(--radius-sm);
   border: 1px solid rgba(22, 163, 74, 0.2);
   font-weight: 500;
+}
+
+/* Skeleton Loading State */
+.skeleton-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 0.5rem 0;
+}
+
+.skeleton-header {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1rem;
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: var(--radius-md);
+}
+
+.skeleton-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.skeleton-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.skeleton-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+@media (max-width: 600px) {
+  .skeleton-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+.skeleton-block {
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite;
+  border-radius: var(--radius-md);
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-block-metric {
+  height: 80px;
+}
+
+.skeleton-block-wide {
+  height: 60px;
+}
+
+.skeleton-block-tall {
+  height: 140px;
 }
 
 .results-container {

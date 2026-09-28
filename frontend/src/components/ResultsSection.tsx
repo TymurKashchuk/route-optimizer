@@ -24,7 +24,37 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ result, isLoadin
         {!isLoading && !result && <span className="badge-muted">Waiting for execution</span>}
       </div>
 
-      {!result && (
+      {isLoading && (
+        <div className="skeleton-container" aria-busy="true" aria-live="polite">
+          <div className="skeleton-header">
+            <svg
+              className="btn-spinner text-primary"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
+              <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
+              <path d="M12 2a10 10 0 0 1 10 10" />
+            </svg>
+            <div>
+              <h3 className="skeleton-title">Calculating Optimal Route...</h3>
+              <p className="skeleton-subtitle">Building distance matrix and running optimization</p>
+            </div>
+          </div>
+          <div className="skeleton-cards">
+            <div className="skeleton-block skeleton-block-metric"></div>
+            <div className="skeleton-block skeleton-block-metric"></div>
+            <div className="skeleton-block skeleton-block-metric"></div>
+          </div>
+          <div className="skeleton-block skeleton-block-wide"></div>
+          <div className="skeleton-block skeleton-block-tall"></div>
+        </div>
+      )}
+
+      {!isLoading && !result && (
         <div className="empty-state">
           <div className="empty-state-icon">
             <svg
@@ -51,7 +81,7 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ result, isLoadin
         </div>
       )}
 
-      {result && (
+      {!isLoading && result && (
         <div className="results-container">
           <RouteMetricsSummary
             original={result.original}
