@@ -38,9 +38,34 @@ export const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<OptimizeRouteResponse | null>(null);
 
+  const handleAddStop = () => {
+    if (stops.length >= 10) return;
+    const newStop: RouteStop = {
+      id: `stop-${crypto.randomUUID()}`,
+      label: `Stop ${stops.length + 1}`,
+      address: '',
+      serviceMinutes: 10,
+    };
+    setStops((prev) => [...prev, newStop]);
+  };
+
+  const handleRemoveStop = (id: string) => {
+    if (stops.length <= 1) return;
+    setStops((prev) => prev.filter((s) => s.id !== id));
+  };
+
+  const handleUpdateStop = (id: string, fields: Partial<RouteStop>) => {
+    setStops((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, ...fields } : s))
+    );
+  };
+
   const handleOptimize = () => {
     setIsLoading(true);
     setError(null);
+    setResult(null);
+
+    // Simulated response until backend integration
     setTimeout(() => {
       setIsLoading(false);
       console.log('Optimize request payload:', {
@@ -51,11 +76,6 @@ export const App: React.FC = () => {
       });
     }, 600);
   };
-
-  if (false as boolean) {
-    setStops([]);
-    setResult(null);
-  }
 
   return (
     <div className="app-root">
@@ -73,7 +93,13 @@ export const App: React.FC = () => {
               isLoading={isLoading}
               onOptimize={handleOptimize}
             />
-            <StopsSection stops={stops} isLoading={isLoading} />
+            <StopsSection
+              stops={stops}
+              isLoading={isLoading}
+              onAddStop={handleAddStop}
+              onRemoveStop={handleRemoveStop}
+              onUpdateStop={handleUpdateStop}
+            />
           </div>
           <div className="right-column">
             <ResultsSection result={result} isLoading={isLoading} error={error} />

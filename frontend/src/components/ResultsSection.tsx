@@ -53,7 +53,6 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ result, isLoadin
         </div>
       )}
 
-      {/* Visual outline preview of what will appear upon calculation */}
       {!result && (
         <div className="results-preview-placeholder">
           <div className="preview-card-placeholder">
@@ -68,7 +67,6 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ result, isLoadin
         </div>
       )}
 
-      {/* Basic representation if result is present */}
       {result && (
         <div className="results-content">
           <p>Route successfully calculated! Saved {result.savedMinutes} minutes ({result.savedDistanceKm.toFixed(1)} km).</p>
