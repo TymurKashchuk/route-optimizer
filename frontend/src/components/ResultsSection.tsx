@@ -1,5 +1,9 @@
 import React from 'react';
 import type { OptimizeRouteResponse } from '../types/route';
+import { RouteMetricsSummary } from './results/RouteMetricsSummary';
+import { OrderedStopsList } from './results/OrderedStopsList';
+import { RouteExplanation } from './results/RouteExplanation';
+import { TimelineView } from './results/TimelineView';
 
 interface ResultsSectionProps {
   result: OptimizeRouteResponse | null;
@@ -14,11 +18,12 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ result, isLoadin
           Optimization Results
         </h2>
         {isLoading && <span className="badge-muted">Calculating route...</span>}
-        {!isLoading && result && <span className="badge-muted">Optimized ({result.algorithm})</span>}
+        {!isLoading && result && (
+          <span className="badge-success">Optimized ({result.algorithm})</span>
+        )}
         {!isLoading && !result && <span className="badge-muted">Waiting for execution</span>}
       </div>
 
-      {/* Empty State before first optimization */}
       {!result && (
         <div className="empty-state">
           <div className="empty-state-icon">
@@ -46,23 +51,18 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ result, isLoadin
         </div>
       )}
 
-      {!result && (
-        <div className="results-preview-placeholder">
-          <div className="preview-card-placeholder">
-            <span className="placeholder-label">Key Metrics (Saved Time, Distance & Efficiency)</span>
-          </div>
-          <div className="preview-card-placeholder">
-            <span className="placeholder-label">Ordered Stops & Route Explanation</span>
-          </div>
-          <div className="preview-card-placeholder">
-            <span className="placeholder-label">Schedule & Estimated Arrival Timeline (ETA)</span>
-          </div>
-        </div>
-      )}
-
       {result && (
-        <div className="results-content">
-          <p>Route successfully calculated! Saved {result.savedMinutes} minutes ({result.savedDistanceKm.toFixed(1)} km).</p>
+        <div className="results-container">
+          <RouteMetricsSummary
+            original={result.original}
+            optimized={result.optimized}
+            savedMinutes={result.savedMinutes}
+            savedDistanceKm={result.savedDistanceKm}
+            improvementPercent={result.improvementPercent}
+          />
+          <OrderedStopsList orderedStops={result.orderedStops} />
+          <RouteExplanation explanationSteps={result.explanationSteps} />
+          <TimelineView timeline={result.timeline} />
         </div>
       )}
     </section>
