@@ -1,4 +1,4 @@
-﻿namespace RouteWise.Api.Contracts.Responses
+namespace RouteWise.Api.Contracts.Responses
 {
     public class OptimizeRouteResponse
     {
@@ -19,5 +19,7 @@
         public List<RouteStepDto> ExplanationSteps { get; set; } = new();
 
         public List<TimelineItemDto> Timeline { get; set; } = new();
+
+        public RoutePreviewDto RoutePreview { get; set; } = new();
     }
 }

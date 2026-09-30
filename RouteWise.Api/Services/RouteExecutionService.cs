@@ -12,6 +12,7 @@ namespace RouteWise.Api.Services
         private readonly TimelineService _timelineService;
         private readonly RouteComparisonService _routeComparisonService;
         private readonly RouteExplanationService _routeExplanationService;
+        private readonly RoutePreviewService _routePreviewService;
 
         public RouteExecutionService(
             RouteMatrixService routeMatrixService,
@@ -19,7 +20,8 @@ namespace RouteWise.Api.Services
             MetricsService metricsService,
             TimelineService timelineService,
             RouteComparisonService routeComparisonService,
-            RouteExplanationService routeExplanationService)
+            RouteExplanationService routeExplanationService,
+            RoutePreviewService routePreviewService)
         {
             _routeMatrixService = routeMatrixService;
             _optimizers = optimizers;
@@ -27,6 +29,7 @@ namespace RouteWise.Api.Services
             _timelineService = timelineService;
             _routeComparisonService = routeComparisonService;
             _routeExplanationService = routeExplanationService;
+            _routePreviewService = routePreviewService;
         }
 
         public async Task<OptimizeRouteResponse> ExecuteAsync(
@@ -77,6 +80,13 @@ namespace RouteWise.Api.Services
                 optimizedResult.OrderedStopIndices,
                 matrixResult.Matrix);
 
+            var routePreview = await _routePreviewService.BuildAsync(
+                start,
+                optimizedResult.OrderedStops,
+                optimizedResult.OrderedStopIndices,
+                matrixResult.Locations,
+                cancellationToken);
+
             return new OptimizeRouteResponse
             {
                 Algorithm = optimizedResult.Algorithm,
@@ -104,7 +114,8 @@ namespace RouteWise.Api.Services
                     Label = item.Label,
                     ArrivalTime = item.ArrivalTime,
                     DepartureTime = item.DepartureTime
-                }).ToList()
+                }).ToList(),
+                RoutePreview = routePreview
             };
         }
     }

@@ -195,5 +195,85 @@ namespace RouteWise.Tests.Providers
 
             Assert.Contains("Failed to parse", exception.Message);
         }
+
+        [Fact]
+        public async Task GetRouteGeometryAsync_WhenApiKeyMissing_ThrowsOpenRouteServiceException()
+        {
+            var (provider, _) = CreateProvider("{}", apiKey: "");
+
+            var exception = await Assert.ThrowsAsync<OpenRouteServiceException>(() =>
+                provider.GetRouteGeometryAsync(_demoLocations));
+
+            Assert.Contains("API key is missing", exception.Message);
+        }
+
+        [Fact]
+        public async Task GetRouteGeometryAsync_WithFewerThanTwoPoints_ReturnsEmptyGeometry()
+        {
+            var (provider, _) = CreateProvider("{}");
+
+            var result = await provider.GetRouteGeometryAsync(new List<LocationPoint> { _demoLocations[0] });
+
+            Assert.NotNull(result);
+            Assert.Empty(result.Coordinates);
+        }
+
+        [Fact]
+        public async Task GetRouteGeometryAsync_SendsCorrectCoordinatesAndHeaders()
+        {
+            var validGeoJson = """
+            {
+              "type": "FeatureCollection",
+              "features": [
+                {
+                  "type": "Feature",
+                  "geometry": {
+                    "type": "LineString",
+                    "coordinates": [
+                      [28.65867, 50.25465],
+                      [28.67669, 50.26407]
+                    ]
+                  }
+                }
+              ]
+            }
+            """;
+
+            var (provider, handler) = CreateProvider(validGeoJson, apiKey: "valid-key-123");
+
+            var result = await provider.GetRouteGeometryAsync(_demoLocations.Take(2).ToList());
+
+            Assert.NotNull(handler.LastRequest);
+            Assert.EndsWith("v2/directions/driving-car/geojson", handler.LastRequest!.RequestUri?.ToString());
+            Assert.True(handler.LastRequest.Headers.Contains("Authorization"));
+            Assert.Contains("valid-key-123", handler.LastRequest.Headers.GetValues("Authorization"));
+
+            Assert.NotNull(handler.LastRequestBody);
+            Assert.Contains("[28.65867,50.25465]", handler.LastRequestBody);
+
+            Assert.Equal(2, result.Coordinates.Count);
+            Assert.Equal(50.25465, result.Coordinates[0].Latitude);
+            Assert.Equal(28.65867, result.Coordinates[0].Longitude);
+            Assert.Equal(50.26407, result.Coordinates[1].Latitude);
+            Assert.Equal(28.67669, result.Coordinates[1].Longitude);
+        }
+
+        [Fact]
+        public async Task GetRouteGeometryAsync_WhenEmptyFeatures_ThrowsOpenRouteServiceException()
+        {
+            var emptyFeaturesJson = """
+            {
+              "type": "FeatureCollection",
+              "features": []
+            }
+            """;
+
+            var (provider, _) = CreateProvider(emptyFeaturesJson);
+
+            var exception = await Assert.ThrowsAsync<OpenRouteServiceException>(() =>
+                provider.GetRouteGeometryAsync(_demoLocations));
+
+            Assert.Contains("empty or invalid geometry", exception.Message);
+        }
     }
 }

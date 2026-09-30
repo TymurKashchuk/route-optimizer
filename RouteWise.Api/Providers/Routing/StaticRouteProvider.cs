@@ -26,5 +26,21 @@ namespace RouteWise.Api.Providers.Routing
 
             return Task.FromResult(matrix);
         }
+
+        public Task<RouteGeometry> GetRouteGeometryAsync(
+            List<LocationPoint> orderedLocations,
+            CancellationToken cancellationToken = default)
+        {
+            var geometry = new RouteGeometry
+            {
+                Coordinates = orderedLocations.Select(loc => new LocationPoint
+                {
+                    Latitude = loc.Latitude,
+                    Longitude = loc.Longitude
+                }).ToList()
+            };
+
+            return Task.FromResult(geometry);
+        }
     }
 }

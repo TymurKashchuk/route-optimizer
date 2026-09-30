@@ -86,6 +86,87 @@ namespace RouteWise.Api.Providers.Routing
             }
         }
 
+        public async Task<RouteGeometry> GetRouteGeometryAsync(
+            List<LocationPoint> orderedLocations,
+            CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(_options.ApiKey))
+            {
+                throw new OpenRouteServiceException("OpenRouteService API key is missing. Please configure it in settings.");
+            }
+
+            if (orderedLocations == null || orderedLocations.Count < 2)
+            {
+                return new RouteGeometry();
+            }
+
+            var requestBody = new OrsDirectionsRequest
+            {
+                Coordinates = orderedLocations
+                    .Select(loc => new List<double> { loc.Longitude, loc.Latitude })
+                    .ToList()
+            };
+
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, "v2/directions/driving-car/geojson")
+            {
+                Content = JsonContent.Create(requestBody)
+            };
+
+            httpRequest.Headers.TryAddWithoutValidation("Authorization", _options.ApiKey);
+
+            HttpResponseMessage response;
+            try
+            {
+                response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            }
+            catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested)
+            {
+                throw new OpenRouteServiceException("Request to OpenRouteService timed out.", ex);
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new OpenRouteServiceException("Network error occurred while connecting to OpenRouteService.", ex);
+            }
+
+            using (response)
+            {
+                if (!response.IsSuccessStatusCode)
+                {
+                    HandleErrorStatusCode(response.StatusCode);
+                }
+
+                OrsDirectionsGeoJsonResponse? geoJsonResponse;
+                try
+                {
+                    geoJsonResponse = await response.Content.ReadFromJsonAsync<OrsDirectionsGeoJsonResponse>(cancellationToken: cancellationToken);
+                }
+                catch (JsonException ex)
+                {
+                    throw new OpenRouteServiceException("Failed to parse response from OpenRouteService.", ex);
+                }
+
+                var feature = geoJsonResponse?.Features?.FirstOrDefault();
+                if (feature?.Geometry?.Coordinates is null || feature.Geometry.Coordinates.Count == 0)
+                {
+                    throw new OpenRouteServiceException("OpenRouteService returned an empty or invalid geometry response.");
+                }
+
+                var points = feature.Geometry.Coordinates
+                    .Where(coord => coord.Count >= 2)
+                    .Select(coord => new LocationPoint
+                    {
+                        Longitude = coord[0],
+                        Latitude = coord[1]
+                    })
+                    .ToList();
+
+                return new RouteGeometry
+                {
+                    Coordinates = points
+                };
+            }
+        }
+
         private static void HandleErrorStatusCode(HttpStatusCode statusCode)
         {
             if (statusCode == HttpStatusCode.Unauthorized)
