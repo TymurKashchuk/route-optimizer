@@ -4,6 +4,7 @@ import { RouteMetricsSummary } from './results/RouteMetricsSummary';
 import { OrderedStopsList } from './results/OrderedStopsList';
 import { RouteExplanation } from './results/RouteExplanation';
 import { TimelineView } from './results/TimelineView';
+import { RouteMapPreview } from './results/RouteMapPreview';
 
 interface ResultsSectionProps {
   result: OptimizeRouteResponse | null;
@@ -90,6 +91,7 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ result, isLoadin
             savedDistanceKm={result.savedDistanceKm}
             improvementPercent={result.improvementPercent}
           />
+          <RouteMapPreview preview={result.routePreview} />
           <OrderedStopsList orderedStops={result.orderedStops} />
           <RouteExplanation explanationSteps={result.explanationSteps} />
           <TimelineView timeline={result.timeline} />
