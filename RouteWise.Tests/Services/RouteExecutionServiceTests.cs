@@ -14,9 +14,10 @@ namespace RouteWise.Tests.Services
         [Fact]
         public async Task Execute_WithNearestNeighbor_ReturnsCompleteOptimizeRouteResponse()
         {
+            var staticRouteProvider = new StaticRouteProvider();
             var routeMatrixService = new RouteMatrixService(
                 new StaticGeocodingProvider(),
-                new StaticRouteProvider());
+                staticRouteProvider);
 
             var optimizers = new List<IRouteOptimizer>
             {
@@ -30,7 +31,8 @@ namespace RouteWise.Tests.Services
                 new MetricsService(),
                 new TimelineService(),
                 new RouteComparisonService(),
-                new RouteExplanationService());
+                new RouteExplanationService(),
+                new RoutePreviewService(staticRouteProvider));
 
             var start = new AddressInput
             {
@@ -70,6 +72,10 @@ namespace RouteWise.Tests.Services
             Assert.NotNull(result.Optimized);
             Assert.NotNull(result.Timeline);
             Assert.NotNull(result.ExplanationSteps);
+            Assert.NotNull(result.RoutePreview);
+            Assert.NotNull(result.RoutePreview.StartPoint);
+            Assert.Equal(2, result.RoutePreview.OrderedStops.Count);
+            Assert.NotEmpty(result.RoutePreview.GeometryCoordinates);
             Assert.Equal(3, result.Timeline.Count);
             Assert.Equal(2, result.ExplanationSteps.Count);
         }
@@ -77,9 +83,10 @@ namespace RouteWise.Tests.Services
         [Fact]
         public async Task Execute_WithUnknownAlgorithm_ThrowsInvalidOperationException()
         {
+            var staticRouteProvider = new StaticRouteProvider();
             var routeMatrixService = new RouteMatrixService(
                 new StaticGeocodingProvider(),
-                new StaticRouteProvider());
+                staticRouteProvider);
 
             var optimizers = new List<IRouteOptimizer>
             {
@@ -93,7 +100,8 @@ namespace RouteWise.Tests.Services
                 new MetricsService(),
                 new TimelineService(),
                 new RouteComparisonService(),
-                new RouteExplanationService());
+                new RouteExplanationService(),
+                new RoutePreviewService(staticRouteProvider));
 
             var start = new AddressInput
             {
@@ -136,7 +144,35 @@ namespace RouteWise.Tests.Services
             }
             """;
 
-            var handler = new TestHttpMessageHandler(orsResponseJson);
+            var validGeoJson = """
+            {
+              "type": "FeatureCollection",
+              "features": [
+                {
+                  "type": "Feature",
+                  "geometry": {
+                    "type": "LineString",
+                    "coordinates": [
+                      [28.65867, 50.25465],
+                      [28.67669, 50.26407],
+                      [28.67011, 50.25007]
+                    ]
+                  }
+                }
+              ]
+            }
+            """;
+
+            var handler = new TestHttpMessageHandler(req =>
+            {
+                var content = req.RequestUri?.ToString().Contains("geojson") == true
+                    ? validGeoJson
+                    : orsResponseJson;
+                return new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+                {
+                    Content = new StringContent(content, System.Text.Encoding.UTF8, "application/json")
+                };
+            });
             var httpClient = new HttpClient(handler)
             {
                 BaseAddress = new Uri("https://api.openrouteservice.org/")
@@ -164,7 +200,8 @@ namespace RouteWise.Tests.Services
                 new MetricsService(),
                 new TimelineService(),
                 new RouteComparisonService(),
-                new RouteExplanationService());
+                new RouteExplanationService(),
+                new RoutePreviewService(orsProvider));
 
             var start = new AddressInput
             {
@@ -204,6 +241,9 @@ namespace RouteWise.Tests.Services
             Assert.NotNull(result.Optimized);
             Assert.NotNull(result.Timeline);
             Assert.NotNull(result.ExplanationSteps);
+            Assert.NotNull(result.RoutePreview);
+            Assert.Equal(3, result.RoutePreview.GeometryCoordinates.Count);
+            Assert.Equal(2, result.RoutePreview.OrderedStops.Count);
             Assert.Equal(3, result.Timeline.Count);
         }
     }

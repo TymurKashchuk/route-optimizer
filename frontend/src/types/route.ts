@@ -37,6 +37,26 @@ export interface TimelineItemDto {
   departureTime: string;
 }
 
+export interface LocationPoint {
+  latitude: number;
+  longitude: number;
+}
+
+export interface RoutePointDto {
+  id: string;
+  label: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  order: number;
+}
+
+export interface RoutePreviewDto {
+  startPoint: RoutePointDto;
+  orderedStops: RoutePointDto[];
+  geometryCoordinates: LocationPoint[];
+}
+
 export interface OptimizeRouteResponse {
   algorithm: string;
   original: RouteMetricsDto;
@@ -47,4 +67,6 @@ export interface OptimizeRouteResponse {
   orderedStops: string[];
   explanationSteps: RouteStepDto[];
   timeline: TimelineItemDto[];
+  routePreview?: RoutePreviewDto;
 }
+

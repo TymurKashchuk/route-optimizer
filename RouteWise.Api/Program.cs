@@ -54,6 +54,7 @@ namespace RouteWise.Api
             builder.Services.AddScoped<RouteExecutionService>();
 
             builder.Services.AddScoped<RouteExplanationService>();
+            builder.Services.AddScoped<RoutePreviewService>();
 
             builder.Services.Configure<OpenRouteServiceOptions>(
                 builder.Configuration.GetSection(OpenRouteServiceOptions.SectionName));
