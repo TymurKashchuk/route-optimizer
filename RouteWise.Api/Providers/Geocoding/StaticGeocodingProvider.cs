@@ -1,4 +1,4 @@
-﻿using RouteWise.Api.Models;
+using RouteWise.Api.Models;
 
 namespace RouteWise.Api.Providers.Geocoding
 {
@@ -31,6 +31,29 @@ namespace RouteWise.Api.Providers.Geocoding
             var availableAddresses = string.Join(",", _knownAddresses.Keys);
 
             throw new InvalidOperationException($"Unknown address: {address}. Available demo addresses: {availableAddresses}");
+        }
+
+        public Task<IReadOnlyList<AddressSearchResult>> SearchAsync(
+            string query,
+            CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return Task.FromResult<IReadOnlyList<AddressSearchResult>>(Array.Empty<AddressSearchResult>());
+            }
+
+            var results = _knownAddresses
+                .Where(kvp => kvp.Key.Contains(query.Trim(), StringComparison.OrdinalIgnoreCase))
+                .Select(kvp => new AddressSearchResult
+                {
+                    Address = kvp.Key,
+                    DisplayName = kvp.Key,
+                    Coordinates = kvp.Value,
+                    Confidence = 1.0
+                })
+                .ToList();
+
+            return Task.FromResult<IReadOnlyList<AddressSearchResult>>(results);
         }
     }
 }
