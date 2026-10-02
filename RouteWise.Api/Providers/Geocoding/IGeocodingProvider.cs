@@ -6,6 +6,10 @@ namespace RouteWise.Api.Providers.Geocoding
     {
         LocationPoint Geocode(string address);
 
+        Task<LocationPoint> GeocodeAsync(
+            string address,
+            CancellationToken cancellationToken = default);
+
         Task<IReadOnlyList<AddressSearchResult>> SearchAsync(
             string query,
             CancellationToken cancellationToken = default);

@@ -24,12 +24,19 @@ namespace RouteWise.Api.Providers.Geocoding
 
         public LocationPoint Geocode(string address)
         {
+            return GeocodeAsync(address).GetAwaiter().GetResult();
+        }
+
+        public async Task<LocationPoint> GeocodeAsync(
+            string address,
+            CancellationToken cancellationToken = default)
+        {
             if (string.IsNullOrWhiteSpace(address))
             {
                 throw new ArgumentException("Address cannot be empty.", nameof(address));
             }
 
-            var results = SearchAsync(address).GetAwaiter().GetResult();
+            var results = await SearchAsync(address, cancellationToken);
             var first = results.FirstOrDefault();
 
             if (first == null)

@@ -33,6 +33,13 @@ namespace RouteWise.Api.Providers.Geocoding
             throw new InvalidOperationException($"Unknown address: {address}. Available demo addresses: {availableAddresses}");
         }
 
+        public Task<LocationPoint> GeocodeAsync(
+            string address,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(Geocode(address));
+        }
+
         public Task<IReadOnlyList<AddressSearchResult>> SearchAsync(
             string query,
             CancellationToken cancellationToken = default)

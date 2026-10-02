@@ -169,6 +169,35 @@ namespace RouteWise.Tests.Providers
         }
 
         [Fact]
+        public async Task GeocodeAsync_WhenAddressFound_ReturnsFirstCoordinatesAsync()
+        {
+            var jsonResponse = """
+            {
+              "type": "FeatureCollection",
+              "features": [
+                {
+                  "type": "Feature",
+                  "geometry": {
+                    "type": "Point",
+                    "coordinates": [30.5238, 50.4547]
+                  },
+                  "properties": {
+                    "label": "Khreshchatyk, Kyiv"
+                  }
+                }
+              ]
+            }
+            """;
+
+            var (provider, _) = CreateProvider(jsonResponse);
+
+            var location = await provider.GeocodeAsync("Khreshchatyk");
+
+            Assert.Equal(50.4547, location.Latitude);
+            Assert.Equal(30.5238, location.Longitude);
+        }
+
+        [Fact]
         public void Geocode_WhenNotFound_ThrowsInvalidOperationException()
         {
             var jsonResponse = """
