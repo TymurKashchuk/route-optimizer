@@ -20,10 +20,11 @@ namespace RouteWise.Tests.Services
 
             public Task<IReadOnlyList<AddressSearchResult>> SearchAsync(
                 string query,
+                int limit = 5,
                 CancellationToken cancellationToken = default)
             {
                 SearchCallCount++;
-                return Task.FromResult<IReadOnlyList<AddressSearchResult>>(ResultsToReturn);
+                return Task.FromResult<IReadOnlyList<AddressSearchResult>>(ResultsToReturn.Take(limit).ToList());
             }
         }
 
@@ -103,6 +104,30 @@ namespace RouteWise.Tests.Services
 
             // Provider should only be called once because the second call hits the cache
             Assert.Equal(1, provider.SearchCallCount);
+        }
+
+        [Fact]
+        public async Task SearchAsync_WhenDifferentLimits_CallsProviderForDifferentCacheKeys()
+        {
+            var provider = new TestGeocodingProvider
+            {
+                ResultsToReturn = new List<AddressSearchResult>
+                {
+                    new() { Address = "Addr 1", DisplayName = "Addr 1" },
+                    new() { Address = "Addr 2", DisplayName = "Addr 2" },
+                    new() { Address = "Addr 3", DisplayName = "Addr 3" }
+                }
+            };
+
+            using var cache = new MemoryCache(new MemoryCacheOptions());
+            var service = new GeocodingSearchService(provider, cache);
+
+            var limit2 = await service.SearchAsync("Lviv", limit: 2);
+            var limit3 = await service.SearchAsync("Lviv", limit: 3);
+
+            Assert.Equal(2, limit2.Count);
+            Assert.Equal(3, limit3.Count);
+            Assert.Equal(2, provider.SearchCallCount);
         }
     }
 }

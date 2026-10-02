@@ -5,6 +5,7 @@ import type { AddressSuggestionDto } from '../types/route';
  */
 export async function searchAddresses(
   query: string,
+  limit: number = 5,
   signal?: AbortSignal
 ): Promise<AddressSuggestionDto[]> {
   const trimmed = query.trim();
@@ -13,11 +14,14 @@ export async function searchAddresses(
   }
 
   try {
-    const response = await fetch(`/api/geocoding/search?query=${encodeURIComponent(trimmed)}`, {
-      method: 'GET',
-      headers: { Accept: 'application/json' },
-      signal,
-    });
+    const response = await fetch(
+      `/api/geocoding/search?query=${encodeURIComponent(trimmed)}&limit=${limit}`,
+      {
+        method: 'GET',
+        headers: { Accept: 'application/json' },
+        signal,
+      }
+    );
 
     if (!response.ok) {
       if (response.status === 429) {

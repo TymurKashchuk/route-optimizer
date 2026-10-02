@@ -23,7 +23,8 @@ namespace RouteWise.Api.Controllers
         [ProducesResponseType(StatusCodes.Status502BadGateway)]
         public async Task<ActionResult<IReadOnlyList<AddressSuggestionDto>>> Search(
             [FromQuery] string? query,
-            CancellationToken cancellationToken)
+            [FromQuery] int limit = 5,
+            CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(query) || query.Trim().Length < 2)
             {
@@ -32,7 +33,7 @@ namespace RouteWise.Api.Controllers
 
             try
             {
-                var results = await _geocodingSearchService.SearchAsync(query, cancellationToken);
+                var results = await _geocodingSearchService.SearchAsync(query, limit, cancellationToken);
                 return Ok(results);
             }
             catch (OpenRouteServiceException ex)

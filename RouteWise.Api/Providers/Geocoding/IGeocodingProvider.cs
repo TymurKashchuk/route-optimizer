@@ -12,6 +12,7 @@ namespace RouteWise.Api.Providers.Geocoding
 
         Task<IReadOnlyList<AddressSearchResult>> SearchAsync(
             string query,
+            int limit = 5,
             CancellationToken cancellationToken = default);
     }
 }

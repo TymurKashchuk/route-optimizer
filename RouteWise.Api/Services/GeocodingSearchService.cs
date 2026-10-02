@@ -20,6 +20,7 @@ namespace RouteWise.Api.Services
 
         public async Task<IReadOnlyList<AddressSuggestionDto>> SearchAsync(
             string query,
+            int limit = 5,
             CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(query) || query.Trim().Length < 2)
@@ -27,15 +28,16 @@ namespace RouteWise.Api.Services
                 return Array.Empty<AddressSuggestionDto>();
             }
 
+            limit = Math.Clamp(limit, 1, 10);
             var normalizedQuery = query.Trim().ToLowerInvariant();
-            var cacheKey = $"geo_search_{normalizedQuery}";
+            var cacheKey = $"geo_search_{normalizedQuery}_{limit}";
 
             if (_cache.TryGetValue(cacheKey, out IReadOnlyList<AddressSuggestionDto>? cachedResults) && cachedResults != null)
             {
                 return cachedResults;
             }
 
-            var searchResults = await _geocodingProvider.SearchAsync(query.Trim(), cancellationToken);
+            var searchResults = await _geocodingProvider.SearchAsync(query.Trim(), limit, cancellationToken);
 
             var dtos = searchResults.Select(r => new AddressSuggestionDto
             {

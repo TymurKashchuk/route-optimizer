@@ -36,7 +36,7 @@ namespace RouteWise.Api.Providers.Geocoding
                 throw new ArgumentException("Address cannot be empty.", nameof(address));
             }
 
-            var results = await SearchAsync(address, cancellationToken);
+            var results = await SearchAsync(address, 1, cancellationToken);
             var first = results.FirstOrDefault();
 
             if (first == null)
@@ -49,6 +49,7 @@ namespace RouteWise.Api.Providers.Geocoding
 
         public async Task<IReadOnlyList<AddressSearchResult>> SearchAsync(
             string query,
+            int limit = 5,
             CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(query))
@@ -61,7 +62,7 @@ namespace RouteWise.Api.Providers.Geocoding
                 throw new OpenRouteServiceException("OpenRouteService API key is missing. Please configure it in settings.");
             }
 
-            var requestUri = $"geocode/search?text={Uri.EscapeDataString(query.Trim())}&size=5";
+            var requestUri = $"geocode/search?text={Uri.EscapeDataString(query.Trim())}&size={limit}";
 
             using var httpRequest = new HttpRequestMessage(HttpMethod.Get, requestUri);
             httpRequest.Headers.TryAddWithoutValidation("Authorization", _options.ApiKey);
