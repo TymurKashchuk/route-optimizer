@@ -1,5 +1,6 @@
 import React from 'react';
 import type { RouteStop } from '../types/route';
+import { AddressAutocompleteInput } from './AddressAutocompleteInput';
 
 interface StopsSectionProps {
   stops: RouteStop[];
@@ -70,13 +71,12 @@ export const StopsSection: React.FC<StopsSectionProps> = ({
                   <label className="form-label-sm" htmlFor={`stop-address-${stop.id}`}>
                     Address
                   </label>
-                  <input
+                  <AddressAutocompleteInput
                     id={`stop-address-${stop.id}`}
-                    type="text"
                     className="form-input form-input-sm"
                     placeholder="Address (e.g. Khmelnytskoho 10, Kyiv)"
                     value={stop.address}
-                    onChange={(e) => onUpdateStop(stop.id, { address: e.target.value })}
+                    onChange={(newAddress) => onUpdateStop(stop.id, { address: newAddress })}
                     disabled={isLoading}
                   />
                 </div>

@@ -70,3 +70,10 @@ export interface OptimizeRouteResponse {
   routePreview?: RoutePreviewDto;
 }
 
+export interface AddressSuggestionDto {
+  address: string;
+  displayName: string;
+  latitude: number;
+  longitude: number;
+  confidence?: number;
+}

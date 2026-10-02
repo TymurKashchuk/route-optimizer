@@ -1,0 +1,11 @@
+namespace RouteWise.Api.Contracts.Responses
+{
+    public class AddressSuggestionDto
+    {
+        public string Address { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = string.Empty;
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+        public double? Confidence { get; set; }
+    }
+}

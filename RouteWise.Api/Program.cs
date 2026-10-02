@@ -44,7 +44,17 @@ namespace RouteWise.Api
             builder.Services.AddScoped<IRouteOptimizer, NearestNeighborOptimizer>();
             builder.Services.AddScoped<IRouteOptimizer>(sp => new TwoOptOptimizer(new NearestNeighborOptimizer()));
 
-            builder.Services.AddScoped<IGeocodingProvider, StaticGeocodingProvider>();
+            builder.Services.AddMemoryCache();
+            builder.Services.AddScoped<GeocodingSearchService>();
+
+            builder.Services.AddScoped<StaticGeocodingProvider>();
+            builder.Services.AddScoped<IGeocodingProvider>(sp =>
+            {
+                var options = sp.GetRequiredService<IOptions<OpenRouteServiceOptions>>().Value;
+                return !string.IsNullOrWhiteSpace(options.ApiKey)
+                    ? sp.GetRequiredService<OpenRouteServiceGeocodingProvider>()
+                    : sp.GetRequiredService<StaticGeocodingProvider>();
+            });
             builder.Services.AddScoped<IRouteProvider, StaticRouteProvider>();
 
             builder.Services.AddScoped<MetricsService>();
@@ -60,6 +70,13 @@ namespace RouteWise.Api
                 builder.Configuration.GetSection(OpenRouteServiceOptions.SectionName));
 
             builder.Services.AddHttpClient<OpenRouteServiceRouteProvider>((serviceProvider, httpClient) =>
+            {
+                var options = serviceProvider.GetRequiredService<IOptions<OpenRouteServiceOptions>>().Value;
+                httpClient.BaseAddress = new Uri(options.BaseUrl);
+                httpClient.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
+            });
+
+            builder.Services.AddHttpClient<OpenRouteServiceGeocodingProvider>((serviceProvider, httpClient) =>
             {
                 var options = serviceProvider.GetRequiredService<IOptions<OpenRouteServiceOptions>>().Value;
                 httpClient.BaseAddress = new Uri(options.BaseUrl);

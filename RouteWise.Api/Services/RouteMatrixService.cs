@@ -24,12 +24,12 @@ namespace RouteWise.Api.Services
         {
             var locations = new List<LocationPoint>();
 
-            var startLocation = _geocodingProvider.Geocode(start.Address);
+            var startLocation = await _geocodingProvider.GeocodeAsync(start.Address, cancellationToken);
             locations.Add(startLocation);
 
             foreach (var stop in stops)
             {
-                var stopLocation = _geocodingProvider.Geocode(stop.Address);
+                var stopLocation = await _geocodingProvider.GeocodeAsync(stop.Address, cancellationToken);
                 locations.Add(stopLocation);
             }
 
