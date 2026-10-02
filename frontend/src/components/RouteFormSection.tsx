@@ -1,5 +1,6 @@
 import React from 'react';
 import type { AddressInput, AlgorithmType } from '../types/route';
+import { AddressAutocompleteInput } from './AddressAutocompleteInput';
 
 interface RouteFormSectionProps {
   start: AddressInput;
@@ -42,13 +43,12 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
             onChange={(e) => onStartChange({ ...start, label: e.target.value })}
             disabled={isLoading}
           />
-          <input
+          <AddressAutocompleteInput
             id="start-address"
-            type="text"
             className="form-input"
             placeholder="Address (e.g. Khreshchatyk 1, Kyiv)"
             value={start.address}
-            onChange={(e) => onStartChange({ ...start, address: e.target.value })}
+            onChange={(newAddress) => onStartChange({ ...start, address: newAddress })}
             disabled={isLoading}
           />
         </div>
