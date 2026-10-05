@@ -13,11 +13,22 @@ namespace RouteWise.Api.Services
             _routeProvider = routeProvider;
         }
 
+        public Task<RoutePreviewDto> BuildAsync(
+            AddressInput start,
+            List<RouteStop> orderedStops,
+            List<int> orderedStopIndices,
+            List<LocationPoint> allLocations,
+            CancellationToken cancellationToken = default)
+        {
+            return BuildAsync(start, orderedStops, orderedStopIndices, allLocations, null, cancellationToken);
+        }
+
         public async Task<RoutePreviewDto> BuildAsync(
             AddressInput start,
             List<RouteStop> orderedStops,
             List<int> orderedStopIndices,
             List<LocationPoint> allLocations,
+            AddressInput? destination,
             CancellationToken cancellationToken = default)
         {
             if (allLocations == null || allLocations.Count == 0)
@@ -57,11 +68,30 @@ namespace RouteWise.Api.Services
                 });
             }
 
+            RoutePointDto destinationPoint = new();
+            if (destination != null && allLocations.Count > orderedStops.Count + 1)
+            {
+                var destLocationIndex = orderedStops.Count + 1;
+                var destLocation = allLocations[destLocationIndex];
+                orderedLocations.Add(destLocation);
+
+                destinationPoint = new RoutePointDto
+                {
+                    Id = "destination",
+                    Label = destination.Label,
+                    Address = destination.Address,
+                    Latitude = destLocation.Latitude,
+                    Longitude = destLocation.Longitude,
+                    Order = orderedStops.Count + 1
+                };
+            }
+
             var routeGeometry = await _routeProvider.GetRouteGeometryAsync(orderedLocations, cancellationToken);
 
             return new RoutePreviewDto
             {
                 StartPoint = startPoint,
+                DestinationPoint = destinationPoint,
                 OrderedStops = orderedRoutePoints,
                 GeometryCoordinates = routeGeometry.Coordinates
             };

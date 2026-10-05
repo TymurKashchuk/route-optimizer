@@ -32,14 +32,25 @@ namespace RouteWise.Api.Services
             _routePreviewService = routePreviewService;
         }
 
-        public async Task<OptimizeRouteResponse> ExecuteAsync(
+        public Task<OptimizeRouteResponse> ExecuteAsync(
             string algorithm,
             AddressInput start,
             DateTime departureTime,
             List<RouteStop> stops,
             CancellationToken cancellationToken = default)
         {
-            var matrixResult = await _routeMatrixService.BuildMatrixAsync(start, stops, cancellationToken);
+            return ExecuteAsync(algorithm, start, departureTime, stops, null, cancellationToken);
+        }
+
+        public async Task<OptimizeRouteResponse> ExecuteAsync(
+            string algorithm,
+            AddressInput start,
+            DateTime departureTime,
+            List<RouteStop> stops,
+            AddressInput? destination,
+            CancellationToken cancellationToken = default)
+        {
+            var matrixResult = await _routeMatrixService.BuildMatrixAsync(start, stops, destination, cancellationToken);
 
             var originalOptimizer = _optimizers.First(o =>
                 o.AlgorithmName.Equals("original", StringComparison.OrdinalIgnoreCase));
@@ -52,18 +63,22 @@ namespace RouteWise.Api.Services
                 throw new InvalidOperationException($"Unknown algorithm: {algorithm}");
             }
 
-            var originalResult = originalOptimizer.Optimize(stops, matrixResult.Matrix);
-            var optimizedResult = selectedOptimizer.Optimize(stops, matrixResult.Matrix);
+            int? destinationMatrixIndex = destination != null ? stops.Count + 1 : null;
+
+            var originalResult = originalOptimizer.Optimize(stops, matrixResult.Matrix, destinationMatrixIndex);
+            var optimizedResult = selectedOptimizer.Optimize(stops, matrixResult.Matrix, destinationMatrixIndex);
 
             var originalMetrics = _metricsService.Calculate(
                 originalResult.OrderedStops,
                 originalResult.OrderedStopIndices,
-                matrixResult.Matrix);
+                matrixResult.Matrix,
+                destinationMatrixIndex);
 
             var optimizedMetrics = _metricsService.Calculate(
                 optimizedResult.OrderedStops,
                 optimizedResult.OrderedStopIndices,
-                matrixResult.Matrix);
+                matrixResult.Matrix,
+                destinationMatrixIndex);
 
             var comparison = _routeComparisonService.Compare(originalMetrics, optimizedMetrics);
 
@@ -72,19 +87,24 @@ namespace RouteWise.Api.Services
                 departureTime,
                 optimizedResult.OrderedStops,
                 optimizedResult.OrderedStopIndices,
-                matrixResult.Matrix);
+                matrixResult.Matrix,
+                destination,
+                destinationMatrixIndex);
 
             var explanationSteps = _routeExplanationService.Build(
                 start,
                 optimizedResult.OrderedStops,
                 optimizedResult.OrderedStopIndices,
-                matrixResult.Matrix);
+                matrixResult.Matrix,
+                destination,
+                destinationMatrixIndex);
 
             var routePreview = await _routePreviewService.BuildAsync(
                 start,
                 optimizedResult.OrderedStops,
                 optimizedResult.OrderedStopIndices,
                 matrixResult.Locations,
+                destination,
                 cancellationToken);
 
             return new OptimizeRouteResponse

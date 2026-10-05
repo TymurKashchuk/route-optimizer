@@ -30,6 +30,7 @@ namespace RouteWise.Api.Controllers
                     request.Start,
                     request.DepartureTime,
                     request.Stops,
+                    request.Destination,
                     cancellationToken);
 
                 return Ok(response);

@@ -1,10 +1,15 @@
-﻿using RouteWise.Api.Models;
+using RouteWise.Api.Models;
 
 namespace RouteWise.Api.Services
 {
     public class MetricsService
     {
-        public RouteMetrics Calculate(List<RouteStop> orderedStops, List<int> orderedStopIndices, RouteMatrix matrix) { 
+        public RouteMetrics Calculate(
+            List<RouteStop> orderedStops,
+            List<int> orderedStopIndices,
+            RouteMatrix matrix,
+            int? destinationMatrixIndex = null)
+        { 
             var totalTravelMinutes = 0;
             var totalDistanceKm = 0.0;
             var totalServiceMinutes = orderedStops.Sum(stop => stop.ServiceMinutes);
@@ -19,6 +24,12 @@ namespace RouteWise.Api.Services
                 totalDistanceKm += matrix.DistancesKm[currentMatrixIndex][nextMatrixIndex];
 
                 currentMatrixIndex = nextMatrixIndex;
+            }
+
+            if (destinationMatrixIndex.HasValue)
+            {
+                totalTravelMinutes += matrix.TravelTimesMinutes[currentMatrixIndex][destinationMatrixIndex.Value];
+                totalDistanceKm += matrix.DistancesKm[currentMatrixIndex][destinationMatrixIndex.Value];
             }
 
             return new RouteMetrics
