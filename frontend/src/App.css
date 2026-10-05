@@ -1013,6 +1013,10 @@
   background-color: var(--primary);
 }
 
+.legend-dest {
+  background-color: #ef4444;
+}
+
 .route-map-wrapper {
   position: relative;
   width: 100%;
@@ -1061,6 +1065,10 @@
 
 .map-marker-stop {
   background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
+
+.map-marker-dest {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
 }
 
 .map-popup-content {

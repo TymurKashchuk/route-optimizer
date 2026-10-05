@@ -8,10 +8,17 @@ interface RouteMapPreviewProps {
   isLoading?: boolean;
 }
 
-const createNumberedIcon = (label: string | number, isStart: boolean = false) => {
+const createNumberedIcon = (label: string | number, type: 'start' | 'stop' | 'destination' = 'stop') => {
+  const badgeClass =
+    type === 'start'
+      ? 'map-marker-start'
+      : type === 'destination'
+      ? 'map-marker-dest'
+      : 'map-marker-stop';
+
   return L.divIcon({
     className: 'custom-map-marker-container',
-    html: `<div class="map-marker-badge ${isStart ? 'map-marker-start' : 'map-marker-stop'}">${label}</div>`,
+    html: `<div class="map-marker-badge ${badgeClass}">${label}</div>`,
     iconSize: [30, 30],
     iconAnchor: [15, 15],
     popupAnchor: [0, -15],
@@ -47,13 +54,16 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({ preview, isLoa
       return preview.geometryCoordinates.map((coord) => [coord.latitude, coord.longitude]);
     }
 
-    // Fallback: direct lines between start and stops
+    // Fallback: direct lines between start, stops, and destination
     const points: [number, number][] = [
       [preview.startPoint.latitude, preview.startPoint.longitude],
     ];
     preview.orderedStops.forEach((stop) => {
       points.push([stop.latitude, stop.longitude]);
     });
+    if (preview.destinationPoint && preview.destinationPoint.address) {
+      points.push([preview.destinationPoint.latitude, preview.destinationPoint.longitude]);
+    }
     return points;
   }, [preview]);
 
@@ -65,6 +75,9 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({ preview, isLoa
     preview.orderedStops.forEach((stop) => {
       points.push([stop.latitude, stop.longitude]);
     });
+    if (preview.destinationPoint && preview.destinationPoint.address) {
+      points.push([preview.destinationPoint.latitude, preview.destinationPoint.longitude]);
+    }
     return points;
   }, [preview]);
 
@@ -92,13 +105,15 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({ preview, isLoa
     preview.startPoint.longitude,
   ];
 
+  const totalPointsCount = preview.orderedStops.length + 1 + (preview.destinationPoint?.address ? 1 : 0);
+
   return (
     <div className="card route-map-card">
       <div className="route-map-header">
         <div className="route-map-title-wrap">
           <h3 className="section-title">Route Map Preview</h3>
           <span className="badge-muted">
-            {preview.orderedStops.length + 1} points total
+            {totalPointsCount} points total
           </span>
         </div>
         <div className="map-legend">
@@ -106,7 +121,10 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({ preview, isLoa
             <span className="legend-badge legend-start">S</span> Start
           </span>
           <span className="legend-item">
-            <span className="legend-badge legend-stop">1..N</span> Stops sequence
+            <span className="legend-badge legend-stop">1..N</span> Stops
+          </span>
+          <span className="legend-item">
+            <span className="legend-badge legend-dest">D</span> Destination
           </span>
         </div>
       </div>
@@ -130,7 +148,7 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({ preview, isLoa
           {/* Start Marker */}
           <Marker
             position={[preview.startPoint.latitude, preview.startPoint.longitude]}
-            icon={createNumberedIcon('S', true)}
+            icon={createNumberedIcon('S', 'start')}
           >
             <Popup>
               <div className="map-popup-content">
@@ -145,7 +163,7 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({ preview, isLoa
             <Marker
               key={stop.id}
               position={[stop.latitude, stop.longitude]}
-              icon={createNumberedIcon(stop.order, false)}
+              icon={createNumberedIcon(stop.order, 'stop')}
             >
               <Popup>
                 <div className="map-popup-content">
@@ -157,6 +175,21 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({ preview, isLoa
               </Popup>
             </Marker>
           ))}
+
+          {/* Destination Marker */}
+          {preview.destinationPoint && preview.destinationPoint.address && (
+            <Marker
+              position={[preview.destinationPoint.latitude, preview.destinationPoint.longitude]}
+              icon={createNumberedIcon('D', 'destination')}
+            >
+              <Popup>
+                <div className="map-popup-content">
+                  <strong>Destination: {preview.destinationPoint.label}</strong>
+                  <p>{preview.destinationPoint.address}</p>
+                </div>
+              </Popup>
+            </Marker>
+          )}
 
           {/* Route Polyline */}
           {polylinePositions.length > 1 && (

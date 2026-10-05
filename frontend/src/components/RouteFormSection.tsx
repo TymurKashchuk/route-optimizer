@@ -5,6 +5,8 @@ import { AddressAutocompleteInput } from './AddressAutocompleteInput';
 interface RouteFormSectionProps {
   start: AddressInput;
   onStartChange: (start: AddressInput) => void;
+  destination: AddressInput;
+  onDestinationChange: (destination: AddressInput) => void;
   departureTime: string;
   onDepartureTimeChange: (time: string) => void;
   algorithm: AlgorithmType;
@@ -16,6 +18,8 @@ interface RouteFormSectionProps {
 export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
   start,
   onStartChange,
+  destination,
+  onDestinationChange,
   departureTime,
   onDepartureTimeChange,
   algorithm,
@@ -49,6 +53,31 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
             placeholder="Address (e.g. Khreshchatyk 1, Kyiv)"
             value={start.address}
             onChange={(newAddress) => onStartChange({ ...start, address: newAddress })}
+            disabled={isLoading}
+          />
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label className="form-label" htmlFor="destination-address">
+          Destination Location (Fixed Finish)
+        </label>
+        <div className="input-group">
+          <input
+            id="destination-label"
+            type="text"
+            className="form-input start-label-input"
+            placeholder="Label (e.g. Garage)"
+            value={destination.label}
+            onChange={(e) => onDestinationChange({ ...destination, label: e.target.value })}
+            disabled={isLoading}
+          />
+          <AddressAutocompleteInput
+            id="destination-address"
+            className="form-input"
+            placeholder="Address (e.g. Zhytomyr Depot)"
+            value={destination.address}
+            onChange={(newAddress) => onDestinationChange({ ...destination, address: newAddress })}
             disabled={isLoading}
           />
         </div>

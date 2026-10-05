@@ -13,6 +13,11 @@ const DEFAULT_START: AddressInput = {
   address: 'Zhytomyr Central Square',
 };
 
+const DEFAULT_DESTINATION: AddressInput = {
+  label: 'Final Garage',
+  address: 'Zhytomyr Central Square',
+};
+
 const DEFAULT_STOPS: RouteStop[] = [
   {
     id: 'stop-1',
@@ -31,6 +36,7 @@ const DEFAULT_STOPS: RouteStop[] = [
 export const App: React.FC = () => {
   // Form State
   const [start, setStart] = useState<AddressInput>(DEFAULT_START);
+  const [destination, setDestination] = useState<AddressInput>(DEFAULT_DESTINATION);
   const [departureTime, setDepartureTime] = useState<string>('2026-09-28T09:00');
   const [algorithm, setAlgorithm] = useState<AlgorithmType>('two-opt');
   const [stops, setStops] = useState<RouteStop[]>(DEFAULT_STOPS);
@@ -81,6 +87,7 @@ export const App: React.FC = () => {
           algorithm,
           departureTime,
           start,
+          destination,
           stops,
         },
         controller.signal
@@ -112,6 +119,8 @@ export const App: React.FC = () => {
             <RouteFormSection
               start={start}
               onStartChange={setStart}
+              destination={destination}
+              onDestinationChange={setDestination}
               departureTime={departureTime}
               onDepartureTimeChange={setDepartureTime}
               algorithm={algorithm}
