@@ -84,7 +84,7 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ result, isLoadin
           <h3 className="empty-state-title">No Route Calculated Yet</h3>
           <p className="empty-state-text">
             Configure start location, add at least one stop, select an optimization algorithm, and click
-            <strong> "Optimize Route"</strong> to compute the optimal delivery sequence and view timeline metrics.
+            <strong> "Optimize Route"</strong> to compute the optimal route and view your timeline schedule.
           </p>
         </div>
       )}

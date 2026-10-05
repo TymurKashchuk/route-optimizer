@@ -70,7 +70,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ timeline, planningMo
 
                 {serviceMinutes > 0 && (
                   <span className="timeline-service-hint">
-                    Stop duration: {serviceMinutes} min service
+                    Stop stay: {serviceMinutes} min
                   </span>
                 )}
               </div>

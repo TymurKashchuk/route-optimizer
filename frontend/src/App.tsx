@@ -8,27 +8,35 @@ import { Toast } from './components/Toast';
 import type { AddressInput, AlgorithmType, OptimizeRouteResponse, PlanningMode, RouteStop } from './types/route';
 import { optimizeRoute } from './api/routeClient';
 
+function getTodayDateString(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 const DEFAULT_START: AddressInput = {
-  label: 'Central Depot',
+  label: 'Home',
   address: 'Zhytomyr Central Square',
 };
 
 const DEFAULT_DESTINATION: AddressInput = {
-  label: 'Final Garage',
-  address: 'Zhytomyr Central Square',
+  label: 'City Hospital',
+  address: 'Zhytomyr City Hospital',
 };
 
 const DEFAULT_STOPS: RouteStop[] = [
   {
     id: 'stop-1',
-    label: 'Railway Station',
+    label: 'Pharmacy',
     address: 'Zhytomyr Railway Station',
     serviceMinutes: 15,
   },
   {
     id: 'stop-2',
-    label: 'City Hospital',
-    address: 'Zhytomyr City Hospital',
+    label: 'Supermarket',
+    address: 'Zhytomyr Central Square',
     serviceMinutes: 20,
   },
 ];
@@ -38,10 +46,23 @@ export const App: React.FC = () => {
   const [start, setStart] = useState<AddressInput>(DEFAULT_START);
   const [destination, setDestination] = useState<AddressInput>(DEFAULT_DESTINATION);
   const [planningMode, setPlanningMode] = useState<PlanningMode>('depart-at');
-  const [departureTime, setDepartureTime] = useState<string>('2026-09-28T09:00');
-  const [arrivalBy, setArrivalBy] = useState<string>('2026-09-28T14:00');
+  const [departureTime, setDepartureTime] = useState<string>(() => `${getTodayDateString()}T09:00`);
+  const [arrivalBy, setArrivalBy] = useState<string>(() => `${getTodayDateString()}T14:00`);
   const [algorithm, setAlgorithm] = useState<AlgorithmType>('two-opt');
   const [stops, setStops] = useState<RouteStop[]>(DEFAULT_STOPS);
+
+  const handlePlanningModeChange = (mode: PlanningMode) => {
+    setPlanningMode(mode);
+    if (mode === 'arrive-by') {
+      const datePart = departureTime.split('T')[0] || getTodayDateString();
+      const timePart = arrivalBy.split('T')[1] || '14:00';
+      setArrivalBy(`${datePart}T${timePart}`);
+    } else {
+      const datePart = arrivalBy.split('T')[0] || getTodayDateString();
+      const timePart = departureTime.split('T')[1] || '09:00';
+      setDepartureTime(`${datePart}T${timePart}`);
+    }
+  };
 
   // Request & Execution State
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -126,7 +147,7 @@ export const App: React.FC = () => {
               destination={destination}
               onDestinationChange={setDestination}
               planningMode={planningMode}
-              onPlanningModeChange={setPlanningMode}
+              onPlanningModeChange={handlePlanningModeChange}
               departureTime={departureTime}
               onDepartureTimeChange={setDepartureTime}
               arrivalBy={arrivalBy}

@@ -52,7 +52,7 @@ export const RouteMetricsSummary: React.FC<RouteMetricsSummaryProps> = ({
           <div className="comparison-stats">
             <div>Travel: <strong>{original.totalTravelMinutes} min</strong></div>
             <div>Distance: <strong>{original.totalDistanceKm.toFixed(1)} km</strong></div>
-            <div>Service: <strong>{original.totalServiceMinutes} min</strong></div>
+            <div>Stops stay: <strong>{original.totalServiceMinutes} min</strong></div>
           </div>
         </div>
 
@@ -63,7 +63,7 @@ export const RouteMetricsSummary: React.FC<RouteMetricsSummaryProps> = ({
           <div className="comparison-stats">
             <div>Travel: <strong>{optimized.totalTravelMinutes} min</strong></div>
             <div>Distance: <strong>{optimized.totalDistanceKm.toFixed(1)} km</strong></div>
-            <div>Service: <strong>{optimized.totalServiceMinutes} min</strong></div>
+            <div>Stops stay: <strong>{optimized.totalServiceMinutes} min</strong></div>
           </div>
         </div>
       </div>
