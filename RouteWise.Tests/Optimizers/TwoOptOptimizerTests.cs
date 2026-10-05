@@ -84,5 +84,40 @@ namespace RouteWise.Tests.Optimizers
                 $"Two-Opt ({twoOptMetrics.TotalTravelMinutes} хв) має бути швидшим за NN ({nnMetrics.TotalTravelMinutes} хв)");
             Assert.Equal(22, twoOptMetrics.TotalTravelMinutes);
         }
+
+        [Fact]
+        public void Optimize_WithFixedDestination_ConsidersDestinationAndReordersStops()
+        {
+            var optimizer = new TwoOptOptimizer();
+
+            var stops = new List<RouteStop>
+            {
+                new() { Id = "1", Label = "Client A", Address = "Addr A" },
+                new() { Id = "2", Label = "Client B", Address = "Addr B" }
+            };
+
+            // 0: Start, 1: Stop A, 2: Stop B, 3: Destination
+            var matrix = new RouteMatrix
+            {
+                TravelTimesMinutes = new List<List<int>>
+                {
+                    new() { 0,   5,  10, 50 },  // Start -> A (5 хв), Start -> B (10 хв)
+                    new() { 5,   0,  10,  2 },  // A -> B (10 хв), A -> Dest (2 хв!)
+                    new() { 10, 10,   0, 80 },  // B -> A (10 хв), B -> Dest (80 хв!)
+                    new() { 50,  2,  80,  0 }   // Dest
+                },
+                DistancesKm = new List<List<double>>()
+            };
+
+            // NN обере спочатку найближчий до старту Stop A (5 хв vs 10 хв), даючи порядок [A, B]
+            // Але від B до Dest аж 80 хв (разом: 5 + 10 + 80 = 95 хв).
+            // Порядок [B, A] дає: Start->B (10) + B->A (10) + A->Dest (2) = 22 хв!
+            var result = optimizer.Optimize(stops, matrix, destinationMatrixIndex: 3);
+
+            Assert.Equal("two-opt", result.Algorithm);
+            Assert.Equal(2, result.OrderedStops.Count);
+            Assert.Equal("Client B", result.OrderedStops[0].Label);
+            Assert.Equal("Client A", result.OrderedStops[1].Label);
+        }
     }
 }

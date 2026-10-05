@@ -68,5 +68,55 @@ namespace RouteWise.Tests.Services
             Assert.Empty(preview.OrderedStops);
             Assert.Empty(preview.GeometryCoordinates);
         }
+
+        [Fact]
+        public async Task BuildAsync_WithDestination_IncludesDestinationPointAndGeometry()
+        {
+            var staticRouteProvider = new StaticRouteProvider();
+            var service = new RoutePreviewService(staticRouteProvider);
+
+            var start = new AddressInput
+            {
+                Label = "Start Hub",
+                Address = "Zhytomyr Central Square"
+            };
+
+            var stops = new List<RouteStop>
+            {
+                new RouteStop { Id = "s1", Label = "Stop 1", Address = "Zhytomyr Railway Station" },
+                new RouteStop { Id = "s2", Label = "Stop 2", Address = "Zhytomyr City Hospital" }
+            };
+
+            var destination = new AddressInput
+            {
+                Label = "Depot Finish",
+                Address = "Zhytomyr Depot"
+            };
+
+            var allLocations = new List<LocationPoint>
+            {
+                new LocationPoint { Latitude = 50.25465, Longitude = 28.65867 }, // start
+                new LocationPoint { Latitude = 50.26407, Longitude = 28.67669 }, // s1
+                new LocationPoint { Latitude = 50.25007, Longitude = 28.67011 }, // s2
+                new LocationPoint { Latitude = 50.24000, Longitude = 28.66000 }  // destination
+            };
+
+            var orderedStops = new List<RouteStop> { stops[1], stops[0] };
+            var orderedStopIndices = new List<int> { 1, 0 };
+
+            var preview = await service.BuildAsync(start, orderedStops, orderedStopIndices, allLocations, destination);
+
+            Assert.NotNull(preview);
+            Assert.Equal("start", preview.StartPoint.Id);
+            Assert.Equal(2, preview.OrderedStops.Count);
+
+            Assert.NotNull(preview.DestinationPoint);
+            Assert.Equal("destination", preview.DestinationPoint.Id);
+            Assert.Equal("Depot Finish", preview.DestinationPoint.Label);
+            Assert.Equal(50.24000, preview.DestinationPoint.Latitude);
+            Assert.Equal(3, preview.DestinationPoint.Order);
+
+            Assert.Equal(4, preview.GeometryCoordinates.Count);
+        }
     }
 }

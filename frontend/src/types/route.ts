@@ -16,6 +16,7 @@ export interface OptimizeRouteRequest {
   algorithm: AlgorithmType;
   departureTime: string;
   start: AddressInput;
+  destination: AddressInput;
   stops: RouteStop[];
 }
 
@@ -53,6 +54,7 @@ export interface RoutePointDto {
 
 export interface RoutePreviewDto {
   startPoint: RoutePointDto;
+  destinationPoint?: RoutePointDto;
   orderedStops: RoutePointDto[];
   geometryCoordinates: LocationPoint[];
 }

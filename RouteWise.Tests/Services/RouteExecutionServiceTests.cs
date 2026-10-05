@@ -241,10 +241,100 @@ namespace RouteWise.Tests.Services
             Assert.NotNull(result.Optimized);
             Assert.NotNull(result.Timeline);
             Assert.NotNull(result.ExplanationSteps);
-            Assert.NotNull(result.RoutePreview);
             Assert.Equal(3, result.RoutePreview.GeometryCoordinates.Count);
             Assert.Equal(2, result.RoutePreview.OrderedStops.Count);
             Assert.Equal(3, result.Timeline.Count);
+        }
+
+        [Fact]
+        public async Task Execute_WithDestination_ReturnsCompleteOptimizeRouteResponseWithFixedDestination()
+        {
+            var staticRouteProvider = new StaticRouteProvider();
+            var routeMatrixService = new RouteMatrixService(
+                new StaticGeocodingProvider(),
+                staticRouteProvider);
+
+            var optimizers = new List<IRouteOptimizer>
+            {
+                new OriginalOrderOptimizer(),
+                new NearestNeighborOptimizer(),
+                new TwoOptOptimizer()
+            };
+
+            var service = new RouteExecutionService(
+                routeMatrixService,
+                optimizers,
+                new MetricsService(),
+                new TimelineService(),
+                new RouteComparisonService(),
+                new RouteExplanationService(),
+                new RoutePreviewService(staticRouteProvider));
+
+            var start = new AddressInput
+            {
+                Label = "Office",
+                Address = "Zhytomyr Central Square"
+            };
+
+            var stops = new List<RouteStop>
+            {
+                new RouteStop
+                {
+                    Id = "1",
+                    Label = "Client A",
+                    Address = "Zhytomyr Railway Station",
+                    ServiceMinutes = 20
+                },
+                new RouteStop
+                {
+                    Id = "2",
+                    Label = "Client B",
+                    Address = "Zhytomyr City Hospital",
+                    ServiceMinutes = 15
+                }
+            };
+
+            var destination = new AddressInput
+            {
+                Label = "Central Depot",
+                Address = "Zhytomyr Central Square"
+            };
+
+            var departureTime = new DateTime(2026, 7, 31, 9, 0, 0);
+
+            var result = await service.ExecuteAsync(
+                "two-opt",
+                start,
+                departureTime,
+                stops,
+                destination);
+
+            Assert.Equal("two-opt", result.Algorithm);
+            // Only intermediate stops are in OrderedStops
+            Assert.Equal(2, result.OrderedStops.Count);
+
+            // Timeline has Start + 2 Stops + Destination = 4 items
+            Assert.Equal(4, result.Timeline.Count);
+            Assert.Equal("Office", result.Timeline[0].Label);
+            Assert.Equal("Central Depot", result.Timeline[3].Label);
+
+            // ExplanationSteps has Start->Stop1, Stop1->Stop2, Stop2->Destination = 3 steps
+            Assert.Equal(3, result.ExplanationSteps.Count);
+            Assert.Equal("Office", result.ExplanationSteps[0].From);
+            Assert.Equal("Central Depot", result.ExplanationSteps[2].To);
+
+            // RoutePreview has StartPoint, 2 OrderedStops, DestinationPoint and Geometry
+            Assert.NotNull(result.RoutePreview);
+            Assert.Equal("start", result.RoutePreview.StartPoint.Id);
+            Assert.Equal(2, result.RoutePreview.OrderedStops.Count);
+            Assert.NotNull(result.RoutePreview.DestinationPoint);
+            Assert.Equal("destination", result.RoutePreview.DestinationPoint.Id);
+            Assert.Equal("Central Depot", result.RoutePreview.DestinationPoint.Label);
+            Assert.Equal(4, result.RoutePreview.GeometryCoordinates.Count);
+
+            // Metrics include travel to destination
+            Assert.True(result.Optimized.TotalTravelMinutes > 0);
+            Assert.True(result.Optimized.TotalDistanceKm > 0);
         }
     }
 }
