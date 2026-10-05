@@ -17,11 +17,13 @@ namespace RouteWise.Api.Optimizers
             _initialOptimizer = initialOptimizer;
         }
 
-        public OptimizationResult Optimize(List<RouteStop> stops, RouteMatrix matrix)
+        public OptimizationResult Optimize(List<RouteStop> stops, RouteMatrix matrix, int? destinationMatrixIndex = null)
         {
-            if (stops.Count <= 2)
+            var effectiveDestIndex = destinationMatrixIndex ?? (matrix.TravelTimesMinutes.Count >= stops.Count + 2 ? stops.Count + 1 : (int?)null);
+
+            if (stops.Count < 2)
             {
-                var baseResult = _initialOptimizer.Optimize(stops, matrix);
+                var baseResult = _initialOptimizer.Optimize(stops, matrix, effectiveDestIndex);
                 return new OptimizationResult
                 {
                     Algorithm = AlgorithmName,
@@ -30,9 +32,9 @@ namespace RouteWise.Api.Optimizers
                 };
             }
 
-            var initialResult = _initialOptimizer.Optimize(stops, matrix);
+            var initialResult = _initialOptimizer.Optimize(stops, matrix, effectiveDestIndex);
             var bestRoute = new List<int>(initialResult.OrderedStopIndices);
-            var bestTime = CalculateTotalTravelTime(bestRoute, matrix);
+            var bestTime = CalculateTotalTravelTime(bestRoute, matrix, effectiveDestIndex);
 
             bool improved = true;
             while (improved)
@@ -44,7 +46,7 @@ namespace RouteWise.Api.Optimizers
                     for (int j = i + 1; j < bestRoute.Count; j++)
                     {
                         var candidateRoute = TwoOptSwap(bestRoute, i, j);
-                        var candidateTime = CalculateTotalTravelTime(candidateRoute, matrix);
+                        var candidateTime = CalculateTotalTravelTime(candidateRoute, matrix, effectiveDestIndex);
 
                         if (candidateTime < bestTime)
                         {
@@ -92,7 +94,7 @@ namespace RouteWise.Api.Optimizers
             return newRoute;
         }
 
-        private static int CalculateTotalTravelTime(List<int> routeIndices, RouteMatrix matrix)
+        private static int CalculateTotalTravelTime(List<int> routeIndices, RouteMatrix matrix, int? destinationMatrixIndex)
         {
             var total = 0;
             var currentMatrixIndex = 0;
@@ -102,6 +104,11 @@ namespace RouteWise.Api.Optimizers
                 var nextMatrixIndex = routeIndices[k] + 1;
                 total += matrix.TravelTimesMinutes[currentMatrixIndex][nextMatrixIndex];
                 currentMatrixIndex = nextMatrixIndex;
+            }
+
+            if (destinationMatrixIndex.HasValue && routeIndices.Count > 0)
+            {
+                total += matrix.TravelTimesMinutes[currentMatrixIndex][destinationMatrixIndex.Value];
             }
 
             return total;

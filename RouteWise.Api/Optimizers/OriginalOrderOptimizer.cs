@@ -1,4 +1,4 @@
-﻿using RouteWise.Api.Models;
+using RouteWise.Api.Models;
 
 namespace RouteWise.Api.Optimizers
 {
@@ -6,7 +6,7 @@ namespace RouteWise.Api.Optimizers
     {
         public string AlgorithmName => "original";
 
-        public OptimizationResult Optimize(List<RouteStop> stops, RouteMatrix matrix)
+        public OptimizationResult Optimize(List<RouteStop> stops, RouteMatrix matrix, int? destinationMatrixIndex = null)
         {
             return new OptimizationResult
             {
