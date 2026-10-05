@@ -6,6 +6,13 @@ import { RouteExplanation } from './results/RouteExplanation';
 import { TimelineView } from './results/TimelineView';
 import { RouteMapPreview } from './results/RouteMapPreview';
 
+function formatTime(isoString: string): string {
+  if (!isoString) return '--:--';
+  const date = new Date(isoString);
+  if (isNaN(date.getTime())) return isoString;
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
 interface ResultsSectionProps {
   result: OptimizeRouteResponse | null;
   isLoading: boolean;
@@ -84,6 +91,33 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ result, isLoadin
 
       {!isLoading && result && (
         <div className="results-container">
+          {result.planningMode === 'arrive-by' && result.recommendedDepartureTime && (
+            <div className="recommendation-banner">
+              <div className="recommendation-banner-icon">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+              </div>
+              <div className="recommendation-banner-body">
+                <h3 className="recommendation-banner-title">
+                  Recommended Departure: <strong>{formatTime(result.recommendedDepartureTime)}</strong>
+                </h3>
+                <p className="recommendation-banner-subtitle">
+                  Start your journey by this time to arrive at your destination on schedule.
+                </p>
+              </div>
+            </div>
+          )}
           <RouteMetricsSummary
             original={result.original}
             optimized={result.optimized}
@@ -94,7 +128,7 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ result, isLoadin
           <RouteMapPreview preview={result.routePreview} />
           <OrderedStopsList orderedStops={result.orderedStops} />
           <RouteExplanation explanationSteps={result.explanationSteps} />
-          <TimelineView timeline={result.timeline} />
+          <TimelineView timeline={result.timeline} planningMode={result.planningMode} />
         </div>
       )}
     </section>

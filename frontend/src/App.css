@@ -652,6 +652,55 @@
   gap: 1.5rem;
 }
 
+/* Recommended Departure Banner */
+.recommendation-banner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 1px solid #bfdbfe;
+  border-left: 4px solid var(--primary);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.recommendation-banner-icon {
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  padding: 0.5rem;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.12);
+  flex-shrink: 0;
+}
+
+.recommendation-banner-body {
+  flex: 1;
+}
+
+.recommendation-banner-title {
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.recommendation-banner-title strong {
+  color: var(--primary);
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-left: 0.35rem;
+}
+
+.recommendation-banner-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0.25rem 0 0 0;
+}
+
 /* Metrics Section */
 .metrics-section {
   display: flex;
@@ -968,6 +1017,12 @@
   padding: 0.1rem 0.4rem;
   border-radius: var(--radius-sm);
   font-weight: 600;
+}
+
+.timeline-tag-deadline {
+  background-color: #eff6ff;
+  color: var(--primary);
+  border: 1px solid #bfdbfe;
 }
 
 .timeline-times {
