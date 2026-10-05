@@ -100,5 +100,29 @@ namespace RouteWise.Tests.Validators
             result.ShouldHaveValidationErrorFor(x => x.PlanningMode)
                 .WithErrorMessage("PlanningMode must be either 'depart-at' or 'arrive-by'");
         }
+
+        [Fact]
+        public void Validate_EmptyDestinationAddress_HasDestinationErrorMessage()
+        {
+            var request = CreateValidBaseRequest();
+            request.Destination = new AddressInput { Label = "Hospital", Address = "" };
+
+            var result = _validator.TestValidate(request);
+
+            result.ShouldHaveValidationErrorFor(x => x.Destination.Address)
+                .WithErrorMessage("Destination address is required");
+        }
+
+        [Fact]
+        public void Validate_EmptyStartAddress_HasStartErrorMessage()
+        {
+            var request = CreateValidBaseRequest();
+            request.Start = new AddressInput { Label = "Home", Address = "" };
+
+            var result = _validator.TestValidate(request);
+
+            result.ShouldHaveValidationErrorFor(x => x.Start.Address)
+                .WithErrorMessage("Start address is required");
+        }
     }
 }

@@ -48,9 +48,9 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ timeline, planningMo
                         {planningMode === 'arrive-by' ? 'Recommended Start' : 'Start Point'}
                       </span>
                     )}
-                    {isDestination && planningMode === 'arrive-by' && (
-                      <span className="timeline-tag timeline-tag-deadline">
-                        Target Arrival
+                    {isDestination && (
+                      <span className={`timeline-tag ${planningMode === 'arrive-by' ? 'timeline-tag-deadline' : ''}`}>
+                        {planningMode === 'arrive-by' ? 'Target Arrival' : 'Destination'}
                       </span>
                     )}
                   </span>
@@ -60,9 +60,11 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ timeline, planningMo
                         Arr: {formatTime(item.arrivalTime)}
                       </span>
                     )}
-                    <span className="time-badge time-departure" title="Estimated Departure Time">
-                      Dep: {formatTime(item.departureTime)}
-                    </span>
+                    {!isDestination && (
+                      <span className="time-badge time-departure" title="Estimated Departure Time">
+                        Dep: {formatTime(item.departureTime)}
+                      </span>
+                    )}
                   </div>
                 </div>
 

@@ -28,16 +28,20 @@ function getStopValidationRule(stop: RouteStop, index: number): ValidationRule[]
  * Validates route optimization parameters using declarative rules.
  */
 export function validateRouteRequest(request: OptimizeRouteRequest): string | null {
-  const isStartString = request.start.address.trim().toLowerCase() === 'string';
+  const isStartString = request.start?.address?.trim().toLowerCase() === 'string';
+  const isDestString = request.destination?.address?.trim().toLowerCase() === 'string';
   const isArriveBy = request.planningMode === 'arrive-by';
   const isTimeInvalid = isArriveBy
     ? !request.arrivalBy || isNaN(new Date(request.arrivalBy).getTime())
     : !request.departureTime || isNaN(new Date(request.departureTime).getTime());
 
   const globalRules: ValidationRule[] = [
-    { condition: !request.start.label.trim(), message: 'Start label is required.' },
-    { condition: !request.start.address.trim(), message: 'Start address is required.' },
+    { condition: !request.start?.label?.trim(), message: 'Start label is required.' },
+    { condition: !request.start?.address?.trim(), message: 'Start address is required.' },
     { condition: isStartString, message: 'Start address must be a real address, not "string".' },
+    { condition: !request.destination?.label?.trim(), message: 'Destination label is required.' },
+    { condition: !request.destination?.address?.trim(), message: 'Destination address is required.' },
+    { condition: isDestString, message: 'Destination address must be a real address, not "string".' },
     {
       condition: isTimeInvalid,
       message: isArriveBy

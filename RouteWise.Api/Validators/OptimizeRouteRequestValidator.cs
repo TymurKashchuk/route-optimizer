@@ -35,12 +35,12 @@ namespace RouteWise.Api.Validators
             RuleFor(x => x.Start)
                 .NotNull()
                 .WithMessage("Start is required")
-                .SetValidator(new AddressInputValidator());
+                .SetValidator(new AddressInputValidator("Start"));
 
             RuleFor(x => x.Destination)
                 .NotNull()
                 .WithMessage("Destination is required")
-                .SetValidator(new AddressInputValidator());
+                .SetValidator(new AddressInputValidator("Destination"));
 
             RuleFor(x => x.Stops)
                 .NotNull()
