@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using RouteWise.Api.Contracts.Requests;
 using RouteWise.Api.Models;
 using RouteWise.Api.Optimizers;
 using RouteWise.Api.Options;
@@ -335,6 +336,86 @@ namespace RouteWise.Tests.Services
             // Metrics include travel to destination
             Assert.True(result.Optimized.TotalTravelMinutes > 0);
             Assert.True(result.Optimized.TotalDistanceKm > 0);
+        }
+
+        [Fact]
+        public async Task Execute_WithArriveByMode_CalculatesRecommendedDepartureTimeAndAlignsTimelineToArrivalDeadline()
+        {
+            var staticRouteProvider = new StaticRouteProvider();
+            var routeMatrixService = new RouteMatrixService(
+                new StaticGeocodingProvider(),
+                staticRouteProvider);
+
+            var optimizers = new List<IRouteOptimizer>
+            {
+                new OriginalOrderOptimizer(),
+                new NearestNeighborOptimizer(),
+                new TwoOptOptimizer()
+            };
+
+            var service = new RouteExecutionService(
+                routeMatrixService,
+                optimizers,
+                new MetricsService(),
+                new TimelineService(),
+                new RouteComparisonService(),
+                new RouteExplanationService(),
+                new RoutePreviewService(staticRouteProvider));
+
+            var start = new AddressInput
+            {
+                Label = "Home",
+                Address = "Zhytomyr Central Square"
+            };
+
+            var stops = new List<RouteStop>
+            {
+                new RouteStop
+                {
+                    Id = "1",
+                    Label = "Pharmacy",
+                    Address = "Zhytomyr Railway Station",
+                    ServiceMinutes = 15
+                }
+            };
+
+            var destination = new AddressInput
+            {
+                Label = "Hospital",
+                Address = "Zhytomyr City Hospital"
+            };
+
+            var arrivalDeadline = new DateTime(2026, 7, 31, 14, 0, 0);
+
+            var request = new OptimizeRouteRequest
+            {
+                Algorithm = "two-opt",
+                PlanningMode = "arrive-by",
+                ArrivalBy = arrivalDeadline,
+                Start = start,
+                Destination = destination,
+                Stops = stops
+            };
+
+            var result = await service.ExecuteAsync(request);
+
+            Assert.Equal("arrive-by", result.PlanningMode);
+            Assert.NotNull(result.RecommendedDepartureTime);
+
+            var totalTripDuration = result.Optimized.TotalTravelMinutes + result.Optimized.TotalServiceMinutes;
+            var expectedDeparture = arrivalDeadline.AddMinutes(-totalTripDuration);
+
+            Assert.Equal(expectedDeparture, result.RecommendedDepartureTime.Value);
+
+            // Timeline starts at recommended departure time
+            Assert.Equal(expectedDeparture, result.Timeline.First().DepartureTime);
+            Assert.Equal(expectedDeparture, result.Timeline.First().ArrivalTime);
+
+            // Destination arrives exactly at requested deadline
+            var destinationTimelineItem = result.Timeline.Last();
+            Assert.Equal("Hospital", destinationTimelineItem.Label);
+            Assert.Equal(arrivalDeadline, destinationTimelineItem.ArrivalTime);
+            Assert.Equal(arrivalDeadline, destinationTimelineItem.DepartureTime);
         }
     }
 }

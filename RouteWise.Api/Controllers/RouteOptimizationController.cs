@@ -25,13 +25,7 @@ namespace RouteWise.Api.Controllers
         {
             try
             {
-                var response = await _routeExecutionService.ExecuteAsync(
-                    request.Algorithm,
-                    request.Start,
-                    request.DepartureTime,
-                    request.Stops,
-                    request.Destination,
-                    cancellationToken);
+                var response = await _routeExecutionService.ExecuteAsync(request, cancellationToken);
 
                 return Ok(response);
             }

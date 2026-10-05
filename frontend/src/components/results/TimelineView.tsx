@@ -1,8 +1,9 @@
 import React from 'react';
-import type { TimelineItemDto } from '../../types/route';
+import type { PlanningMode, TimelineItemDto } from '../../types/route';
 
 interface TimelineViewProps {
   timeline: TimelineItemDto[];
+  planningMode?: PlanningMode;
 }
 
 function formatTime(isoString: string): string {
@@ -19,7 +20,7 @@ function getServiceDuration(arrivalIso: string, departureIso: string): number {
   return Math.round((departure - arrival) / (1000 * 60));
 }
 
-export const TimelineView: React.FC<TimelineViewProps> = ({ timeline }) => {
+export const TimelineView: React.FC<TimelineViewProps> = ({ timeline, planningMode }) => {
   if (!timeline || timeline.length === 0) return null;
 
   return (
@@ -29,6 +30,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ timeline }) => {
         {timeline.map((item, index) => {
           const serviceMinutes = getServiceDuration(item.arrivalTime, item.departureTime);
           const isStart = index === 0;
+          const isDestination = index === timeline.length - 1 && timeline.length > 1;
 
           return (
             <div key={`${item.label}-${index}`} className="timeline-item">
@@ -41,7 +43,16 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ timeline }) => {
                 <div className="timeline-header-row">
                   <span className="timeline-stop-title">
                     {item.label}
-                    {isStart && <span className="timeline-tag">Start Point</span>}
+                    {isStart && (
+                      <span className="timeline-tag">
+                        {planningMode === 'arrive-by' ? 'Recommended Start' : 'Start Point'}
+                      </span>
+                    )}
+                    {isDestination && (
+                      <span className={`timeline-tag ${planningMode === 'arrive-by' ? 'timeline-tag-deadline' : ''}`}>
+                        {planningMode === 'arrive-by' ? 'Target Arrival' : 'Destination'}
+                      </span>
+                    )}
                   </span>
                   <div className="timeline-times">
                     {!isStart && (
@@ -49,15 +60,17 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ timeline }) => {
                         Arr: {formatTime(item.arrivalTime)}
                       </span>
                     )}
-                    <span className="time-badge time-departure" title="Estimated Departure Time">
-                      Dep: {formatTime(item.departureTime)}
-                    </span>
+                    {!isDestination && (
+                      <span className="time-badge time-departure" title="Estimated Departure Time">
+                        Dep: {formatTime(item.departureTime)}
+                      </span>
+                    )}
                   </div>
                 </div>
 
                 {serviceMinutes > 0 && (
                   <span className="timeline-service-hint">
-                    Stop duration: {serviceMinutes} min service
+                    Stop stay: {serviceMinutes} min
                   </span>
                 )}
               </div>

@@ -16,15 +16,31 @@ namespace RouteWise.Api.Validators
                            string.Equals(a, "two-opt", StringComparison.OrdinalIgnoreCase))
                 .WithMessage("Algorithm must be either 'original', 'nearest-neighbor' or 'two-opt'");
 
+            RuleFor(x => x.PlanningMode)
+                .Must(m => string.IsNullOrEmpty(m) ||
+                           string.Equals(m, "depart-at", StringComparison.OrdinalIgnoreCase) ||
+                           string.Equals(m, "arrive-by", StringComparison.OrdinalIgnoreCase))
+                .WithMessage("PlanningMode must be either 'depart-at' or 'arrive-by'");
+
+            RuleFor(x => x.DepartureTime)
+                .NotNull()
+                .When(x => !string.Equals(x.PlanningMode, "arrive-by", StringComparison.OrdinalIgnoreCase))
+                .WithMessage("DepartureTime is required when PlanningMode is 'depart-at'");
+
+            RuleFor(x => x.ArrivalBy)
+                .NotNull()
+                .When(x => string.Equals(x.PlanningMode, "arrive-by", StringComparison.OrdinalIgnoreCase))
+                .WithMessage("ArrivalBy is required when PlanningMode is 'arrive-by'");
+
             RuleFor(x => x.Start)
                 .NotNull()
                 .WithMessage("Start is required")
-                .SetValidator(new AddressInputValidator());
+                .SetValidator(new AddressInputValidator("Start"));
 
             RuleFor(x => x.Destination)
                 .NotNull()
                 .WithMessage("Destination is required")
-                .SetValidator(new AddressInputValidator());
+                .SetValidator(new AddressInputValidator("Destination"));
 
             RuleFor(x => x.Stops)
                 .NotNull()

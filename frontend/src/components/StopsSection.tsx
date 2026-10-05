@@ -81,8 +81,8 @@ export const StopsSection: React.FC<StopsSectionProps> = ({
                   />
                 </div>
                 <div className="form-group flex-1">
-                  <label className="form-label-sm" htmlFor={`stop-service-${stop.id}`}>
-                    Service (min)
+                  <label className="form-label-sm" htmlFor={`stop-service-${stop.id}`} title="Time spent at this stop">
+                    Stay (min)
                   </label>
                   <input
                     id={`stop-service-${stop.id}`}
