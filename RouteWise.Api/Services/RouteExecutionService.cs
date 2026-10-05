@@ -1,3 +1,4 @@
+using RouteWise.Api.Contracts.Requests;
 using RouteWise.Api.Contracts.Responses;
 using RouteWise.Api.Models;
 using RouteWise.Api.Optimizers;
@@ -33,19 +34,47 @@ namespace RouteWise.Api.Services
         }
 
         public Task<OptimizeRouteResponse> ExecuteAsync(
+            OptimizeRouteRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            return ExecuteAsync(
+                request.Algorithm,
+                request.Start,
+                request.PlanningMode,
+                request.DepartureTime,
+                request.ArrivalBy,
+                request.Stops,
+                request.Destination,
+                cancellationToken);
+        }
+
+        public Task<OptimizeRouteResponse> ExecuteAsync(
             string algorithm,
             AddressInput start,
             DateTime departureTime,
             List<RouteStop> stops,
             CancellationToken cancellationToken = default)
         {
-            return ExecuteAsync(algorithm, start, departureTime, stops, null, cancellationToken);
+            return ExecuteAsync(algorithm, start, "depart-at", departureTime, null, stops, null, cancellationToken);
+        }
+
+        public Task<OptimizeRouteResponse> ExecuteAsync(
+            string algorithm,
+            AddressInput start,
+            DateTime departureTime,
+            List<RouteStop> stops,
+            AddressInput? destination,
+            CancellationToken cancellationToken = default)
+        {
+            return ExecuteAsync(algorithm, start, "depart-at", departureTime, null, stops, destination, cancellationToken);
         }
 
         public async Task<OptimizeRouteResponse> ExecuteAsync(
             string algorithm,
             AddressInput start,
-            DateTime departureTime,
+            string planningMode,
+            DateTime? departureTime,
+            DateTime? arrivalBy,
             List<RouteStop> stops,
             AddressInput? destination,
             CancellationToken cancellationToken = default)
@@ -82,9 +111,26 @@ namespace RouteWise.Api.Services
 
             var comparison = _routeComparisonService.Compare(originalMetrics, optimizedMetrics);
 
+            var isArriveBy = string.Equals(planningMode, "arrive-by", StringComparison.OrdinalIgnoreCase);
+            var totalTripMinutes = optimizedMetrics.TotalTravelMinutes + optimizedMetrics.TotalServiceMinutes;
+
+            DateTime effectiveDepartureTime;
+            DateTime? recommendedDepartureTime = null;
+
+            if (isArriveBy && arrivalBy.HasValue)
+            {
+                effectiveDepartureTime = arrivalBy.Value.AddMinutes(-totalTripMinutes);
+                recommendedDepartureTime = effectiveDepartureTime;
+            }
+            else
+            {
+                effectiveDepartureTime = departureTime ?? DateTime.UtcNow;
+                recommendedDepartureTime = effectiveDepartureTime;
+            }
+
             var timeline = _timelineService.Build(
                 start,
-                departureTime,
+                effectiveDepartureTime,
                 optimizedResult.OrderedStops,
                 optimizedResult.OrderedStopIndices,
                 matrixResult.Matrix,
@@ -110,6 +156,8 @@ namespace RouteWise.Api.Services
             return new OptimizeRouteResponse
             {
                 Algorithm = optimizedResult.Algorithm,
+                PlanningMode = isArriveBy ? "arrive-by" : "depart-at",
+                RecommendedDepartureTime = recommendedDepartureTime,
                 Original = new RouteMetricsDto
                 {
                     TotalTravelMinutes = originalMetrics.TotalTravelMinutes,
