@@ -1,4 +1,4 @@
-﻿using RouteWise.Api.Models;
+using RouteWise.Api.Models;
 using System.ComponentModel.DataAnnotations;
 
 namespace RouteWise.Api.Contracts.Requests
@@ -13,6 +13,9 @@ namespace RouteWise.Api.Contracts.Requests
 
         [Required]
         public AddressInput Start { get; set; } = new();
+
+        [Required]
+        public AddressInput Destination { get; set; } = new();
 
         [Required]
         [MinLength(1)]
