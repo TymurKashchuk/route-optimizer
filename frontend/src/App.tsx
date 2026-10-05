@@ -5,7 +5,7 @@ import { RouteFormSection } from './components/RouteFormSection';
 import { StopsSection } from './components/StopsSection';
 import { ResultsSection } from './components/ResultsSection';
 import { Toast } from './components/Toast';
-import type { AddressInput, AlgorithmType, OptimizeRouteResponse, RouteStop } from './types/route';
+import type { AddressInput, AlgorithmType, OptimizeRouteResponse, PlanningMode, RouteStop } from './types/route';
 import { optimizeRoute } from './api/routeClient';
 
 const DEFAULT_START: AddressInput = {
@@ -37,7 +37,9 @@ export const App: React.FC = () => {
   // Form State
   const [start, setStart] = useState<AddressInput>(DEFAULT_START);
   const [destination, setDestination] = useState<AddressInput>(DEFAULT_DESTINATION);
+  const [planningMode, setPlanningMode] = useState<PlanningMode>('depart-at');
   const [departureTime, setDepartureTime] = useState<string>('2026-09-28T09:00');
+  const [arrivalBy, setArrivalBy] = useState<string>('2026-09-28T14:00');
   const [algorithm, setAlgorithm] = useState<AlgorithmType>('two-opt');
   const [stops, setStops] = useState<RouteStop[]>(DEFAULT_STOPS);
 
@@ -85,7 +87,9 @@ export const App: React.FC = () => {
       const data = await optimizeRoute(
         {
           algorithm,
-          departureTime,
+          planningMode,
+          departureTime: planningMode === 'depart-at' ? departureTime : undefined,
+          arrivalBy: planningMode === 'arrive-by' ? arrivalBy : undefined,
           start,
           destination,
           stops,
@@ -121,8 +125,12 @@ export const App: React.FC = () => {
               onStartChange={setStart}
               destination={destination}
               onDestinationChange={setDestination}
+              planningMode={planningMode}
+              onPlanningModeChange={setPlanningMode}
               departureTime={departureTime}
               onDepartureTimeChange={setDepartureTime}
+              arrivalBy={arrivalBy}
+              onArrivalByChange={setArrivalBy}
               algorithm={algorithm}
               onAlgorithmChange={setAlgorithm}
               isLoading={isLoading}

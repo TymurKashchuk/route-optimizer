@@ -1,5 +1,5 @@
 import React from 'react';
-import type { AddressInput, AlgorithmType } from '../types/route';
+import type { AddressInput, AlgorithmType, PlanningMode } from '../types/route';
 import { AddressAutocompleteInput } from './AddressAutocompleteInput';
 
 interface RouteFormSectionProps {
@@ -7,8 +7,12 @@ interface RouteFormSectionProps {
   onStartChange: (start: AddressInput) => void;
   destination: AddressInput;
   onDestinationChange: (destination: AddressInput) => void;
+  planningMode: PlanningMode;
+  onPlanningModeChange: (mode: PlanningMode) => void;
   departureTime: string;
   onDepartureTimeChange: (time: string) => void;
+  arrivalBy: string;
+  onArrivalByChange: (time: string) => void;
   algorithm: AlgorithmType;
   onAlgorithmChange: (algorithm: AlgorithmType) => void;
   isLoading: boolean;
@@ -20,13 +24,19 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
   onStartChange,
   destination,
   onDestinationChange,
+  planningMode,
+  onPlanningModeChange,
   departureTime,
   onDepartureTimeChange,
+  arrivalBy,
+  onArrivalByChange,
   algorithm,
   onAlgorithmChange,
   isLoading,
   onOptimize,
 }) => {
+  const isArriveBy = planningMode === 'arrive-by';
+
   return (
     <section className="card form-section" aria-labelledby="route-params-title">
       <h2 id="route-params-title" className="section-title">
@@ -42,7 +52,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
             id="start-label"
             type="text"
             className="form-input start-label-input"
-            placeholder="Label (e.g. Depot)"
+            placeholder="Label (e.g. Home)"
             value={start.label}
             onChange={(e) => onStartChange({ ...start, label: e.target.value })}
             disabled={isLoading}
@@ -67,7 +77,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
             id="destination-label"
             type="text"
             className="form-input start-label-input"
-            placeholder="Label (e.g. Garage)"
+            placeholder="Label (e.g. Hospital)"
             value={destination.label}
             onChange={(e) => onDestinationChange({ ...destination, label: e.target.value })}
             disabled={isLoading}
@@ -75,7 +85,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
           <AddressAutocompleteInput
             id="destination-address"
             className="form-input"
-            placeholder="Address (e.g. Zhytomyr Depot)"
+            placeholder="Address (e.g. Zhytomyr City Hospital)"
             value={destination.address}
             onChange={(newAddress) => onDestinationChange({ ...destination, address: newAddress })}
             disabled={isLoading}
@@ -83,17 +93,43 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
         </div>
       </div>
 
+      <div className="form-group">
+        <label className="form-label">Planning Mode</label>
+        <div className="planning-mode-group" role="radiogroup" aria-label="Planning Mode">
+          <button
+            type="button"
+            className={`planning-mode-btn ${!isArriveBy ? 'active' : ''}`}
+            onClick={() => onPlanningModeChange('depart-at')}
+            disabled={isLoading}
+            role="radio"
+            aria-checked={!isArriveBy}
+          >
+            Depart At (Leave at)
+          </button>
+          <button
+            type="button"
+            className={`planning-mode-btn ${isArriveBy ? 'active' : ''}`}
+            onClick={() => onPlanningModeChange('arrive-by')}
+            disabled={isLoading}
+            role="radio"
+            aria-checked={isArriveBy}
+          >
+            Arrive By (Deadline)
+          </button>
+        </div>
+      </div>
+
       <div className="form-row">
         <div className="form-group flex-1">
-          <label className="form-label" htmlFor="departure-time">
-            Departure Time
+          <label className="form-label" htmlFor="route-time">
+            {isArriveBy ? 'Target Arrival Time (Deadline)' : 'Departure Time'}
           </label>
           <input
-            id="departure-time"
+            id="route-time"
             type="datetime-local"
             className="form-input"
-            value={departureTime}
-            onChange={(e) => onDepartureTimeChange(e.target.value)}
+            value={isArriveBy ? arrivalBy : departureTime}
+            onChange={(e) => (isArriveBy ? onArrivalByChange(e.target.value) : onDepartureTimeChange(e.target.value))}
             disabled={isLoading}
           />
         </div>

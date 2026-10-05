@@ -29,13 +29,21 @@ function getStopValidationRule(stop: RouteStop, index: number): ValidationRule[]
  */
 export function validateRouteRequest(request: OptimizeRouteRequest): string | null {
   const isStartString = request.start.address.trim().toLowerCase() === 'string';
-  const isDateInvalid = !request.departureTime || isNaN(new Date(request.departureTime).getTime());
+  const isArriveBy = request.planningMode === 'arrive-by';
+  const isTimeInvalid = isArriveBy
+    ? !request.arrivalBy || isNaN(new Date(request.arrivalBy).getTime())
+    : !request.departureTime || isNaN(new Date(request.departureTime).getTime());
 
   const globalRules: ValidationRule[] = [
     { condition: !request.start.label.trim(), message: 'Start label is required.' },
     { condition: !request.start.address.trim(), message: 'Start address is required.' },
     { condition: isStartString, message: 'Start address must be a real address, not "string".' },
-    { condition: isDateInvalid, message: 'Departure time is invalid or missing.' },
+    {
+      condition: isTimeInvalid,
+      message: isArriveBy
+        ? 'Arrival deadline is invalid or missing.'
+        : 'Departure time is invalid or missing.',
+    },
     { condition: !request.stops || request.stops.length < 1, message: 'At least one stop is required.' },
     { condition: !!request.stops && request.stops.length > 10, message: 'No more than 10 stops are allowed in MVP.' },
   ];
@@ -85,9 +93,12 @@ export async function optimizeRoute(
     throw new Error(validationError);
   }
 
+  const isArriveBy = request.planningMode === 'arrive-by';
   const formattedRequest: OptimizeRouteRequest = {
     ...request,
-    departureTime: new Date(request.departureTime).toISOString(),
+    planningMode: request.planningMode || 'depart-at',
+    departureTime: !isArriveBy && request.departureTime ? new Date(request.departureTime).toISOString() : undefined,
+    arrivalBy: isArriveBy && request.arrivalBy ? new Date(request.arrivalBy).toISOString() : undefined,
   };
 
   let response: Response;

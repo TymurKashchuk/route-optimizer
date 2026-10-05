@@ -263,6 +263,49 @@
 }
 
 /* Form Styles */
+.planning-mode-group {
+  display: flex;
+  background-color: var(--bg-app);
+  padding: 3px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  margin-bottom: 0.75rem;
+  gap: 4px;
+}
+
+.planning-mode-btn {
+  flex: 1;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.planning-mode-btn:hover:not(:disabled) {
+  color: var(--text-main);
+}
+
+.planning-mode-btn.active {
+  background-color: var(--bg-card);
+  color: var(--primary);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+
+.planning-mode-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .form-group {
   display: flex;
   flex-direction: column;

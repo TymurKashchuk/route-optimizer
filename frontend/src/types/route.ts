@@ -1,3 +1,4 @@
+export type PlanningMode = 'depart-at' | 'arrive-by';
 export type AlgorithmType = 'original' | 'nearest-neighbor' | 'two-opt';
 
 export interface AddressInput {
@@ -14,7 +15,9 @@ export interface RouteStop {
 
 export interface OptimizeRouteRequest {
   algorithm: AlgorithmType;
-  departureTime: string;
+  planningMode?: PlanningMode;
+  departureTime?: string;
+  arrivalBy?: string;
   start: AddressInput;
   destination: AddressInput;
   stops: RouteStop[];
@@ -61,6 +64,8 @@ export interface RoutePreviewDto {
 
 export interface OptimizeRouteResponse {
   algorithm: string;
+  planningMode?: PlanningMode;
+  recommendedDepartureTime?: string;
   original: RouteMetricsDto;
   optimized: RouteMetricsDto;
   savedMinutes: number;
