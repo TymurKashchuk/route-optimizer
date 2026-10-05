@@ -3,6 +3,10 @@ namespace RouteWise.Api.Contracts.Responses
     public class OptimizeRouteResponse
     {
         public string Algorithm { get; set; } = string.Empty;
+ 
+        public string PlanningMode { get; set; } = "depart-at";
+
+        public DateTime? RecommendedDepartureTime { get; set; }
 
         public RouteMetricsDto Original { get; set; } = new();
 

@@ -8,8 +8,11 @@ namespace RouteWise.Api.Contracts.Requests
         [Required]
         public string Algorithm { get; set; } = string.Empty;
 
-        [Required]
-        public DateTime DepartureTime { get; set; }
+        public string PlanningMode { get; set; } = "depart-at";
+
+        public DateTime? DepartureTime { get; set; }
+
+        public DateTime? ArrivalBy { get; set; }
 
         [Required]
         public AddressInput Start { get; set; } = new();
