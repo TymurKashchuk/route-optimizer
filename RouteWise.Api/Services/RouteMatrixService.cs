@@ -17,9 +17,18 @@ namespace RouteWise.Api.Services
             _routeProvider = routeProvider;
         }
 
+        public Task<RouteMatrixResult> BuildMatrixAsync(
+            AddressInput start,
+            List<RouteStop> stops,
+            CancellationToken cancellationToken = default)
+        {
+            return BuildMatrixAsync(start, stops, null, cancellationToken);
+        }
+
         public async Task<RouteMatrixResult> BuildMatrixAsync(
             AddressInput start,
             List<RouteStop> stops,
+            AddressInput? destination,
             CancellationToken cancellationToken = default)
         {
             var locations = new List<LocationPoint>();
@@ -31,6 +40,12 @@ namespace RouteWise.Api.Services
             {
                 var stopLocation = await _geocodingProvider.GeocodeAsync(stop.Address, cancellationToken);
                 locations.Add(stopLocation);
+            }
+
+            if (destination != null)
+            {
+                var destinationLocation = await _geocodingProvider.GeocodeAsync(destination.Address, cancellationToken);
+                locations.Add(destinationLocation);
             }
 
             var matrix = await _routeProvider.BuildMatrixAsync(locations, cancellationToken);
