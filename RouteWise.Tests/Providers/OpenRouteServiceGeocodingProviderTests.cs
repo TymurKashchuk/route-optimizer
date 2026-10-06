@@ -97,7 +97,7 @@ namespace RouteWise.Tests.Providers
 
             Assert.NotNull(handler.LastRequest);
             Assert.Equal(HttpMethod.Get, handler.LastRequest.Method);
-            Assert.Contains("geocode/search?text=Zhytomyr&size=5", handler.LastRequest.RequestUri?.ToString());
+            Assert.Contains("search?text=Zhytomyr&size=5", handler.LastRequest.RequestUri?.ToString());
             Assert.True(handler.LastRequest.Headers.Contains("Authorization"));
             Assert.Equal("test-api-key", handler.LastRequest.Headers.GetValues("Authorization").First());
 
@@ -213,6 +213,57 @@ namespace RouteWise.Tests.Providers
                 provider.Geocode("NonExistentAddress123"));
 
             Assert.Contains("Address not found", exception.Message);
+        }
+
+        [Fact]
+        public async Task ReverseGeocodeAsync_SendsCorrectRequestAndReturnsResult()
+        {
+            var jsonResponse = """
+            {
+              "type": "FeatureCollection",
+              "features": [
+                {
+                  "type": "Feature",
+                  "geometry": {
+                    "type": "Point",
+                    "coordinates": [28.659181, 50.255318]
+                  },
+                  "properties": {
+                    "label": "майдан Соборний, Zhytomyr, Ukraine",
+                    "confidence": 1.0
+                  }
+                }
+              ]
+            }
+            """;
+
+            var (provider, handler) = CreateProvider(jsonResponse);
+
+            var result = await provider.ReverseGeocodeAsync(50.255318, 28.659181);
+
+            Assert.NotNull(result);
+            Assert.Equal("майдан Соборний, Zhytomyr, Ukraine", result.Address);
+            Assert.Equal(50.255318, result.Coordinates.Latitude);
+            Assert.Equal(28.659181, result.Coordinates.Longitude);
+            Assert.NotNull(handler.LastRequest);
+            Assert.Contains("reverse?point.lat=50.255318&point.lon=28.659181&size=1", handler.LastRequest.RequestUri?.ToString());
+        }
+
+        [Fact]
+        public async Task ReverseGeocodeAsync_WhenNoFeatures_ReturnsNull()
+        {
+            var jsonResponse = """
+            {
+              "type": "FeatureCollection",
+              "features": []
+            }
+            """;
+
+            var (provider, _) = CreateProvider(jsonResponse);
+
+            var result = await provider.ReverseGeocodeAsync(0.0, 0.0);
+
+            Assert.Null(result);
         }
     }
 }

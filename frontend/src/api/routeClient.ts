@@ -48,7 +48,7 @@ export function validateRouteRequest(request: OptimizeRouteRequest): string | nu
         ? 'Arrival deadline is invalid or missing.'
         : 'Departure time is invalid or missing.',
     },
-    { condition: !request.stops || request.stops.length < 1, message: 'At least one stop is required.' },
+    { condition: !request.stops, message: 'Stops list is required.' },
     { condition: !!request.stops && request.stops.length > 10, message: 'No more than 10 stops are allowed in MVP.' },
   ];
 

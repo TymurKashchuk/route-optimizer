@@ -124,5 +124,28 @@ namespace RouteWise.Tests.Validators
             result.ShouldHaveValidationErrorFor(x => x.Start.Address)
                 .WithErrorMessage("Start address is required");
         }
+
+        [Fact]
+        public void Validate_ZeroStops_IsValid()
+        {
+            var request = CreateValidBaseRequest();
+            request.Stops = new List<RouteStop>();
+
+            var result = _validator.TestValidate(request);
+
+            result.ShouldNotHaveValidationErrorFor(x => x.Stops);
+        }
+
+        [Fact]
+        public void Validate_NullStops_HasValidationError()
+        {
+            var request = CreateValidBaseRequest();
+            request.Stops = null!;
+
+            var result = _validator.TestValidate(request);
+
+            result.ShouldHaveValidationErrorFor(x => x.Stops)
+                .WithErrorMessage("Stops are required");
+        }
     }
 }

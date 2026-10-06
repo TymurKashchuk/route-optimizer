@@ -417,5 +417,61 @@ namespace RouteWise.Tests.Services
             Assert.Equal(arrivalDeadline, destinationTimelineItem.ArrivalTime);
             Assert.Equal(arrivalDeadline, destinationTimelineItem.DepartureTime);
         }
+
+        [Fact]
+        public async Task Execute_DirectTripWithZeroStops_ReturnsDirectRouteStartToDestination()
+        {
+            var staticRouteProvider = new StaticRouteProvider();
+            var routeMatrixService = new RouteMatrixService(
+                new StaticGeocodingProvider(),
+                staticRouteProvider);
+
+            var optimizers = new List<IRouteOptimizer>
+            {
+                new OriginalOrderOptimizer(),
+                new NearestNeighborOptimizer(),
+                new TwoOptOptimizer()
+            };
+
+            var service = new RouteExecutionService(
+                routeMatrixService,
+                optimizers,
+                new MetricsService(),
+                new TimelineService(),
+                new RouteComparisonService(),
+                new RouteExplanationService(),
+                new RoutePreviewService(staticRouteProvider));
+
+            var departureTime = new DateTime(2026, 10, 6, 9, 0, 0, DateTimeKind.Utc);
+            var request = new OptimizeRouteRequest
+            {
+                Algorithm = "two-opt",
+                PlanningMode = "depart-at",
+                DepartureTime = departureTime,
+                Start = new AddressInput { Label = "Start Office", Address = "Zhytomyr Central Square" },
+                Destination = new AddressInput { Label = "Destination Hospital", Address = "Zhytomyr City Hospital" },
+                Stops = new List<RouteStop>()
+            };
+
+            var result = await service.ExecuteAsync(request);
+
+            Assert.NotNull(result);
+            Assert.Empty(result.OrderedStops);
+            Assert.Equal(2, result.Timeline.Count);
+            Assert.Equal("Start Office", result.Timeline[0].Label);
+            Assert.Equal("Destination Hospital", result.Timeline[1].Label);
+            Assert.Single(result.ExplanationSteps);
+            Assert.Equal("Start Office", result.ExplanationSteps[0].From);
+            Assert.Equal("Destination Hospital", result.ExplanationSteps[0].To);
+            Assert.True(result.ExplanationSteps[0].TravelMinutes > 0);
+            Assert.Equal(0, result.Optimized.TotalServiceMinutes);
+            Assert.True(result.Optimized.TotalTravelMinutes > 0);
+            Assert.True(result.Optimized.TotalDistanceKm > 0);
+            Assert.NotNull(result.RoutePreview);
+            Assert.NotNull(result.RoutePreview.StartPoint);
+            Assert.NotNull(result.RoutePreview.DestinationPoint);
+            Assert.Empty(result.RoutePreview.OrderedStops);
+            Assert.NotEmpty(result.RoutePreview.GeometryCoordinates);
+        }
     }
 }

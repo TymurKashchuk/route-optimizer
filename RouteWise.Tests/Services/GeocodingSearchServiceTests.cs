@@ -26,6 +26,17 @@ namespace RouteWise.Tests.Services
                 SearchCallCount++;
                 return Task.FromResult<IReadOnlyList<AddressSearchResult>>(ResultsToReturn.Take(limit).ToList());
             }
+
+            public Task<AddressSearchResult?> ReverseGeocodeAsync(
+                double latitude,
+                double longitude,
+                CancellationToken cancellationToken = default) =>
+                Task.FromResult<AddressSearchResult?>(new AddressSearchResult
+                {
+                    Address = "Test Address",
+                    DisplayName = "Test Address",
+                    Coordinates = new LocationPoint { Latitude = latitude, Longitude = longitude }
+                });
         }
 
         [Theory]

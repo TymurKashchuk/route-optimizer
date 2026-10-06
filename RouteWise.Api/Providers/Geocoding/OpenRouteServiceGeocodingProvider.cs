@@ -62,7 +62,11 @@ namespace RouteWise.Api.Providers.Geocoding
                 throw new OpenRouteServiceException("OpenRouteService API key is missing. Please configure it in settings.");
             }
 
-            var requestUri = $"geocode/search?text={Uri.EscapeDataString(query.Trim())}&size={limit}";
+            var countryParam = !string.IsNullOrWhiteSpace(_options.CountryCode)
+                ? $"&boundary.country={Uri.EscapeDataString(_options.CountryCode.Trim())}"
+                : string.Empty;
+
+            var requestUri = $"search?text={Uri.EscapeDataString(query.Trim())}&size={limit}{countryParam}";
 
             using var httpRequest = new HttpRequestMessage(HttpMethod.Get, requestUri);
             httpRequest.Headers.TryAddWithoutValidation("Authorization", _options.ApiKey);
@@ -104,6 +108,63 @@ namespace RouteWise.Api.Providers.Geocoding
                 }
 
                 return MapToSearchResults(geocodingResponse);
+            }
+        }
+
+        public async Task<AddressSearchResult?> ReverseGeocodeAsync(
+            double latitude,
+            double longitude,
+            CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(_options.ApiKey))
+            {
+                throw new OpenRouteServiceException("OpenRouteService API key is missing. Please configure it in settings.");
+            }
+
+            var latStr = latitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var lonStr = longitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var requestUri = $"reverse?point.lat={latStr}&point.lon={lonStr}&size=1";
+
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Get, requestUri);
+            httpRequest.Headers.TryAddWithoutValidation("Authorization", _options.ApiKey);
+
+            HttpResponseMessage response;
+            try
+            {
+                response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            }
+            catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested)
+            {
+                throw new OpenRouteServiceException("Request to OpenRouteService timed out.", ex);
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new OpenRouteServiceException("Network error occurred while connecting to OpenRouteService.", ex);
+            }
+
+            using (response)
+            {
+                if (!response.IsSuccessStatusCode)
+                {
+                    HandleErrorStatusCode(response.StatusCode);
+                }
+
+                OrsGeocodingResponse? geocodingResponse;
+                try
+                {
+                    geocodingResponse = await response.Content.ReadFromJsonAsync<OrsGeocodingResponse>(cancellationToken: cancellationToken);
+                }
+                catch (JsonException ex)
+                {
+                    throw new OpenRouteServiceException("Failed to parse geocoding response from OpenRouteService.", ex);
+                }
+
+                if (geocodingResponse?.Features is null || geocodingResponse.Features.Count == 0)
+                {
+                    return null;
+                }
+
+                return MapToSearchResults(geocodingResponse).FirstOrDefault();
             }
         }
 

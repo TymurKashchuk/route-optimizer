@@ -20,6 +20,26 @@ namespace RouteWise.Api.Providers.Geocoding
             {
                 Latitude = 50.25007,
                 Longitude = 28.67011
+            },
+            ["майдан Соборний, Житомир"] = new LocationPoint
+            {
+                Latitude = 50.255318,
+                Longitude = 28.659181
+            },
+            ["майдан Перемоги, Житомир"] = new LocationPoint
+            {
+                Latitude = 50.257481,
+                Longitude = 28.659194
+            },
+            ["вулиця Покровська, Житомир"] = new LocationPoint
+            {
+                Latitude = 50.264250,
+                Longitude = 28.666830
+            },
+            ["вулиця Київська, Житомир"] = new LocationPoint
+            {
+                Latitude = 50.255577,
+                Longitude = 28.659561
             }
         };
 
@@ -63,6 +83,31 @@ namespace RouteWise.Api.Providers.Geocoding
                 .ToList();
 
             return Task.FromResult<IReadOnlyList<AddressSearchResult>>(results);
+        }
+
+        public Task<AddressSearchResult?> ReverseGeocodeAsync(
+            double latitude,
+            double longitude,
+            CancellationToken cancellationToken = default)
+        {
+            var closest = _knownAddresses
+                .OrderBy(kvp => Math.Pow(kvp.Value.Latitude - latitude, 2) + Math.Pow(kvp.Value.Longitude - longitude, 2))
+                .FirstOrDefault();
+
+            if (string.IsNullOrEmpty(closest.Key))
+            {
+                return Task.FromResult<AddressSearchResult?>(null);
+            }
+
+            var result = new AddressSearchResult
+            {
+                Address = closest.Key,
+                DisplayName = closest.Key,
+                Coordinates = closest.Value,
+                Confidence = 1.0
+            };
+
+            return Task.FromResult<AddressSearchResult?>(result);
         }
     }
 }

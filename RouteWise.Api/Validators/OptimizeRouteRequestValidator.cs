@@ -44,12 +44,11 @@ namespace RouteWise.Api.Validators
 
             RuleFor(x => x.Stops)
                 .NotNull()
-                .WithMessage("Stops are required")
-                .Must(stops => stops.Count >= 1)
-                .WithMessage("At least one stop is required");
+                .WithMessage("Stops are required");
 
             RuleFor(x => x.Stops)
                 .Must(stops => stops.Count <= 10)
+                .When(x => x.Stops != null)
                 .WithMessage("No more than 10 stops are allowed in MVP");
 
             RuleForEach(x => x.Stops)

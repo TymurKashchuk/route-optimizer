@@ -5,6 +5,10 @@ import { AddressAutocompleteInput } from './AddressAutocompleteInput';
 interface StopsSectionProps {
   stops: RouteStop[];
   isLoading: boolean;
+  isDirectTrip: boolean;
+  startLabel: string;
+  destinationLabel: string;
+  onDirectTripChange: (isDirect: boolean) => void;
   onAddStop: () => void;
   onRemoveStop: (id: string) => void;
   onUpdateStop: (id: string, fields: Partial<RouteStop>) => void;
@@ -13,12 +17,70 @@ interface StopsSectionProps {
 export const StopsSection: React.FC<StopsSectionProps> = ({
   stops,
   isLoading,
+  isDirectTrip,
+  startLabel,
+  destinationLabel,
+  onDirectTripChange,
   onAddStop,
   onRemoveStop,
   onUpdateStop,
 }) => {
   const isMaxStopsReached = stops.length >= 10;
-  const isMinStopsReached = stops.length <= 1;
+
+  if (isDirectTrip) {
+    return (
+      <section className="card stops-section stops-section-direct" aria-labelledby="stops-section-title">
+        <div className="section-header">
+          <div>
+            <h2 id="stops-section-title" className="section-title">
+              Stops
+            </h2>
+            <span className="section-subtitle">
+              Прямий маршрут (0 проміжних зупинок)
+            </span>
+          </div>
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={() => onDirectTripChange(false)}
+            disabled={isLoading}
+            title="Увімкнути зупинки"
+          >
+            + Add Stops
+          </button>
+        </div>
+
+        <div className="direct-trip-notice">
+          <div className="direct-trip-notice-icon" aria-hidden="true">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          </div>
+          <div className="direct-trip-notice-body">
+            <h4 className="direct-trip-notice-title">Прямий маршрут активний</h4>
+            <p className="direct-trip-notice-desc">
+              Поїздка будується напряму від <strong>{startLabel || 'Старту'}</strong> до <strong>{destinationLabel || 'Фінішу'}</strong>.
+              {stops.length > 0 ? (
+                <> Ваші налаштовані зупинки ({stops.length}) збережено та буде відновлено при вимкненні перемикача або натисканні <em>"+ Add Stops"</em>.</>
+              ) : (
+                <> Натисніть <em>"+ Add Stops"</em>, якщо знадобиться додати проміжні зупинки.</>
+              )}
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="card stops-section" aria-labelledby="stops-section-title">
@@ -58,9 +120,9 @@ export const StopsSection: React.FC<StopsSectionProps> = ({
               <button
                 type="button"
                 className="btn-icon text-danger"
-                title={isMinStopsReached ? 'At least one stop is required' : 'Remove stop'}
+                title="Remove stop"
                 onClick={() => onRemoveStop(stop.id)}
-                disabled={isLoading || isMinStopsReached}
+                disabled={isLoading}
               >
                 &times;
               </button>
