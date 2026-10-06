@@ -57,5 +57,53 @@ namespace RouteWise.Api.Controllers
                 return BadRequest(new { error = ex.Message });
             }
         }
+
+        [HttpGet("reverse")]
+        [ProducesResponseType(typeof(AddressSuggestionDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+        [ProducesResponseType(StatusCodes.Status502BadGateway)]
+        public async Task<ActionResult<AddressSuggestionDto>> Reverse(
+            [FromQuery] double latitude,
+            [FromQuery] double longitude,
+            CancellationToken cancellationToken = default)
+        {
+            if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180)
+            {
+                return BadRequest(new { error = "Invalid latitude or longitude coordinates." });
+            }
+
+            try
+            {
+                var result = await _geocodingSearchService.ReverseGeocodeAsync(latitude, longitude, cancellationToken);
+                if (result == null)
+                {
+                    return NotFound(new { error = "No address found for the given coordinates." });
+                }
+
+                return Ok(result);
+            }
+            catch (OpenRouteServiceException ex)
+            {
+                var statusCode = ex.StatusCode switch
+                {
+                    HttpStatusCode.Unauthorized => StatusCodes.Status502BadGateway,
+                    HttpStatusCode.Forbidden => StatusCodes.Status502BadGateway,
+                    HttpStatusCode.TooManyRequests => StatusCodes.Status429TooManyRequests,
+                    HttpStatusCode.InternalServerError => StatusCodes.Status502BadGateway,
+                    HttpStatusCode.BadGateway => StatusCodes.Status502BadGateway,
+                    HttpStatusCode.ServiceUnavailable => StatusCodes.Status503ServiceUnavailable,
+                    HttpStatusCode.GatewayTimeout => StatusCodes.Status504GatewayTimeout,
+                    _ => StatusCodes.Status502BadGateway
+                };
+
+                return StatusCode(statusCode, new { error = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
     }
 }

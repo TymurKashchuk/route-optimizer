@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { AddressInput, AlgorithmType, PlanningMode } from '../types/route';
 import { AddressAutocompleteInput } from './AddressAutocompleteInput';
+import { reverseGeocode } from '../api/geocodingClient';
 
 interface RouteFormSectionProps {
   start: AddressInput;
@@ -36,6 +37,59 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
   onOptimize,
 }) => {
   const isArriveBy = planningMode === 'arrive-by';
+  const [isLocating, setIsLocating] = useState<boolean>(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError('Геолокація не підтримується вашим браузером.');
+      return;
+    }
+
+    setIsLocating(true);
+    setLocationError(null);
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { latitude, longitude } = pos.coords;
+          const result = await reverseGeocode(latitude, longitude);
+          onStartChange({
+            label: start.label && start.label !== 'Home' ? start.label : 'Моє місцезнаходження',
+            address: result.address,
+          });
+        } catch (err: unknown) {
+          const message =
+            err instanceof Error ? err.message : 'Не вдалося визначити адресу за вашими координатами.';
+          setLocationError(message);
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      (geoError) => {
+        setIsLocating(false);
+        switch (geoError.code) {
+          case geoError.PERMISSION_DENIED:
+            setLocationError('Доступ до геопозиції відхилено. Дозвольте доступ у браузері.');
+            break;
+          case geoError.POSITION_UNAVAILABLE:
+            setLocationError('GPS-дані недоступні. Перевірте зʼєднання.');
+            break;
+          case geoError.TIMEOUT:
+            setLocationError('Час очікування відповіді GPS вичерпано.');
+            break;
+          default:
+            setLocationError('Не вдалося визначити поточну геопозицію.');
+            break;
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000,
+      }
+    );
+  };
 
   return (
     <section className="card form-section" aria-labelledby="route-params-title">
@@ -55,17 +109,31 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
             placeholder="Label (e.g. Home)"
             value={start.label}
             onChange={(e) => onStartChange({ ...start, label: e.target.value })}
-            disabled={isLoading}
+            disabled={isLoading || isLocating}
           />
           <AddressAutocompleteInput
             id="start-address"
             className="form-input"
             placeholder="Address (e.g. Khreshchatyk 1, Kyiv)"
             value={start.address}
-            onChange={(newAddress) => onStartChange({ ...start, address: newAddress })}
-            disabled={isLoading}
+            onChange={(newAddress) => {
+              setLocationError(null);
+              onStartChange({ ...start, address: newAddress });
+            }}
+            disabled={isLoading || isLocating}
           />
+          <button
+            type="button"
+            className="btn btn-secondary geolocation-btn"
+            onClick={handleUseCurrentLocation}
+            disabled={isLoading || isLocating}
+            title="Використати моє поточне місцезнаходження"
+            aria-label="Використати моє поточне місцезнаходження"
+          >
+            {isLocating ? <span className="btn-spinner" /> : '📍'}
+          </button>
         </div>
+        {locationError && <p className="form-error-sm">{locationError}</p>}
       </div>
 
       <div className="form-group">

@@ -38,3 +38,33 @@ export async function searchAddresses(
     throw err;
   }
 }
+
+/**
+ * Resolves a street address from GPS latitude and longitude via RouteWise backend.
+ */
+export async function reverseGeocode(
+  latitude: number,
+  longitude: number,
+  signal?: AbortSignal
+): Promise<AddressSuggestionDto> {
+  const response = await fetch(
+    `/api/geocoding/reverse?latitude=${latitude}&longitude=${longitude}`,
+    {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      signal,
+    }
+  );
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error('No address found for current coordinates.');
+    }
+    if (response.status === 429) {
+      throw new Error('Geocoding rate limit reached. Please wait a moment.');
+    }
+    throw new Error(`Reverse geocoding failed (HTTP ${response.status}).`);
+  }
+
+  return (await response.json()) as AddressSuggestionDto;
+}

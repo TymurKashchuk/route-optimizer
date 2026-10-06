@@ -14,5 +14,10 @@ namespace RouteWise.Api.Providers.Geocoding
             string query,
             int limit = 5,
             CancellationToken cancellationToken = default);
+
+        Task<AddressSearchResult?> ReverseGeocodeAsync(
+            double latitude,
+            double longitude,
+            CancellationToken cancellationToken = default);
     }
 }

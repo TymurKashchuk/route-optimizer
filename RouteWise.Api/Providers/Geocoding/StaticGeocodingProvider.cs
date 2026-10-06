@@ -84,5 +84,30 @@ namespace RouteWise.Api.Providers.Geocoding
 
             return Task.FromResult<IReadOnlyList<AddressSearchResult>>(results);
         }
+
+        public Task<AddressSearchResult?> ReverseGeocodeAsync(
+            double latitude,
+            double longitude,
+            CancellationToken cancellationToken = default)
+        {
+            var closest = _knownAddresses
+                .OrderBy(kvp => Math.Pow(kvp.Value.Latitude - latitude, 2) + Math.Pow(kvp.Value.Longitude - longitude, 2))
+                .FirstOrDefault();
+
+            if (string.IsNullOrEmpty(closest.Key))
+            {
+                return Task.FromResult<AddressSearchResult?>(null);
+            }
+
+            var result = new AddressSearchResult
+            {
+                Address = closest.Key,
+                DisplayName = closest.Key,
+                Coordinates = closest.Value,
+                Confidence = 1.0
+            };
+
+            return Task.FromResult<AddressSearchResult?>(result);
+        }
     }
 }

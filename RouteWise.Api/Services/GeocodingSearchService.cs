@@ -52,5 +52,38 @@ namespace RouteWise.Api.Services
 
             return dtos;
         }
+
+        public async Task<AddressSuggestionDto?> ReverseGeocodeAsync(
+            double latitude,
+            double longitude,
+            CancellationToken cancellationToken = default)
+        {
+            var roundedLat = Math.Round(latitude, 5);
+            var roundedLon = Math.Round(longitude, 5);
+            var cacheKey = $"geo_rev_{roundedLat}_{roundedLon}";
+
+            if (_cache.TryGetValue(cacheKey, out AddressSuggestionDto? cachedResult) && cachedResult != null)
+            {
+                return cachedResult;
+            }
+
+            var result = await _geocodingProvider.ReverseGeocodeAsync(latitude, longitude, cancellationToken);
+            if (result == null)
+            {
+                return null;
+            }
+
+            var dto = new AddressSuggestionDto
+            {
+                Address = result.Address,
+                DisplayName = result.DisplayName,
+                Latitude = result.Coordinates.Latitude,
+                Longitude = result.Coordinates.Longitude,
+                Confidence = result.Confidence
+            };
+
+            _cache.Set(cacheKey, dto, CacheDuration);
+            return dto;
+        }
     }
 }
