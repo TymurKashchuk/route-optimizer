@@ -26,13 +26,19 @@ export const AddressAutocompleteInput: React.FC<AddressAutocompleteInputProps> =
   const wrapperRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  useEffect(() => {
-    const trimmed = value.trim();
-    if (trimmed.length < 2) {
+  const handleInputChange = (newValue: string) => {
+    onChange(newValue);
+    if (newValue.trim().length < 2) {
       setSuggestions([]);
       setIsOpen(false);
       setIsLoading(false);
       setHighlightedIndex(-1);
+    }
+  };
+
+  useEffect(() => {
+    const trimmed = value.trim();
+    if (trimmed.length < 2) {
       return;
     }
 
@@ -133,7 +139,7 @@ export const AddressAutocompleteInput: React.FC<AddressAutocompleteInputProps> =
         className={className}
         placeholder={placeholder}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => handleInputChange(e.target.value)}
         onFocus={() => {
           if (suggestions.length > 0) setIsOpen(true);
         }}
