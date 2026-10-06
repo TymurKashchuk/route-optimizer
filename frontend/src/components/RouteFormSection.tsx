@@ -1,13 +1,35 @@
 import React, { useState } from 'react';
-import type { AddressInput, AlgorithmType, PlanningMode } from '../types/route';
+import type { AddressInput, AlgorithmType, PlanningMode, RouteStop } from '../types/route';
 import { AddressAutocompleteInput } from './AddressAutocompleteInput';
+import { StopsSection } from './StopsSection';
 import { reverseGeocode } from '../api/geocodingClient';
+
+function getTodayDateString(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function getTomorrowDateString(): string {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const year = tomorrow.getFullYear();
+  const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
+  const day = String(tomorrow.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 interface RouteFormSectionProps {
   start: AddressInput;
   onStartChange: (start: AddressInput) => void;
   destination: AddressInput;
   onDestinationChange: (destination: AddressInput) => void;
+  stops: RouteStop[];
+  onAddStop: () => void;
+  onRemoveStop: (id: string) => void;
+  onUpdateStop: (id: string, fields: Partial<RouteStop>) => void;
   isDirectTrip: boolean;
   onDirectTripChange: (isDirect: boolean) => void;
   planningMode: PlanningMode;
@@ -27,6 +49,10 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
   onStartChange,
   destination,
   onDestinationChange,
+  stops,
+  onAddStop,
+  onRemoveStop,
+  onUpdateStop,
   isDirectTrip,
   onDirectTripChange,
   planningMode,
@@ -44,6 +70,32 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
   const [isLocating, setIsLocating] = useState<boolean>(false);
   const [locationError, setLocationError] = useState<string | null>(null);
 
+  // Parse Date and Time parts
+  const activeDateTime = isArriveBy ? arrivalBy : departureTime;
+  const datePart = activeDateTime.split('T')[0] || getTodayDateString();
+  const timePart = activeDateTime.split('T')[1] || (isArriveBy ? '14:00' : '09:00');
+
+  const todayStr = getTodayDateString();
+  const tomorrowStr = getTomorrowDateString();
+
+  const handleDateChange = (newDate: string) => {
+    const combined = `${newDate}T${timePart}`;
+    if (isArriveBy) {
+      onArrivalByChange(combined);
+    } else {
+      onDepartureTimeChange(combined);
+    }
+  };
+
+  const handleTimeChange = (newTime: string) => {
+    const combined = `${datePart}T${newTime}`;
+    if (isArriveBy) {
+      onArrivalByChange(combined);
+    } else {
+      onDepartureTimeChange(combined);
+    }
+  };
+
   const handleUseCurrentLocation = () => {
     if (!navigator.geolocation) {
       setLocationError('Геолокація не підтримується вашим браузером.');
@@ -59,12 +111,12 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
           const { latitude, longitude } = pos.coords;
           const result = await reverseGeocode(latitude, longitude);
           onStartChange({
-            label: start.label && start.label !== 'Home' ? start.label : 'Моє місцезнаходження',
+            label: 'Моє місцезнаходження',
             address: result.address,
           });
         } catch (err: unknown) {
           const message =
-            err instanceof Error ? err.message : 'Не вдалося визначити адресу за вашими координатами.';
+            err instanceof Error ? err.message : 'Не вдалося визначити адресу за координатами.';
           setLocationError(message);
         } finally {
           setIsLocating(false);
@@ -74,10 +126,10 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
         setIsLocating(false);
         switch (geoError.code) {
           case geoError.PERMISSION_DENIED:
-            setLocationError('Доступ до геопозиції відхилено. Дозвольте доступ у браузері.');
+            setLocationError('Доступ до геопозиції відхилено у налаштуваннях браузера.');
             break;
           case geoError.POSITION_UNAVAILABLE:
-            setLocationError('GPS-дані недоступні. Перевірте зʼєднання.');
+            setLocationError('GPS-дані наразі недоступні.');
             break;
           case geoError.TIMEOUT:
             setLocationError('Час очікування відповіді GPS вичерпано.');
@@ -95,203 +147,461 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
     );
   };
 
-  return (
-    <section className="card form-section" aria-labelledby="route-params-title">
-      <h2 id="route-params-title" className="section-title">
-        Route Parameters
-      </h2>
+  const handleEnableStopsMode = () => {
+    onDirectTripChange(false);
+    if (stops.length === 0) {
+      onAddStop();
+    }
+  };
 
-      <div className="form-group">
-        <label className="form-label" htmlFor="start-address">
-          Start Location
-        </label>
-        <div className="input-group">
-          <input
-            id="start-label"
-            type="text"
-            className="form-input start-label-input"
-            placeholder="Label (e.g. Home)"
-            value={start.label}
-            onChange={(e) => onStartChange({ ...start, label: e.target.value })}
-            disabled={isLoading || isLocating}
-          />
-          <AddressAutocompleteInput
-            id="start-address"
-            className="form-input"
-            placeholder="Address (e.g. Khreshchatyk 1, Kyiv)"
-            value={start.address}
-            onChange={(newAddress) => {
-              setLocationError(null);
-              onStartChange({ ...start, address: newAddress });
-            }}
-            disabled={isLoading || isLocating}
-          />
+  return (
+    <section className="card trip-planner-card" aria-labelledby="trip-planner-title">
+      <div className="trip-planner-header">
+        <div>
+          <h2 id="trip-planner-title" className="section-title">
+            Маршрут подорожі
+          </h2>
+          <p className="section-subtitle">
+            {isDirectTrip
+              ? 'Пряма поїздка від точки старту до фінішу'
+              : `Поїздка із ${stops.length} ${stops.length === 1 ? 'проміжною зупинкою' : 'проміжними зупинками'}`}
+          </p>
+        </div>
+
+        {/* Mode Selector Tabs */}
+        <div className="trip-mode-tabs" role="tablist" aria-label="Тип поїздки">
           <button
             type="button"
-            className="btn btn-secondary geolocation-btn"
-            onClick={handleUseCurrentLocation}
-            disabled={isLoading || isLocating}
-            title="Використати моє поточне місцезнаходження"
-            aria-label="Використати моє поточне місцезнаходження"
+            role="tab"
+            aria-selected={isDirectTrip}
+            className={`trip-mode-tab ${isDirectTrip ? 'active' : ''}`}
+            onClick={() => onDirectTripChange(true)}
+            disabled={isLoading}
           >
-            {isLocating ? (
-              <svg
-                className="btn-spinner geolocation-spinner"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                aria-hidden="true"
-              >
-                <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
-                <path d="M12 2a10 10 0 0 1 10 10" />
-              </svg>
-            ) : (
-              <svg
-                className="geolocation-icon"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <circle cx="12" cy="12" r="7" />
-                <line x1="12" y1="2" x2="12" y2="5" />
-                <line x1="12" y1="19" x2="12" y2="22" />
-                <line x1="2" y1="12" x2="5" y2="12" />
-                <line x1="19" y1="12" x2="22" y2="12" />
-                <circle cx="12" cy="12" r="2" fill="currentColor" />
-              </svg>
-            )}
+            <span>Пряма (А → Б)</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={!isDirectTrip}
+            className={`trip-mode-tab ${!isDirectTrip ? 'active' : ''}`}
+            onClick={() => onDirectTripChange(false)}
+            disabled={isLoading}
+          >
+            <span>Із зупинками</span>
+            {stops.length > 0 && <span className="tab-count-badge">{stops.length}</span>}
           </button>
         </div>
-        {locationError && <p className="form-error-sm">{locationError}</p>}
       </div>
 
-      <div className="form-group">
-        <label className="form-label" htmlFor="destination-address">
-          Destination Location (Fixed Finish)
-        </label>
-        <div className="input-group">
-          <input
-            id="destination-label"
-            type="text"
-            className="form-input start-label-input"
-            placeholder="Label (e.g. Hospital)"
-            value={destination.label}
-            onChange={(e) => onDestinationChange({ ...destination, label: e.target.value })}
-            disabled={isLoading}
-          />
-          <AddressAutocompleteInput
-            id="destination-address"
-            className="form-input"
-            placeholder="Address (e.g. Zhytomyr City Hospital)"
-            value={destination.address}
-            onChange={(newAddress) => onDestinationChange({ ...destination, address: newAddress })}
-            disabled={isLoading}
-          />
+      {/* Vertical Route Journey Chain */}
+      <div className="route-chain-flow">
+        {/* START POINT */}
+        <div className="chain-node chain-node-start">
+          <div className="chain-marker" aria-hidden="true">
+            <span className="marker-dot marker-dot-start">A</span>
+          </div>
+          <div className="chain-content">
+            <div className="chain-title-row">
+              <label className="chain-label" htmlFor="start-address">
+                Звідки (Початок)
+              </label>
+              {start.label && (
+                <span className="chain-active-tag">{start.label}</span>
+              )}
+            </div>
+
+            <div className="input-with-action">
+              <AddressAutocompleteInput
+                id="start-address"
+                className="form-input"
+                placeholder="Введіть адресу або точку старту"
+                value={start.address}
+                onChange={(newAddress) => {
+                  setLocationError(null);
+                  onStartChange({
+                    ...start,
+                    label: start.label || 'Старт',
+                    address: newAddress,
+                  });
+                }}
+                disabled={isLoading || isLocating}
+              />
+              <button
+                type="button"
+                className="btn-location-action"
+                onClick={handleUseCurrentLocation}
+                disabled={isLoading || isLocating}
+                title="Визначити моє поточне місцезнаходження за GPS"
+                aria-label="Використати моє поточне місцезнаходження"
+              >
+                {isLocating ? (
+                  <svg
+                    className="btn-spinner"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    aria-hidden="true"
+                  >
+                    <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
+                    <path d="M12 2a10 10 0 0 1 10 10" />
+                  </svg>
+                ) : (
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="12" cy="12" r="7" />
+                    <line x1="12" y1="2" x2="12" y2="5" />
+                    <line x1="12" y1="19" x2="12" y2="22" />
+                    <line x1="2" y1="12" x2="5" y2="12" />
+                    <line x1="19" y1="12" x2="22" y2="12" />
+                    <circle cx="12" cy="12" r="2" fill="currentColor" />
+                  </svg>
+                )}
+              </button>
+            </div>
+            {locationError && <p className="form-error-sm">{locationError}</p>}
+
+            {/* Quick Preset Chips for Start */}
+            <div className="point-quick-chips">
+              <span className="chips-hint">Мітка:</span>
+              <button
+                type="button"
+                className={`chip-btn ${start.label === 'Дім' ? 'selected' : ''}`}
+                onClick={() => onStartChange({ ...start, label: 'Дім' })}
+                disabled={isLoading}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                  <polyline points="9 22 9 12 15 12 15 22" />
+                </svg>
+                <span>Дім</span>
+              </button>
+              <button
+                type="button"
+                className={`chip-btn ${start.label === 'Робота' ? 'selected' : ''}`}
+                onClick={() => onStartChange({ ...start, label: 'Робота' })}
+                disabled={isLoading}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                </svg>
+                <span>Робота</span>
+              </button>
+              <button
+                type="button"
+                className={`chip-btn ${start.label === 'Моє місцезнаходження' ? 'selected' : ''}`}
+                onClick={() => onStartChange({ ...start, label: 'Моє місцезнаходження' })}
+                disabled={isLoading}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" />
+                  <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+                </svg>
+                <span>Моє місце</span>
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <div className={`form-group direct-trip-group ${isDirectTrip ? 'active' : ''}`}>
-        <label className="toggle-switch-label" htmlFor="direct-trip-toggle">
-          <div className="toggle-switch-wrapper">
-            <input
-              id="direct-trip-toggle"
-              type="checkbox"
-              className="toggle-switch-input"
-              checked={isDirectTrip}
-              onChange={(e) => onDirectTripChange(e.target.checked)}
+        {/* CONNECTOR & INTERMEDIATE STOPS */}
+        <div className="chain-connector-segment">
+          <div className="chain-connector-line" aria-hidden="true" />
+
+          {isDirectTrip ? (
+            <div className="direct-trip-shortcut">
+              <div className="direct-shortcut-info">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
+                <span className="direct-shortcut-text">Прямий шлях без зупинок</span>
+              </div>
+              <button
+                type="button"
+                className="btn-inline-add"
+                onClick={handleEnableStopsMode}
+                disabled={isLoading}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                <span>Додати зупинку по дорозі</span>
+              </button>
+            </div>
+          ) : (
+            <div className="stops-chain-wrapper">
+              <StopsSection
+                stops={stops}
+                isLoading={isLoading}
+                onAddStop={onAddStop}
+                onRemoveStop={onRemoveStop}
+                onUpdateStop={onUpdateStop}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* DESTINATION POINT */}
+        <div className="chain-node chain-node-dest">
+          <div className="chain-marker" aria-hidden="true">
+            <span className="marker-dot marker-dot-dest">B</span>
+          </div>
+          <div className="chain-content">
+            <div className="chain-title-row">
+              <label className="chain-label" htmlFor="destination-address">
+                Куди (Призначення)
+              </label>
+              {destination.label && (
+                <span className="chain-active-tag">{destination.label}</span>
+              )}
+            </div>
+
+            <AddressAutocompleteInput
+              id="destination-address"
+              className="form-input"
+              placeholder="Введіть адресу або заклад фінішу"
+              value={destination.address}
+              onChange={(newAddress) => {
+                onDestinationChange({
+                  ...destination,
+                  label: destination.label || 'Фініш',
+                  address: newAddress,
+                });
+              }}
               disabled={isLoading}
             />
-            <span className="toggle-switch-slider"></span>
+
+            {/* Quick Preset Chips for Destination */}
+            <div className="point-quick-chips">
+              <span className="chips-hint">Мітка:</span>
+              <button
+                type="button"
+                className={`chip-btn ${destination.label === 'Офіс' ? 'selected' : ''}`}
+                onClick={() => onDestinationChange({ ...destination, label: 'Офіс' })}
+                disabled={isLoading}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                </svg>
+                <span>Офіс</span>
+              </button>
+              <button
+                type="button"
+                className={`chip-btn ${destination.label === 'Лікарня' ? 'selected' : ''}`}
+                onClick={() => onDestinationChange({ ...destination, label: 'Лікарня' })}
+                disabled={isLoading}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                </svg>
+                <span>Лікарня</span>
+              </button>
+              <button
+                type="button"
+                className={`chip-btn ${destination.label === 'ТРЦ' ? 'selected' : ''}`}
+                onClick={() => onDestinationChange({ ...destination, label: 'ТРЦ' })}
+                disabled={isLoading}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <circle cx="9" cy="21" r="1" />
+                  <circle cx="20" cy="21" r="1" />
+                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                </svg>
+                <span>ТРЦ</span>
+              </button>
+            </div>
           </div>
-          <div className="toggle-switch-text">
-            <span className="toggle-title">Прямий маршрут (без проміжних зупинок)</span>
-            <span className="toggle-description">
-              {isDirectTrip
-                ? 'Поїздка будується напряму від Старту до Фінішу (А → Б)'
-                : 'Увімкніть, щоб доїхати напряму без додаткових зупинок'}
-            </span>
+        </div>
+      </div>
+
+      {/* TRIP SCHEDULE & OPTIMIZATION SETTINGS */}
+      <div className="trip-settings-panel">
+        <h3 className="settings-panel-title">Час та деталі поїздки</h3>
+
+        {/* Planning Mode Selector (Depart At vs Arrive By) */}
+        <div className="form-group">
+          <label className="form-label-sm">Режим часу</label>
+          <div className="planning-mode-group" role="radiogroup" aria-label="Режим планування часу">
+            <button
+              type="button"
+              className={`planning-mode-btn ${!isArriveBy ? 'active' : ''}`}
+              onClick={() => onPlanningModeChange('depart-at')}
+              disabled={isLoading}
+              role="radio"
+              aria-checked={!isArriveBy}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+              <span>Виїхати о...</span>
+            </button>
+            <button
+              type="button"
+              className={`planning-mode-btn ${isArriveBy ? 'active' : ''}`}
+              onClick={() => onPlanningModeChange('arrive-by')}
+              disabled={isLoading}
+              role="radio"
+              aria-checked={isArriveBy}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" />
+                <circle cx="12" cy="12" r="6" />
+                <circle cx="12" cy="12" r="2" />
+              </svg>
+              <span>Прибути до (дедлайн)</span>
+            </button>
           </div>
-        </label>
-      </div>
-
-      <div className="form-group">
-        <label className="form-label">Planning Mode</label>
-        <div className="planning-mode-group" role="radiogroup" aria-label="Planning Mode">
-          <button
-            type="button"
-            className={`planning-mode-btn ${!isArriveBy ? 'active' : ''}`}
-            onClick={() => onPlanningModeChange('depart-at')}
-            disabled={isLoading}
-            role="radio"
-            aria-checked={!isArriveBy}
-          >
-            Depart At (Leave at)
-          </button>
-          <button
-            type="button"
-            className={`planning-mode-btn ${isArriveBy ? 'active' : ''}`}
-            onClick={() => onPlanningModeChange('arrive-by')}
-            disabled={isLoading}
-            role="radio"
-            aria-checked={isArriveBy}
-          >
-            Arrive By (Deadline)
-          </button>
         </div>
-      </div>
 
-      <div className="form-row">
-        <div className="form-group flex-1">
-          <label className="form-label" htmlFor="route-time">
-            {isArriveBy ? 'Target Arrival Time (Deadline)' : 'Departure Time'}
+        {/* SEPARATED DATE & TIME INPUTS */}
+        <div className="trip-datetime-grid">
+          <div className="form-group">
+            <label className="form-label-sm" htmlFor="trip-date">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+              <span>Дата поїздки</span>
+            </label>
+            <div className="date-input-container">
+              <input
+                id="trip-date"
+                type="date"
+                className="form-input form-input-sm"
+                value={datePart}
+                onChange={(e) => handleDateChange(e.target.value)}
+                disabled={isLoading}
+              />
+              <div className="quick-date-pills">
+                <button
+                  type="button"
+                  className={`btn-date-pill ${datePart === todayStr ? 'active' : ''}`}
+                  onClick={() => handleDateChange(todayStr)}
+                  disabled={isLoading}
+                >
+                  Сьогодні
+                </button>
+                <button
+                  type="button"
+                  className={`btn-date-pill ${datePart === tomorrowStr ? 'active' : ''}`}
+                  onClick={() => handleDateChange(tomorrowStr)}
+                  disabled={isLoading}
+                >
+                  Завтра
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label-sm" htmlFor="trip-time">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+              <span>{isArriveBy ? 'Час прибуття' : 'Час виїзду'}</span>
+            </label>
+            <input
+              id="trip-time"
+              type="time"
+              className="form-input form-input-sm time-only-input"
+              value={timePart}
+              onChange={(e) => handleTimeChange(e.target.value)}
+              disabled={isLoading}
+            />
+          </div>
+        </div>
+
+        {/* OPTIMIZATION PRIORITY (INTERACTIVE CARDS) */}
+        <div className="trip-optimization-section">
+          <label className="form-label-sm">
+            Пріоритет побудови маршруту
           </label>
-          <input
-            id="route-time"
-            type="datetime-local"
-            className="form-input"
-            value={isArriveBy ? arrivalBy : departureTime}
-            onChange={(e) => (isArriveBy ? onArrivalByChange(e.target.value) : onDepartureTimeChange(e.target.value))}
-            disabled={isLoading}
-          />
-        </div>
 
-        <div className="form-group flex-1">
-          <label className="form-label" htmlFor="algorithm-select">
-            Optimization Algorithm
-          </label>
-          <select
-            id="algorithm-select"
-            className="form-select"
-            value={algorithm}
-            onChange={(e) => onAlgorithmChange(e.target.value as AlgorithmType)}
-            disabled={isLoading || isDirectTrip}
-            title={isDirectTrip ? 'Оптимізація не потрібна для прямого маршруту' : undefined}
-          >
-            {isDirectTrip ? (
-              <option value={algorithm}>Direct Route (Point-to-Point)</option>
-            ) : (
-              <>
-                <option value="nearest-neighbor">Nearest Neighbor (Fast Greedy)</option>
-                <option value="two-opt">2-Opt Heuristic (Optimized)</option>
-                <option value="original">Original Order (Baseline)</option>
-              </>
-            )}
-          </select>
+          {isDirectTrip ? (
+            <div className="direct-priority-notice">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="16" x2="12" y2="12" />
+                <line x1="12" y1="8" x2="12.01" y2="8" />
+              </svg>
+              <span>Прямий маршрут: розраховується найкоротший шлях напряму від Старту до Фінішу.</span>
+            </div>
+          ) : (
+            <div className="algorithm-cards-grid" role="radiogroup" aria-label="Пріоритет побудови маршруту">
+              <button
+                type="button"
+                role="radio"
+                aria-checked={algorithm === 'two-opt'}
+                className={`algo-card ${algorithm === 'two-opt' ? 'selected' : ''}`}
+                onClick={() => onAlgorithmChange('two-opt')}
+                disabled={isLoading}
+              >
+                <div className="algo-card-head">
+                  <span className="algo-radio-dot" />
+                  <span className="algo-name">Розумна оптимізація</span>
+                  <span className="algo-recommended-badge">Кращий</span>
+                </div>
+                <p className="algo-card-desc">2-Opt: переставляє зупинки для мінімального часу в дорозі</p>
+              </button>
+
+              <button
+                type="button"
+                role="radio"
+                aria-checked={algorithm === 'nearest-neighbor'}
+                className={`algo-card ${algorithm === 'nearest-neighbor' ? 'selected' : ''}`}
+                onClick={() => onAlgorithmChange('nearest-neighbor')}
+                disabled={isLoading}
+              >
+                <div className="algo-card-head">
+                  <span className="algo-radio-dot" />
+                  <span className="algo-name">Найближчі точки</span>
+                </div>
+                <p className="algo-card-desc">Послідовно прямує до найближчого наступного пункту</p>
+              </button>
+
+              <button
+                type="button"
+                role="radio"
+                aria-checked={algorithm === 'original'}
+                className={`algo-card ${algorithm === 'original' ? 'selected' : ''}`}
+                onClick={() => onAlgorithmChange('original')}
+                disabled={isLoading}
+              >
+                <div className="algo-card-head">
+                  <span className="algo-radio-dot" />
+                  <span className="algo-name">Мій порядок</span>
+                </div>
+                <p className="algo-card-desc">Зберігає вказану вами послідовність зупинок без змін</p>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
+      {/* ACTION BUTTON */}
       <button
         type="button"
-        className="btn btn-primary btn-block"
+        className="btn btn-primary btn-block btn-optimize-trip"
         onClick={onOptimize}
         disabled={isLoading}
       >
@@ -299,22 +609,23 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
           <>
             <svg
               className="btn-spinner"
-              width="16"
-              height="16"
+              width="18"
+              height="18"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               strokeWidth="2.5"
+              aria-hidden="true"
             >
               <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
               <path d="M12 2a10 10 0 0 1 10 10" />
             </svg>
-            <span>Calculating Route...</span>
+            <span>Розраховуємо найкращий маршрут...</span>
           </>
         ) : isDirectTrip ? (
-          'Calculate Direct Route'
+          'Розрахувати прямий маршрут'
         ) : (
-          'Optimize Route'
+          'Оптимізувати та побудувати маршрут'
         )}
       </button>
     </section>

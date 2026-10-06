@@ -1,8 +1,6 @@
 import React from 'react';
 import type { OptimizeRouteResponse } from '../types/route';
 import { RouteMetricsSummary } from './results/RouteMetricsSummary';
-import { OrderedStopsList } from './results/OrderedStopsList';
-import { RouteExplanation } from './results/RouteExplanation';
 import { TimelineView } from './results/TimelineView';
 import { RouteMapPreview } from './results/RouteMapPreview';
 
@@ -19,19 +17,36 @@ interface ResultsSectionProps {
 }
 
 export const ResultsSection: React.FC<ResultsSectionProps> = ({ result, isLoading }) => {
+  const isDirect = result ? result.orderedStops.length === 0 : false;
+
   return (
     <section className="card results-section" aria-labelledby="results-section-title">
       <div className="section-header">
-        <h2 id="results-section-title" className="section-title">
-          Optimization Results
-        </h2>
-        {isLoading && <span className="badge-muted">Calculating route...</span>}
+        <div>
+          <h2 id="results-section-title" className="section-title">
+            Результати подорожі
+          </h2>
+          <span className="section-subtitle">
+            {isLoading
+              ? 'Виконуємо оптимізацію...'
+              : result
+              ? isDirect
+                ? 'Прямий маршрут між двома точками'
+                : 'Оптимізований маршрут із зупинками'
+              : 'Карта та розклад поїздки'}
+          </span>
+        </div>
+
+        {isLoading && <span className="badge-muted">Розраховуємо...</span>}
         {!isLoading && result && (
-          <span className="badge-success">Optimized ({result.algorithm})</span>
+          <span className="badge-success">
+            {isDirect ? 'Пряма поїздка' : 'Маршрут оптимізовано'}
+          </span>
         )}
-        {!isLoading && !result && <span className="badge-muted">Waiting for execution</span>}
+        {!isLoading && !result && <span className="badge-muted">Очікує старту</span>}
       </div>
 
+      {/* SKELETON LOADING STATE */}
       {isLoading && (
         <div className="skeleton-container" aria-busy="true" aria-live="polite">
           <div className="skeleton-header">
@@ -43,25 +58,27 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ result, isLoadin
               fill="none"
               stroke="currentColor"
               strokeWidth="2.5"
+              aria-hidden="true"
             >
               <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
               <path d="M12 2a10 10 0 0 1 10 10" />
             </svg>
             <div>
-              <h3 className="skeleton-title">Calculating Optimal Route...</h3>
-              <p className="skeleton-subtitle">Building distance matrix and running optimization</p>
+              <h3 className="skeleton-title">Будуємо оптимальний маршрут...</h3>
+              <p className="skeleton-subtitle">Розраховуємо дорожню геометрію та формуємо графік</p>
             </div>
           </div>
           <div className="skeleton-cards">
-            <div className="skeleton-block skeleton-block-metric"></div>
-            <div className="skeleton-block skeleton-block-metric"></div>
-            <div className="skeleton-block skeleton-block-metric"></div>
+            <div className="skeleton-block skeleton-block-metric" />
+            <div className="skeleton-block skeleton-block-metric" />
+            <div className="skeleton-block skeleton-block-metric" />
           </div>
-          <div className="skeleton-block skeleton-block-wide"></div>
-          <div className="skeleton-block skeleton-block-tall"></div>
+          <div className="skeleton-block skeleton-block-tall" />
+          <div className="skeleton-block skeleton-block-wide" />
         </div>
       )}
 
+      {/* EMPTY STATE */}
       {!isLoading && !result && (
         <div className="empty-state">
           <div className="empty-state-icon">
@@ -74,29 +91,32 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ result, isLoadin
               strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
-              style={{ color: 'var(--text-light)' }}
+              aria-hidden="true"
             >
               <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" />
               <line x1="9" y1="3" x2="9" y2="18" />
               <line x1="15" y1="6" x2="15" y2="21" />
             </svg>
           </div>
-          <h3 className="empty-state-title">No Route Calculated Yet</h3>
+          <h3 className="empty-state-title">Ваша подорож зʼявиться тут</h3>
           <p className="empty-state-text">
-            Configure start location, add at least one stop, select an optimization algorithm, and click
-            <strong> "Optimize Route"</strong> to compute the optimal route and view your timeline schedule.
+            Вкажіть звідки і куди ви прямуєте, за бажанням додайте проміжні зупинки,
+            та натисніть <strong>«Побудувати маршрут»</strong>. Ми розрахуємо найкращу послідовність,
+            покажемо шлях на мапі та сформуємо покроковий розклад вашого дня.
           </p>
         </div>
       )}
 
+      {/* CALCULATED RESULTS */}
       {!isLoading && result && (
         <div className="results-container">
+          {/* Recommendation Banner for Arrive-By mode */}
           {result.planningMode === 'arrive-by' && result.recommendedDepartureTime && (
             <div className="recommendation-banner">
-              <div className="recommendation-banner-icon">
+              <div className="recommendation-banner-icon" aria-hidden="true">
                 <svg
-                  width="24"
-                  height="24"
+                  width="22"
+                  height="22"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -110,14 +130,16 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ result, isLoadin
               </div>
               <div className="recommendation-banner-body">
                 <h3 className="recommendation-banner-title">
-                  Recommended Departure: <strong>{formatTime(result.recommendedDepartureTime)}</strong>
+                  Рекомендований час виїзду: <strong>{formatTime(result.recommendedDepartureTime)}</strong>
                 </h3>
                 <p className="recommendation-banner-subtitle">
-                  Start your journey by this time to arrive at your destination on schedule.
+                  Вирушайте о цій порі, щоб комфортно прибути до місця призначення без запізнень.
                 </p>
               </div>
             </div>
           )}
+
+          {/* Trip Summary Metrics */}
           <RouteMetricsSummary
             original={result.original}
             optimized={result.optimized}
@@ -125,10 +147,16 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ result, isLoadin
             savedDistanceKm={result.savedDistanceKm}
             improvementPercent={result.improvementPercent}
           />
+
+          {/* Interactive Map Preview */}
           <RouteMapPreview preview={result.routePreview} />
-          <OrderedStopsList orderedStops={result.orderedStops} />
-          <RouteExplanation explanationSteps={result.explanationSteps} />
-          <TimelineView timeline={result.timeline} planningMode={result.planningMode} />
+
+          {/* Integrated Step-by-Step Itinerary */}
+          <TimelineView
+            timeline={result.timeline}
+            planningMode={result.planningMode}
+            explanationSteps={result.explanationSteps}
+          />
         </div>
       )}
     </section>

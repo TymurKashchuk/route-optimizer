@@ -2,7 +2,6 @@ import React, { useRef, useState } from 'react';
 import './App.css';
 import { Header } from './components/Header';
 import { RouteFormSection } from './components/RouteFormSection';
-import { StopsSection } from './components/StopsSection';
 import { ResultsSection } from './components/ResultsSection';
 import { Toast } from './components/Toast';
 import type { AddressInput, AlgorithmType, OptimizeRouteResponse, PlanningMode, RouteStop } from './types/route';
@@ -169,6 +168,10 @@ export const App: React.FC = () => {
               onStartChange={setStart}
               destination={destination}
               onDestinationChange={setDestination}
+              stops={stops}
+              onAddStop={handleAddStop}
+              onRemoveStop={handleRemoveStop}
+              onUpdateStop={handleUpdateStop}
               isDirectTrip={isDirectTrip}
               onDirectTripChange={handleDirectTripChange}
               planningMode={planningMode}
@@ -181,17 +184,6 @@ export const App: React.FC = () => {
               onAlgorithmChange={setAlgorithm}
               isLoading={isLoading}
               onOptimize={handleOptimize}
-            />
-            <StopsSection
-              stops={stops}
-              isLoading={isLoading}
-              isDirectTrip={isDirectTrip}
-              startLabel={start.label}
-              destinationLabel={destination.label}
-              onDirectTripChange={handleDirectTripChange}
-              onAddStop={handleAddStop}
-              onRemoveStop={handleRemoveStop}
-              onUpdateStop={handleUpdateStop}
             />
           </div>
           <div className="right-column">

@@ -24,9 +24,12 @@ export const AddressAutocompleteInput: React.FC<AddressAutocompleteInputProps> =
   const [isLoading, setIsLoading] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const hasUserTypedRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const handleInputChange = (newValue: string) => {
+    hasUserTypedRef.current = true;
     onChange(newValue);
     if (newValue.trim().length < 2) {
       setSuggestions([]);
@@ -37,6 +40,11 @@ export const AddressAutocompleteInput: React.FC<AddressAutocompleteInputProps> =
   };
 
   useEffect(() => {
+    // Only search if user explicitly typed into this input field
+    if (!hasUserTypedRef.current) {
+      return;
+    }
+
     const trimmed = value.trim();
     if (trimmed.length < 2) {
       return;
@@ -52,8 +60,9 @@ export const AddressAutocompleteInput: React.FC<AddressAutocompleteInputProps> =
       setIsLoading(true);
       try {
         const results = await searchAddresses(trimmed, 5, controller.signal);
+        const isFocused = document.activeElement === inputRef.current;
         setSuggestions(results);
-        setIsOpen(results.length > 0);
+        setIsOpen(isFocused && hasUserTypedRef.current && results.length > 0);
         setHighlightedIndex(-1);
       } catch {
         // Silently ignore aborts or network issues in autocomplete
@@ -82,6 +91,7 @@ export const AddressAutocompleteInput: React.FC<AddressAutocompleteInputProps> =
   }, []);
 
   const handleSelect = (suggestion: AddressSuggestionDto) => {
+    hasUserTypedRef.current = false;
     onChange(suggestion.address);
     setIsOpen(false);
     setSuggestions([]);
@@ -89,6 +99,7 @@ export const AddressAutocompleteInput: React.FC<AddressAutocompleteInputProps> =
   };
 
   const handleClear = () => {
+    hasUserTypedRef.current = false;
     onChange('');
     setSuggestions([]);
     setIsOpen(false);
@@ -132,8 +143,9 @@ export const AddressAutocompleteInput: React.FC<AddressAutocompleteInputProps> =
   };
 
   return (
-    <div ref={wrapperRef} className="autocomplete-wrapper">
+    <div ref={wrapperRef} className={`autocomplete-wrapper ${isOpen && suggestions.length > 0 ? 'autocomplete-open' : ''}`}>
       <input
+        ref={inputRef}
         id={id}
         type="text"
         className={className}
@@ -141,7 +153,7 @@ export const AddressAutocompleteInput: React.FC<AddressAutocompleteInputProps> =
         value={value}
         onChange={(e) => handleInputChange(e.target.value)}
         onFocus={() => {
-          if (suggestions.length > 0) setIsOpen(true);
+          if (hasUserTypedRef.current && suggestions.length > 0) setIsOpen(true);
         }}
         onKeyDown={handleKeyDown}
         disabled={disabled}
@@ -153,14 +165,31 @@ export const AddressAutocompleteInput: React.FC<AddressAutocompleteInputProps> =
           type="button"
           className="autocomplete-clear-btn"
           onClick={handleClear}
-          aria-label="Clear address"
+          aria-label="Очистити адресу"
           title="Очистити поле"
         >
-          ×
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
         </button>
       )}
       {isOpen && suggestions.length > 0 && (
-        <ul className="autocomplete-dropdown" role="listbox">
+        <ul
+          className="autocomplete-dropdown"
+          role="listbox"
+          onMouseDown={(e) => e.preventDefault()}
+        >
           {suggestions.map((item, idx) => {
             const fullText = item.displayName || item.address;
             const { primary, secondary } = formatSuggestionText(fullText);
