@@ -55,7 +55,14 @@ namespace RouteWise.Api
                     ? sp.GetRequiredService<OpenRouteServiceGeocodingProvider>()
                     : sp.GetRequiredService<StaticGeocodingProvider>();
             });
-            builder.Services.AddScoped<IRouteProvider, StaticRouteProvider>();
+            builder.Services.AddScoped<StaticRouteProvider>();
+            builder.Services.AddScoped<IRouteProvider>(sp =>
+            {
+                var options = sp.GetRequiredService<IOptions<OpenRouteServiceOptions>>().Value;
+                return !string.IsNullOrWhiteSpace(options.ApiKey)
+                    ? sp.GetRequiredService<OpenRouteServiceRouteProvider>()
+                    : sp.GetRequiredService<StaticRouteProvider>();
+            });
 
             builder.Services.AddScoped<MetricsService>();
             builder.Services.AddScoped<TimelineService>();
