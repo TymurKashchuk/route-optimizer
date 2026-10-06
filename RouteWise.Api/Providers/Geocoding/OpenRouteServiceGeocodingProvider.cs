@@ -62,7 +62,11 @@ namespace RouteWise.Api.Providers.Geocoding
                 throw new OpenRouteServiceException("OpenRouteService API key is missing. Please configure it in settings.");
             }
 
-            var requestUri = $"geocode/search?text={Uri.EscapeDataString(query.Trim())}&size={limit}";
+            var countryParam = !string.IsNullOrWhiteSpace(_options.CountryCode)
+                ? $"&boundary.country={Uri.EscapeDataString(_options.CountryCode.Trim())}"
+                : string.Empty;
+
+            var requestUri = $"geocode/search?text={Uri.EscapeDataString(query.Trim())}&size={limit}{countryParam}";
 
             using var httpRequest = new HttpRequestMessage(HttpMethod.Get, requestUri);
             httpRequest.Headers.TryAddWithoutValidation("Authorization", _options.ApiKey);

@@ -22,6 +22,7 @@ export const AddressAutocompleteInput: React.FC<AddressAutocompleteInputProps> =
   const [suggestions, setSuggestions] = useState<AddressSuggestionDto[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -31,6 +32,7 @@ export const AddressAutocompleteInput: React.FC<AddressAutocompleteInputProps> =
       setSuggestions([]);
       setIsOpen(false);
       setIsLoading(false);
+      setHighlightedIndex(-1);
       return;
     }
 
@@ -46,6 +48,7 @@ export const AddressAutocompleteInput: React.FC<AddressAutocompleteInputProps> =
         const results = await searchAddresses(trimmed, 5, controller.signal);
         setSuggestions(results);
         setIsOpen(results.length > 0);
+        setHighlightedIndex(-1);
       } catch {
         // Silently ignore aborts or network issues in autocomplete
       } finally {
@@ -65,6 +68,7 @@ export const AddressAutocompleteInput: React.FC<AddressAutocompleteInputProps> =
     function handleClickOutside(e: MouseEvent) {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
         setIsOpen(false);
+        setHighlightedIndex(-1);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -75,12 +79,50 @@ export const AddressAutocompleteInput: React.FC<AddressAutocompleteInputProps> =
     onChange(suggestion.address);
     setIsOpen(false);
     setSuggestions([]);
+    setHighlightedIndex(-1);
+  };
+
+  const handleClear = () => {
+    onChange('');
+    setSuggestions([]);
+    setIsOpen(false);
+    setHighlightedIndex(-1);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      setIsOpen(false);
+    if (!isOpen || suggestions.length === 0) {
+      if (e.key === 'Escape') {
+        setIsOpen(false);
+      }
+      return;
     }
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlightedIndex((prev) => (prev < suggestions.length - 1 ? prev + 1 : 0));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : suggestions.length - 1));
+    } else if (e.key === 'Enter') {
+      if (highlightedIndex >= 0 && highlightedIndex < suggestions.length) {
+        e.preventDefault();
+        handleSelect(suggestions[highlightedIndex]);
+      }
+    } else if (e.key === 'Escape') {
+      setIsOpen(false);
+      setHighlightedIndex(-1);
+    }
+  };
+
+  const formatSuggestionText = (text: string) => {
+    const commaIndex = text.indexOf(',');
+    if (commaIndex > -1) {
+      return {
+        primary: text.substring(0, commaIndex).trim(),
+        secondary: text.substring(commaIndex + 1).trim(),
+      };
+    }
+    return { primary: text, secondary: '' };
   };
 
   return (
@@ -100,32 +142,54 @@ export const AddressAutocompleteInput: React.FC<AddressAutocompleteInputProps> =
         autoComplete="off"
       />
       {isLoading && <span className="autocomplete-spinner" />}
+      {!isLoading && !disabled && value.trim().length > 0 && (
+        <button
+          type="button"
+          className="autocomplete-clear-btn"
+          onClick={handleClear}
+          aria-label="Clear address"
+          title="Очистити поле"
+        >
+          ×
+        </button>
+      )}
       {isOpen && suggestions.length > 0 && (
         <ul className="autocomplete-dropdown" role="listbox">
-          {suggestions.map((item, idx) => (
-            <li
-              key={`${item.address}-${idx}`}
-              className="autocomplete-item"
-              onClick={() => handleSelect(item)}
-              role="option"
-            >
-              <svg
-                className="autocomplete-icon"
-                viewBox="0 0 24 24"
-                width="14"
-                height="14"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
+          {suggestions.map((item, idx) => {
+            const fullText = item.displayName || item.address;
+            const { primary, secondary } = formatSuggestionText(fullText);
+            const isHighlighted = idx === highlightedIndex;
+
+            return (
+              <li
+                key={`${item.address}-${idx}`}
+                className={`autocomplete-item ${isHighlighted ? 'active' : ''}`}
+                onClick={() => handleSelect(item)}
+                onMouseEnter={() => setHighlightedIndex(idx)}
+                role="option"
+                aria-selected={isHighlighted}
               >
-                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
-                <circle cx="12" cy="9" r="2.5" />
-              </svg>
-              <span className="autocomplete-item-text">
-                {item.displayName || item.address}
-              </span>
-            </li>
-          ))}
+                <svg
+                  className="autocomplete-icon"
+                  viewBox="0 0 24 24"
+                  width="14"
+                  height="14"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+                  <circle cx="12" cy="9" r="2.5" />
+                </svg>
+                <div className="autocomplete-item-content">
+                  <span className="autocomplete-item-primary">{primary}</span>
+                  {secondary && (
+                    <span className="autocomplete-item-secondary">{secondary}</span>
+                  )}
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

@@ -9,5 +9,6 @@ namespace RouteWise.Api.Options
         public string ApiKey { get; set; } = string.Empty;
 
         public int TimeoutSeconds { get; set; } = 10;
+        public string? CountryCode { get; set; } = "UA";
     }
 }
