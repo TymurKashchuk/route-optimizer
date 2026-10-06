@@ -21,7 +21,6 @@ namespace RouteWise.Api.Contracts.Requests
         public AddressInput Destination { get; set; } = new();
 
         [Required]
-        [MinLength(1)]
         [MaxLength(10)]
         public List<RouteStop> Stops { get; set; } = new();
     }

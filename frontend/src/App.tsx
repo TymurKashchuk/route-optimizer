@@ -50,6 +50,7 @@ export const App: React.FC = () => {
   const [arrivalBy, setArrivalBy] = useState<string>(() => `${getTodayDateString()}T14:00`);
   const [algorithm, setAlgorithm] = useState<AlgorithmType>('two-opt');
   const [stops, setStops] = useState<RouteStop[]>(DEFAULT_STOPS);
+  const [isDirectTrip, setIsDirectTrip] = useState<boolean>(false);
 
   const handlePlanningModeChange = (mode: PlanningMode) => {
     setPlanningMode(mode);
@@ -64,6 +65,20 @@ export const App: React.FC = () => {
     }
   };
 
+  const handleDirectTripChange = (isDirect: boolean) => {
+    setIsDirectTrip(isDirect);
+    if (!isDirect && stops.length === 0) {
+      setStops([
+        {
+          id: `stop-${crypto.randomUUID()}`,
+          label: 'Stop 1',
+          address: '',
+          serviceMinutes: 15,
+        },
+      ]);
+    }
+  };
+
   // Request & Execution State
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -72,6 +87,9 @@ export const App: React.FC = () => {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const handleAddStop = () => {
+    if (isDirectTrip) {
+      setIsDirectTrip(false);
+    }
     if (stops.length >= 10) return;
     const newStop: RouteStop = {
       id: `stop-${crypto.randomUUID()}`,
@@ -83,8 +101,13 @@ export const App: React.FC = () => {
   };
 
   const handleRemoveStop = (id: string) => {
-    if (stops.length <= 1) return;
-    setStops((prev) => prev.filter((s) => s.id !== id));
+    setStops((prev) => {
+      const updated = prev.filter((s) => s.id !== id);
+      if (updated.length === 0) {
+        setIsDirectTrip(true);
+      }
+      return updated;
+    });
   };
 
   const handleUpdateStop = (id: string, fields: Partial<RouteStop>) => {
@@ -113,7 +136,7 @@ export const App: React.FC = () => {
           arrivalBy: planningMode === 'arrive-by' ? arrivalBy : undefined,
           start,
           destination,
-          stops,
+          stops: isDirectTrip ? [] : stops,
         },
         controller.signal
       );
@@ -146,6 +169,8 @@ export const App: React.FC = () => {
               onStartChange={setStart}
               destination={destination}
               onDestinationChange={setDestination}
+              isDirectTrip={isDirectTrip}
+              onDirectTripChange={handleDirectTripChange}
               planningMode={planningMode}
               onPlanningModeChange={handlePlanningModeChange}
               departureTime={departureTime}
@@ -160,6 +185,10 @@ export const App: React.FC = () => {
             <StopsSection
               stops={stops}
               isLoading={isLoading}
+              isDirectTrip={isDirectTrip}
+              startLabel={start.label}
+              destinationLabel={destination.label}
+              onDirectTripChange={handleDirectTripChange}
               onAddStop={handleAddStop}
               onRemoveStop={handleRemoveStop}
               onUpdateStop={handleUpdateStop}

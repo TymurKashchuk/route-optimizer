@@ -34,6 +34,17 @@ namespace RouteWise.Tests.Controllers
 
                 return Task.FromResult<IReadOnlyList<AddressSearchResult>>(new List<AddressSearchResult>());
             }
+
+            public Task<AddressSearchResult?> ReverseGeocodeAsync(
+                double latitude,
+                double longitude,
+                CancellationToken cancellationToken = default) =>
+                Task.FromResult<AddressSearchResult?>(new AddressSearchResult
+                {
+                    Address = "Test Address",
+                    DisplayName = "Test Address",
+                    Coordinates = new LocationPoint { Latitude = latitude, Longitude = longitude }
+                });
         }
 
         private static (GeocodingController Controller, MockGeocodingProvider Provider) CreateController()

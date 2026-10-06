@@ -5,6 +5,17 @@ interface OrderedStopsListProps {
 }
 
 export const OrderedStopsList: React.FC<OrderedStopsListProps> = ({ orderedStops }) => {
+  if (orderedStops.length === 0) {
+    return (
+      <div className="results-block">
+        <h3 className="block-title">Optimal Stop Sequence</h3>
+        <p className="direct-trip-note">
+          Прямий маршрут без проміжних зупинок (Старт &rarr; Фініш).
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="results-block">
       <h3 className="block-title">Optimal Stop Sequence</h3>

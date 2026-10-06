@@ -8,6 +8,8 @@ interface RouteFormSectionProps {
   onStartChange: (start: AddressInput) => void;
   destination: AddressInput;
   onDestinationChange: (destination: AddressInput) => void;
+  isDirectTrip: boolean;
+  onDirectTripChange: (isDirect: boolean) => void;
   planningMode: PlanningMode;
   onPlanningModeChange: (mode: PlanningMode) => void;
   departureTime: string;
@@ -25,6 +27,8 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
   onStartChange,
   destination,
   onDestinationChange,
+  isDirectTrip,
+  onDirectTripChange,
   planningMode,
   onPlanningModeChange,
   departureTime,
@@ -130,7 +134,41 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
             title="Використати моє поточне місцезнаходження"
             aria-label="Використати моє поточне місцезнаходження"
           >
-            {isLocating ? <span className="btn-spinner" /> : '📍'}
+            {isLocating ? (
+              <svg
+                className="btn-spinner geolocation-spinner"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
+                <path d="M12 2a10 10 0 0 1 10 10" />
+              </svg>
+            ) : (
+              <svg
+                className="geolocation-icon"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="7" />
+                <line x1="12" y1="2" x2="12" y2="5" />
+                <line x1="12" y1="19" x2="12" y2="22" />
+                <line x1="2" y1="12" x2="5" y2="12" />
+                <line x1="19" y1="12" x2="22" y2="12" />
+                <circle cx="12" cy="12" r="2" fill="currentColor" />
+              </svg>
+            )}
           </button>
         </div>
         {locationError && <p className="form-error-sm">{locationError}</p>}
@@ -159,6 +197,30 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
             disabled={isLoading}
           />
         </div>
+      </div>
+
+      <div className={`form-group direct-trip-group ${isDirectTrip ? 'active' : ''}`}>
+        <label className="toggle-switch-label" htmlFor="direct-trip-toggle">
+          <div className="toggle-switch-wrapper">
+            <input
+              id="direct-trip-toggle"
+              type="checkbox"
+              className="toggle-switch-input"
+              checked={isDirectTrip}
+              onChange={(e) => onDirectTripChange(e.target.checked)}
+              disabled={isLoading}
+            />
+            <span className="toggle-switch-slider"></span>
+          </div>
+          <div className="toggle-switch-text">
+            <span className="toggle-title">Прямий маршрут (без проміжних зупинок)</span>
+            <span className="toggle-description">
+              {isDirectTrip
+                ? 'Поїздка будується напряму від Старту до Фінішу (А → Б)'
+                : 'Увімкніть, щоб доїхати напряму без додаткових зупинок'}
+            </span>
+          </div>
+        </label>
       </div>
 
       <div className="form-group">
@@ -211,11 +273,18 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
             className="form-select"
             value={algorithm}
             onChange={(e) => onAlgorithmChange(e.target.value as AlgorithmType)}
-            disabled={isLoading}
+            disabled={isLoading || isDirectTrip}
+            title={isDirectTrip ? 'Оптимізація не потрібна для прямого маршруту' : undefined}
           >
-            <option value="nearest-neighbor">Nearest Neighbor (Fast Greedy)</option>
-            <option value="two-opt">2-Opt Heuristic (Optimized)</option>
-            <option value="original">Original Order (Baseline)</option>
+            {isDirectTrip ? (
+              <option value={algorithm}>Direct Route (Point-to-Point)</option>
+            ) : (
+              <>
+                <option value="nearest-neighbor">Nearest Neighbor (Fast Greedy)</option>
+                <option value="two-opt">2-Opt Heuristic (Optimized)</option>
+                <option value="original">Original Order (Baseline)</option>
+              </>
+            )}
           </select>
         </div>
       </div>
@@ -242,6 +311,8 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
             </svg>
             <span>Calculating Route...</span>
           </>
+        ) : isDirectTrip ? (
+          'Calculate Direct Route'
         ) : (
           'Optimize Route'
         )}
