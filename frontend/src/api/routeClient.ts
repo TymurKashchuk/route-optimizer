@@ -76,6 +76,12 @@ async function parseErrorMessage(response: Response): Promise<string> {
     }
 
     if (data?.error && typeof data.error === 'string') {
+      if (
+        data.error.includes('Access to OpenRouteService is forbidden') ||
+        data.error.includes('Invalid or unauthorized OpenRouteService API key')
+      ) {
+        return 'Помилка доступу до сервісу маршрутизації OpenRouteService (недійсний або заблокований API-ключ). Виправте ключ або видаліть його для роботи в локальному тестовому режимі.';
+      }
       return data.error;
     }
   } catch {

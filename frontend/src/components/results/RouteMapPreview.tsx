@@ -86,7 +86,7 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({ preview, isLoa
       <div className="card route-map-card">
         <div className="map-skeleton">
           <div className="btn-spinner text-primary" />
-          <p className="skeleton-subtitle">Loading map geometry...</p>
+          <p className="skeleton-subtitle">Завантажуємо дорожню карту...</p>
         </div>
       </div>
     );
@@ -95,7 +95,7 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({ preview, isLoa
   if (!preview || !preview.startPoint) {
     return (
       <div className="card route-map-card route-map-empty">
-        <p className="empty-state-text">No route preview data available.</p>
+        <p className="empty-state-text">Дані для мапи наразі відсутні.</p>
       </div>
     );
   }
@@ -111,20 +111,22 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({ preview, isLoa
     <div className="card route-map-card">
       <div className="route-map-header">
         <div className="route-map-title-wrap">
-          <h3 className="section-title">Route Map Preview</h3>
+          <h3 className="section-title">Мапа маршруту</h3>
           <span className="badge-muted">
-            {totalPointsCount} points total
+            {totalPointsCount <= 2 ? 'Пряма лінія (2 точки)' : `${totalPointsCount} точок маршруту`}
           </span>
         </div>
         <div className="map-legend">
           <span className="legend-item">
-            <span className="legend-badge legend-start">S</span> Start
+            <span className="legend-badge legend-start">A</span> Старт
           </span>
+          {preview.orderedStops.length > 0 && (
+            <span className="legend-item">
+              <span className="legend-badge legend-stop">1..N</span> Зупинки
+            </span>
+          )}
           <span className="legend-item">
-            <span className="legend-badge legend-stop">1..N</span> Stops
-          </span>
-          <span className="legend-item">
-            <span className="legend-badge legend-dest">D</span> Destination
+            <span className="legend-badge legend-dest">B</span> Фініш
           </span>
         </div>
       </div>
@@ -133,7 +135,7 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({ preview, isLoa
         <MapContainer
           center={initialCenter}
           zoom={13}
-          scrollWheelZoom={false}
+          scrollWheelZoom={true}
           className="leaflet-map-element"
         >
           <TileLayer
@@ -148,11 +150,11 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({ preview, isLoa
           {/* Start Marker */}
           <Marker
             position={[preview.startPoint.latitude, preview.startPoint.longitude]}
-            icon={createNumberedIcon('S', 'start')}
+            icon={createNumberedIcon('A', 'start')}
           >
             <Popup>
               <div className="map-popup-content">
-                <strong>Start: {preview.startPoint.label}</strong>
+                <strong>Старт: {preview.startPoint.label}</strong>
                 <p>{preview.startPoint.address}</p>
               </div>
             </Popup>
@@ -168,7 +170,7 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({ preview, isLoa
               <Popup>
                 <div className="map-popup-content">
                   <strong>
-                    Stop #{stop.order}: {stop.label}
+                    Зупинка #{stop.order}: {stop.label}
                   </strong>
                   <p>{stop.address}</p>
                 </div>
@@ -180,11 +182,11 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({ preview, isLoa
           {preview.destinationPoint && preview.destinationPoint.address && (
             <Marker
               position={[preview.destinationPoint.latitude, preview.destinationPoint.longitude]}
-              icon={createNumberedIcon('D', 'destination')}
+              icon={createNumberedIcon('B', 'destination')}
             >
               <Popup>
                 <div className="map-popup-content">
-                  <strong>Destination: {preview.destinationPoint.label}</strong>
+                  <strong>Фініш: {preview.destinationPoint.label}</strong>
                   <p>{preview.destinationPoint.address}</p>
                 </div>
               </Popup>
