@@ -97,7 +97,7 @@ namespace RouteWise.Tests.Providers
 
             Assert.NotNull(handler.LastRequest);
             Assert.Equal(HttpMethod.Get, handler.LastRequest.Method);
-            Assert.Contains("geocode/search?text=Zhytomyr&size=5", handler.LastRequest.RequestUri?.ToString());
+            Assert.Contains("search?text=Zhytomyr&size=5", handler.LastRequest.RequestUri?.ToString());
             Assert.True(handler.LastRequest.Headers.Contains("Authorization"));
             Assert.Equal("test-api-key", handler.LastRequest.Headers.GetValues("Authorization").First());
 

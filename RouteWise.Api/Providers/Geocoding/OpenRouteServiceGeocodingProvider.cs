@@ -66,7 +66,7 @@ namespace RouteWise.Api.Providers.Geocoding
                 ? $"&boundary.country={Uri.EscapeDataString(_options.CountryCode.Trim())}"
                 : string.Empty;
 
-            var requestUri = $"geocode/search?text={Uri.EscapeDataString(query.Trim())}&size={limit}{countryParam}";
+            var requestUri = $"search?text={Uri.EscapeDataString(query.Trim())}&size={limit}{countryParam}";
 
             using var httpRequest = new HttpRequestMessage(HttpMethod.Get, requestUri);
             httpRequest.Headers.TryAddWithoutValidation("Authorization", _options.ApiKey);

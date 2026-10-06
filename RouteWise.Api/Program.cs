@@ -86,7 +86,8 @@ namespace RouteWise.Api
             builder.Services.AddHttpClient<OpenRouteServiceGeocodingProvider>((serviceProvider, httpClient) =>
             {
                 var options = serviceProvider.GetRequiredService<IOptions<OpenRouteServiceOptions>>().Value;
-                httpClient.BaseAddress = new Uri(options.BaseUrl);
+                var geocodingUrl = (options.GeocodingBaseUrl ?? "https://api.heigit.org/pelias/v1").TrimEnd('/') + "/";
+                httpClient.BaseAddress = new Uri(geocodingUrl);
                 httpClient.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
             });
 
