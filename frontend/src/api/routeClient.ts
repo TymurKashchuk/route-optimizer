@@ -6,10 +6,10 @@ interface ValidationRule {
 }
 
 const HTTP_STATUS_MESSAGES: Record<number, string> = {
-  429: 'Rate limit exceeded: Too many requests to the routing provider. Please wait a moment.',
-  502: 'Cannot connect to RouteWise.Api server. Make sure the backend is running on http://localhost:5044.',
-  503: 'Routing service is temporarily unavailable. Please try again later.',
-  504: 'Backend server is not responding on http://localhost:5044 (Gateway Timeout).',
+  429: 'Перевищено ліміт запитів до картографічного сервісу. Зачекайте хвилину.',
+  502: 'Неможливо зʼєднатися з сервером RouteWise. Переконайтеся, що бекенд запущено на http://localhost:5044.',
+  503: 'Сервіс маршрутизації тимчасово недоступний. Спробуйте пізніше.',
+  504: 'Сервер не відповідає (Gateway Timeout). Спробуйте ще раз.',
 };
 
 function getStopValidationRule(stop: RouteStop, index: number): ValidationRule[] {
@@ -17,10 +17,10 @@ function getStopValidationRule(stop: RouteStop, index: number): ValidationRule[]
   const isAddressInvalid = stop.address.trim().toLowerCase() === 'string';
 
   return [
-    { condition: !stop.label.trim(), message: `Stop #${num} label is required.` },
-    { condition: !stop.address.trim(), message: `Stop #${num} address is required.` },
-    { condition: isAddressInvalid, message: `Stop #${num} address must be a real address, not "string".` },
-    { condition: stop.serviceMinutes < 0 || stop.serviceMinutes > 480, message: `Stop #${num} service minutes must be between 0 and 480.` },
+    { condition: !stop.label.trim(), message: `Зупинка #${num}: вкажіть назву.` },
+    { condition: !stop.address.trim(), message: `Зупинка #${num}: вкажіть адресу.` },
+    { condition: isAddressInvalid, message: `Зупинка #${num}: адреса має бути реальною назвою або вулицею.` },
+    { condition: stop.serviceMinutes < 0 || stop.serviceMinutes > 480, message: `Зупинка #${num}: час має бути від 0 до 480 хв.` },
   ];
 }
 
@@ -36,20 +36,20 @@ export function validateRouteRequest(request: OptimizeRouteRequest): string | nu
     : !request.departureTime || isNaN(new Date(request.departureTime).getTime());
 
   const globalRules: ValidationRule[] = [
-    { condition: !request.start?.label?.trim(), message: 'Start label is required.' },
-    { condition: !request.start?.address?.trim(), message: 'Start address is required.' },
-    { condition: isStartString, message: 'Start address must be a real address, not "string".' },
-    { condition: !request.destination?.label?.trim(), message: 'Destination label is required.' },
-    { condition: !request.destination?.address?.trim(), message: 'Destination address is required.' },
-    { condition: isDestString, message: 'Destination address must be a real address, not "string".' },
+    { condition: !request.start?.label?.trim(), message: 'Вкажіть мітку точки старту.' },
+    { condition: !request.start?.address?.trim(), message: 'Вкажіть адресу початку маршруту (Точка А).' },
+    { condition: isStartString, message: 'Адреса старту має бути реальною вулицею або закладом.' },
+    { condition: !request.destination?.label?.trim(), message: 'Вкажіть мітку точки фінішу.' },
+    { condition: !request.destination?.address?.trim(), message: 'Вкажіть адресу призначення (Точка B).' },
+    { condition: isDestString, message: 'Адреса фінішу має бути реальною вулицею або закладом.' },
     {
       condition: isTimeInvalid,
       message: isArriveBy
-        ? 'Arrival deadline is invalid or missing.'
-        : 'Departure time is invalid or missing.',
+        ? 'Вкажіть коректний бажаний час прибуття (дедлайн).'
+        : 'Вкажіть коректний час виїзду.',
     },
-    { condition: !request.stops, message: 'Stops list is required.' },
-    { condition: !!request.stops && request.stops.length > 10, message: 'No more than 10 stops are allowed in MVP.' },
+    { condition: !request.stops, message: 'Список зупинок має бути заданий.' },
+    { condition: !!request.stops && request.stops.length > 10, message: 'Максимум 10 зупинок для одного маршруту.' },
   ];
 
   const failedGlobalRule = globalRules.find((rule) => rule.condition);
