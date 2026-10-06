@@ -20,6 +20,26 @@ namespace RouteWise.Api.Providers.Geocoding
             {
                 Latitude = 50.25007,
                 Longitude = 28.67011
+            },
+            ["майдан Соборний, Житомир"] = new LocationPoint
+            {
+                Latitude = 50.255318,
+                Longitude = 28.659181
+            },
+            ["майдан Перемоги, Житомир"] = new LocationPoint
+            {
+                Latitude = 50.257481,
+                Longitude = 28.659194
+            },
+            ["вулиця Покровська, Житомир"] = new LocationPoint
+            {
+                Latitude = 50.264250,
+                Longitude = 28.666830
+            },
+            ["вулиця Київська, Житомир"] = new LocationPoint
+            {
+                Latitude = 50.255577,
+                Longitude = 28.659561
             }
         };
 

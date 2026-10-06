@@ -18,25 +18,25 @@ function getTodayDateString(): string {
 
 const DEFAULT_START: AddressInput = {
   label: 'Home',
-  address: 'Zhytomyr Central Square',
+  address: 'майдан Соборний, Житомир',
 };
 
 const DEFAULT_DESTINATION: AddressInput = {
-  label: 'City Hospital',
-  address: 'Zhytomyr City Hospital',
+  label: 'Office',
+  address: 'вулиця Київська, Житомир',
 };
 
 const DEFAULT_STOPS: RouteStop[] = [
   {
     id: 'stop-1',
     label: 'Pharmacy',
-    address: 'Zhytomyr Railway Station',
+    address: 'майдан Перемоги, Житомир',
     serviceMinutes: 15,
   },
   {
     id: 'stop-2',
     label: 'Supermarket',
-    address: 'Zhytomyr Central Square',
+    address: 'вулиця Покровська, Житомир',
     serviceMinutes: 20,
   },
 ];
