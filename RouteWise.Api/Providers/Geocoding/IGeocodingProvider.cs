@@ -13,6 +13,7 @@ namespace RouteWise.Api.Providers.Geocoding
         Task<IReadOnlyList<AddressSearchResult>> SearchAsync(
             string query,
             int limit = 5,
+            string? city = null,
             CancellationToken cancellationToken = default);
 
         Task<AddressSearchResult?> ReverseGeocodeAsync(

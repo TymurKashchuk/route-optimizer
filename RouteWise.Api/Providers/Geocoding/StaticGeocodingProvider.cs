@@ -40,6 +40,26 @@ namespace RouteWise.Api.Providers.Geocoding
             {
                 Latitude = 50.255577,
                 Longitude = 28.659561
+            },
+            ["вулиця Хрещатик, Київ"] = new LocationPoint
+            {
+                Latitude = 50.44704,
+                Longitude = 30.52220
+            },
+            ["майдан Незалежності, Київ"] = new LocationPoint
+            {
+                Latitude = 50.45010,
+                Longitude = 30.52340
+            },
+            ["площа Ринок, Львів"] = new LocationPoint
+            {
+                Latitude = 49.84190,
+                Longitude = 24.03150
+            },
+            ["проспект Свободи, Львів"] = new LocationPoint
+            {
+                Latitude = 49.84360,
+                Longitude = 24.02670
             }
         };
 
@@ -63,6 +83,7 @@ namespace RouteWise.Api.Providers.Geocoding
         public Task<IReadOnlyList<AddressSearchResult>> SearchAsync(
             string query,
             int limit = 5,
+            string? city = null,
             CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(query))
@@ -70,8 +91,17 @@ namespace RouteWise.Api.Providers.Geocoding
                 return Task.FromResult<IReadOnlyList<AddressSearchResult>>(Array.Empty<AddressSearchResult>());
             }
 
-            var results = _knownAddresses
-                .Where(kvp => kvp.Key.Contains(query.Trim(), StringComparison.OrdinalIgnoreCase))
+            var trimmedQuery = query.Trim();
+            var matches = _knownAddresses.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(city))
+            {
+                var trimmedCity = city.Trim();
+                matches = matches.Where(kvp => kvp.Key.Contains(trimmedCity, StringComparison.OrdinalIgnoreCase));
+            }
+
+            var results = matches
+                .Where(kvp => kvp.Key.Contains(trimmedQuery, StringComparison.OrdinalIgnoreCase))
                 .Take(limit)
                 .Select(kvp => new AddressSearchResult
                 {

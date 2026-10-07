@@ -16,6 +16,7 @@ namespace RouteWise.Tests.Controllers
         private class MockGeocodingProvider : IGeocodingProvider
         {
             public Func<string, int, Task<IReadOnlyList<AddressSearchResult>>>? OnSearch { get; set; }
+            public Func<string, int, string?, Task<IReadOnlyList<AddressSearchResult>>>? OnSearchWithCity { get; set; }
 
             public LocationPoint Geocode(string address) => new();
 
@@ -25,8 +26,14 @@ namespace RouteWise.Tests.Controllers
             public Task<IReadOnlyList<AddressSearchResult>> SearchAsync(
                 string query,
                 int limit = 5,
+                string? city = null,
                 CancellationToken cancellationToken = default)
             {
+                if (OnSearchWithCity != null)
+                {
+                    return OnSearchWithCity(query, limit, city);
+                }
+
                 if (OnSearch != null)
                 {
                     return OnSearch(query, limit);
@@ -151,6 +158,35 @@ namespace RouteWise.Tests.Controllers
 
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result.Result);
             Assert.Equal(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
+        }
+
+        [Fact]
+        public async Task Search_WhenCityProvided_PassesCityToServiceAndReturnsOk()
+        {
+            var (controller, provider) = CreateController();
+            string? capturedCity = null;
+
+            provider.OnSearchWithCity = (q, l, c) =>
+            {
+                capturedCity = c;
+                return Task.FromResult<IReadOnlyList<AddressSearchResult>>(new List<AddressSearchResult>
+                {
+                    new()
+                    {
+                        Address = "вулиця Київська, Житомир",
+                        DisplayName = "вулиця Київська, Житомир",
+                        Coordinates = new LocationPoint { Latitude = 50.255577, Longitude = 28.659561 }
+                    }
+                });
+            };
+
+            var result = await controller.Search("Київська", limit: 5, city: "Житомир");
+
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            Assert.Equal(StatusCodes.Status200OK, okResult.StatusCode);
+            Assert.Equal("Житомир", capturedCity);
+            var items = Assert.IsAssignableFrom<IEnumerable>(okResult.Value);
+            Assert.Single(items.Cast<object>());
         }
     }
 }

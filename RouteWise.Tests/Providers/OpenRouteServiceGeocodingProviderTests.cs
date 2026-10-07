@@ -116,6 +116,49 @@ namespace RouteWise.Tests.Providers
         }
 
         [Fact]
+        public async Task SearchAsync_WhenCityProvided_AppendsCityToSearchText()
+        {
+            var jsonResponse = """
+            {
+              "type": "FeatureCollection",
+              "features": []
+            }
+            """;
+
+            var (provider, handler) = CreateProvider(jsonResponse);
+
+            await provider.SearchAsync("Київська", limit: 5, city: "Житомир");
+
+            Assert.NotNull(handler.LastRequest);
+            var requestUri = handler.LastRequest.RequestUri?.ToString();
+            Assert.NotNull(requestUri);
+            var unescapedUri = Uri.UnescapeDataString(requestUri);
+            Assert.Contains("Київська, Житомир", unescapedUri);
+        }
+
+        [Fact]
+        public async Task SearchAsync_WhenQueryAlreadyContainsCity_DoesNotDuplicateCity()
+        {
+            var jsonResponse = """
+            {
+              "type": "FeatureCollection",
+              "features": []
+            }
+            """;
+
+            var (provider, handler) = CreateProvider(jsonResponse);
+
+            await provider.SearchAsync("Київська, Житомир", limit: 5, city: "Житомир");
+
+            Assert.NotNull(handler.LastRequest);
+            var requestUri = handler.LastRequest.RequestUri?.ToString();
+            Assert.NotNull(requestUri);
+            var unescapedUri = Uri.UnescapeDataString(requestUri);
+            Assert.Contains("Київська, Житомир", unescapedUri);
+            Assert.DoesNotContain("Житомир, Житомир", unescapedUri);
+        }
+
+        [Fact]
         public async Task SearchAsync_WhenRateLimitExceeded_ThrowsOpenRouteServiceExceptionWith429()
         {
             var (provider, _) = CreateProvider("{}", HttpStatusCode.TooManyRequests);

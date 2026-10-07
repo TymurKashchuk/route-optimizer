@@ -10,6 +10,7 @@ namespace RouteWise.Tests.Services
         private class TestGeocodingProvider : IGeocodingProvider
         {
             public int SearchCallCount { get; private set; }
+            public string? LastCity { get; private set; }
             public List<AddressSearchResult> ResultsToReturn { get; set; } = new();
 
             public LocationPoint Geocode(string address) => new();
@@ -21,9 +22,11 @@ namespace RouteWise.Tests.Services
             public Task<IReadOnlyList<AddressSearchResult>> SearchAsync(
                 string query,
                 int limit = 5,
+                string? city = null,
                 CancellationToken cancellationToken = default)
             {
                 SearchCallCount++;
+                LastCity = city;
                 return Task.FromResult<IReadOnlyList<AddressSearchResult>>(ResultsToReturn.Take(limit).ToList());
             }
 
@@ -139,6 +142,49 @@ namespace RouteWise.Tests.Services
             Assert.Equal(2, limit2.Count);
             Assert.Equal(3, limit3.Count);
             Assert.Equal(2, provider.SearchCallCount);
+        }
+
+        [Fact]
+        public async Task SearchAsync_WhenCityProvided_PassesCityToProvider()
+        {
+            var provider = new TestGeocodingProvider
+            {
+                ResultsToReturn = new List<AddressSearchResult>
+                {
+                    new() { Address = "вул. Франка, Житомир", DisplayName = "вул. Франка, Житомир" }
+                }
+            };
+
+            using var cache = new MemoryCache(new MemoryCacheOptions());
+            var service = new GeocodingSearchService(provider, cache);
+
+            var results = await service.SearchAsync("Франка", city: "Житомир");
+
+            Assert.Single(results);
+            Assert.Equal("Житомир", provider.LastCity);
+            Assert.Equal(1, provider.SearchCallCount);
+        }
+
+        [Fact]
+        public async Task SearchAsync_WhenSameQueryDifferentCity_UsesDifferentCacheKey()
+        {
+            var provider = new TestGeocodingProvider
+            {
+                ResultsToReturn = new List<AddressSearchResult>
+                {
+                    new() { Address = "Sample Address", DisplayName = "Sample Address" }
+                }
+            };
+
+            using var cache = new MemoryCache(new MemoryCacheOptions());
+            var service = new GeocodingSearchService(provider, cache);
+
+            await service.SearchAsync("Шевченка", city: "Житомир");
+            await service.SearchAsync("Шевченка", city: "Київ");
+            await service.SearchAsync("Шевченка"); // All Ukraine
+
+            // Provider should be called 3 times because cache keys differ by city
+            Assert.Equal(3, provider.SearchCallCount);
         }
     }
 }

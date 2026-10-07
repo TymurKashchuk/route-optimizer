@@ -36,7 +36,7 @@ namespace RouteWise.Api.Providers.Geocoding
                 throw new ArgumentException("Address cannot be empty.", nameof(address));
             }
 
-            var results = await SearchAsync(address, 1, cancellationToken);
+            var results = await SearchAsync(address, 1, null, cancellationToken);
             var first = results.FirstOrDefault();
 
             if (first == null)
@@ -50,6 +50,7 @@ namespace RouteWise.Api.Providers.Geocoding
         public async Task<IReadOnlyList<AddressSearchResult>> SearchAsync(
             string query,
             int limit = 5,
+            string? city = null,
             CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(query))
@@ -66,7 +67,13 @@ namespace RouteWise.Api.Providers.Geocoding
                 ? $"&boundary.country={Uri.EscapeDataString(_options.CountryCode.Trim())}"
                 : string.Empty;
 
-            var requestUri = $"search?text={Uri.EscapeDataString(query.Trim())}&size={limit}{countryParam}";
+            var effectiveQuery = query.Trim();
+            if (!string.IsNullOrWhiteSpace(city) && !effectiveQuery.Contains(city.Trim(), StringComparison.OrdinalIgnoreCase))
+            {
+                effectiveQuery = $"{effectiveQuery}, {city.Trim()}";
+            }
+
+            var requestUri = $"search?text={Uri.EscapeDataString(effectiveQuery)}&size={limit}{countryParam}";
 
             using var httpRequest = new HttpRequestMessage(HttpMethod.Get, requestUri);
             httpRequest.Headers.TryAddWithoutValidation("Authorization", _options.ApiKey);
