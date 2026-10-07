@@ -14,6 +14,50 @@ namespace RouteWise.Api.Providers.Geocoding
         private readonly HttpClient _httpClient;
         private readonly OpenRouteServiceOptions _options;
 
+        private static readonly Dictionary<string, (double Lat, double Lon)> KnownCityCoordinates = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Житомир"] = (50.25465, 28.65867),
+            ["Zhytomyr"] = (50.25465, 28.65867),
+            ["Київ"] = (50.45010, 30.52340),
+            ["Kyiv"] = (50.45010, 30.52340),
+            ["Львів"] = (49.84190, 24.03150),
+            ["Lviv"] = (49.84190, 24.03150),
+            ["Вінниця"] = (49.23308, 28.46822),
+            ["Vinnytsia"] = (49.23308, 28.46822),
+            ["Дніпро"] = (48.46472, 35.04618),
+            ["Dnipro"] = (48.46472, 35.04618),
+            ["Одеса"] = (46.48253, 30.72331),
+            ["Odesa"] = (46.48253, 30.72331),
+            ["Харків"] = (49.99350, 36.23038),
+            ["Kharkiv"] = (49.99350, 36.23038),
+            ["Полтава"] = (49.58827, 34.55142),
+            ["Poltava"] = (49.58827, 34.55142),
+            ["Черкаси"] = (49.44443, 32.05977),
+            ["Cherkasy"] = (49.44443, 32.05977),
+            ["Чернігів"] = (51.49820, 31.28935),
+            ["Chernihiv"] = (51.49820, 31.28935),
+            ["Івано-Франківськ"] = (48.92263, 24.71112),
+            ["Ivano-Frankivsk"] = (48.92263, 24.71112),
+            ["Тернопіль"] = (49.55352, 25.59477),
+            ["Ternopil"] = (49.55352, 25.59477),
+            ["Рівне"] = (50.61990, 26.25162),
+            ["Rivne"] = (50.61990, 26.25162),
+            ["Луцьк"] = (50.74723, 25.32538),
+            ["Lutsk"] = (50.74723, 25.32538),
+            ["Хмельницький"] = (49.42298, 26.98713),
+            ["Khmelnytskyi"] = (49.42298, 26.98713),
+            ["Запоріжжя"] = (47.83880, 35.13957),
+            ["Zaporizhzhia"] = (47.83880, 35.13957),
+            ["Миколаїв"] = (46.97503, 31.99458),
+            ["Mykolaiv"] = (46.97503, 31.99458),
+            ["Ужгород"] = (48.62080, 22.28788),
+            ["Uzhhorod"] = (48.62080, 22.28788),
+            ["Чернівці"] = (48.29208, 25.93584),
+            ["Chernivtsi"] = (48.29208, 25.93584),
+            ["Кропивницький"] = (48.50793, 32.26232),
+            ["Kropyvnytskyi"] = (48.50793, 32.26232)
+        };
+
         public OpenRouteServiceGeocodingProvider(
             HttpClient httpClient,
             IOptions<OpenRouteServiceOptions> options)
@@ -36,9 +80,16 @@ namespace RouteWise.Api.Providers.Geocoding
                 throw new ArgumentException("Address cannot be empty.", nameof(address));
             }
 
-            var results = await SearchAsync(address, 1, null, cancellationToken);
-            var first = results.FirstOrDefault();
+            // 1. Full address lookup uses 'search' endpoint (designed for complete address strings e.g. "Золоті ворота, Kyiv, Ukraine")
+            var results = await ExecutePeliasRequestAsync("search", address, limit: 1, city: null, cancellationToken);
 
+            // 2. Fallback to 'autocomplete' if search returns empty
+            if (results.Count == 0)
+            {
+                results = await ExecutePeliasRequestAsync("autocomplete", address, limit: 1, city: null, cancellationToken);
+            }
+
+            var first = results.FirstOrDefault();
             if (first == null)
             {
                 throw new InvalidOperationException($"Address not found: {address}");
@@ -58,6 +109,21 @@ namespace RouteWise.Api.Providers.Geocoding
                 return Array.Empty<AddressSearchResult>();
             }
 
+            return await ExecutePeliasRequestAsync("autocomplete", query, limit, city, cancellationToken);
+        }
+
+        private async Task<IReadOnlyList<AddressSearchResult>> ExecutePeliasRequestAsync(
+            string endpoint,
+            string query,
+            int limit,
+            string? city,
+            CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return Array.Empty<AddressSearchResult>();
+            }
+
             if (string.IsNullOrWhiteSpace(_options.ApiKey))
             {
                 throw new OpenRouteServiceException("OpenRouteService API key is missing. Please configure it in settings.");
@@ -68,12 +134,24 @@ namespace RouteWise.Api.Providers.Geocoding
                 : string.Empty;
 
             var effectiveQuery = query.Trim();
-            if (!string.IsNullOrWhiteSpace(city) && !effectiveQuery.Contains(city.Trim(), StringComparison.OrdinalIgnoreCase))
+            var cityParams = string.Empty;
+
+            if (!string.IsNullOrWhiteSpace(city))
             {
-                effectiveQuery = $"{effectiveQuery}, {city.Trim()}";
+                var trimmedCity = city.Trim();
+                if (KnownCityCoordinates.TryGetValue(trimmedCity, out var coords))
+                {
+                    var latStr = coords.Lat.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    var lonStr = coords.Lon.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    cityParams = $"&focus.point.lat={latStr}&focus.point.lon={lonStr}&boundary.circle.lat={latStr}&boundary.circle.lon={lonStr}&boundary.circle.radius=25";
+                }
+                else if (!effectiveQuery.Contains(trimmedCity, StringComparison.OrdinalIgnoreCase))
+                {
+                    effectiveQuery = $"{effectiveQuery}, {trimmedCity}";
+                }
             }
 
-            var requestUri = $"search?text={Uri.EscapeDataString(effectiveQuery)}&size={limit}{countryParam}";
+            var requestUri = $"{endpoint}?text={Uri.EscapeDataString(effectiveQuery)}&size={limit}{countryParam}{cityParams}";
 
             using var httpRequest = new HttpRequestMessage(HttpMethod.Get, requestUri);
             httpRequest.Headers.TryAddWithoutValidation("Authorization", _options.ApiKey);
