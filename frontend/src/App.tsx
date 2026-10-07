@@ -4,7 +4,7 @@ import { Header } from './components/Header';
 import { RouteFormSection } from './components/RouteFormSection';
 import { ResultsSection } from './components/ResultsSection';
 import { Toast } from './components/Toast';
-import type { AddressInput, AlgorithmType, OptimizeRouteResponse, PlanningMode, RouteStop } from './types/route';
+import type { AddressInput, AlgorithmType, OptimizeRouteResponse, PlanningMode, RouteStop, SearchScope } from './types/route';
 import { optimizeRoute } from './api/routeClient';
 
 function getTodayDateString(): string {
@@ -50,6 +50,8 @@ export const App: React.FC = () => {
   const [algorithm, setAlgorithm] = useState<AlgorithmType>('two-opt');
   const [stops, setStops] = useState<RouteStop[]>(DEFAULT_STOPS);
   const [isDirectTrip, setIsDirectTrip] = useState<boolean>(false);
+  const [searchScope, setSearchScope] = useState<SearchScope>('all-ukraine');
+  const [selectedCity, setSelectedCity] = useState<string>('Житомир');
 
   const handlePlanningModeChange = (mode: PlanningMode) => {
     setPlanningMode(mode);
@@ -174,6 +176,10 @@ export const App: React.FC = () => {
               onUpdateStop={handleUpdateStop}
               isDirectTrip={isDirectTrip}
               onDirectTripChange={handleDirectTripChange}
+              searchScope={searchScope}
+              onSearchScopeChange={setSearchScope}
+              selectedCity={selectedCity}
+              onSelectedCityChange={setSelectedCity}
               planningMode={planningMode}
               onPlanningModeChange={handlePlanningModeChange}
               departureTime={departureTime}
