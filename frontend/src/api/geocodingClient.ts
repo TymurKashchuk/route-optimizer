@@ -6,16 +6,19 @@ import type { AddressSuggestionDto } from '../types/route';
 export async function searchAddresses(
   query: string,
   limit: number = 5,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  city?: string
 ): Promise<AddressSuggestionDto[]> {
   const trimmed = query.trim();
   if (trimmed.length < 2) {
     return [];
   }
 
+  const cityParam = city?.trim() ? `&city=${encodeURIComponent(city.trim())}` : '';
+
   try {
     const response = await fetch(
-      `/api/geocoding/search?query=${encodeURIComponent(trimmed)}&limit=${limit}`,
+      `/api/geocoding/search?query=${encodeURIComponent(trimmed)}&limit=${limit}${cityParam}`,
       {
         method: 'GET',
         headers: { Accept: 'application/json' },
