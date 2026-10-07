@@ -1,5 +1,6 @@
 export type PlanningMode = 'depart-at' | 'arrive-by';
 export type AlgorithmType = 'original' | 'nearest-neighbor' | 'two-opt';
+export type SearchScope = 'all-ukraine' | 'city';
 
 export interface AddressInput {
   label: string;

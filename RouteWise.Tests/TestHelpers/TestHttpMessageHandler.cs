@@ -6,6 +6,7 @@ namespace RouteWise.Tests.TestHelpers
     {
         private readonly Func<HttpRequestMessage, HttpResponseMessage> _handler;
 
+        public List<HttpRequestMessage> Requests { get; } = new();
         public HttpRequestMessage? LastRequest { get; private set; }
         public string? LastRequestBody { get; private set; }
 
@@ -31,6 +32,7 @@ namespace RouteWise.Tests.TestHelpers
             HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
+            Requests.Add(request);
             LastRequest = request;
             if (request.Content != null)
             {

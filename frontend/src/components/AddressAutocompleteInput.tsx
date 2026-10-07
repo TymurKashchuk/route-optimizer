@@ -9,6 +9,7 @@ interface AddressAutocompleteInputProps {
   placeholder?: string;
   disabled?: boolean;
   className?: string;
+  city?: string;
 }
 
 export const AddressAutocompleteInput: React.FC<AddressAutocompleteInputProps> = ({
@@ -18,6 +19,7 @@ export const AddressAutocompleteInput: React.FC<AddressAutocompleteInputProps> =
   placeholder,
   disabled,
   className,
+  city,
 }) => {
   const [suggestions, setSuggestions] = useState<AddressSuggestionDto[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -59,7 +61,7 @@ export const AddressAutocompleteInput: React.FC<AddressAutocompleteInputProps> =
 
       setIsLoading(true);
       try {
-        const results = await searchAddresses(trimmed, 5, controller.signal);
+        const results = await searchAddresses(trimmed, 5, controller.signal, city);
         const isFocused = document.activeElement === inputRef.current;
         setSuggestions(results);
         setIsOpen(isFocused && hasUserTypedRef.current && results.length > 0);
@@ -77,7 +79,7 @@ export const AddressAutocompleteInput: React.FC<AddressAutocompleteInputProps> =
         abortControllerRef.current.abort();
       }
     };
-  }, [value]);
+  }, [value, city]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {

@@ -1,8 +1,31 @@
 import React, { useState } from 'react';
-import type { AddressInput, AlgorithmType, PlanningMode, RouteStop } from '../types/route';
+import type { AddressInput, AlgorithmType, PlanningMode, RouteStop, SearchScope } from '../types/route';
 import { AddressAutocompleteInput } from './AddressAutocompleteInput';
 import { StopsSection } from './StopsSection';
 import { reverseGeocode } from '../api/geocodingClient';
+
+const POPULAR_CITIES = [
+  'Житомир',
+  'Київ',
+  'Львів',
+  'Вінниця',
+  'Дніпро',
+  'Одеса',
+  'Харків',
+  'Полтава',
+  'Черкаси',
+  'Чернігів',
+  'Івано-Франківськ',
+  'Тернопіль',
+  'Рівне',
+  'Луцьк',
+  'Хмельницький',
+  'Запоріжжя',
+  'Миколаїв',
+  'Ужгород',
+  'Чернівці',
+  'Кропивницький',
+];
 
 function getTodayDateString(): string {
   const now = new Date();
@@ -32,6 +55,10 @@ interface RouteFormSectionProps {
   onUpdateStop: (id: string, fields: Partial<RouteStop>) => void;
   isDirectTrip: boolean;
   onDirectTripChange: (isDirect: boolean) => void;
+  searchScope: SearchScope;
+  onSearchScopeChange: (scope: SearchScope) => void;
+  selectedCity: string;
+  onSelectedCityChange: (city: string) => void;
   planningMode: PlanningMode;
   onPlanningModeChange: (mode: PlanningMode) => void;
   departureTime: string;
@@ -55,6 +82,10 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
   onUpdateStop,
   isDirectTrip,
   onDirectTripChange,
+  searchScope,
+  onSearchScopeChange,
+  selectedCity,
+  onSelectedCityChange,
   planningMode,
   onPlanningModeChange,
   departureTime,
@@ -69,6 +100,9 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
   const isArriveBy = planningMode === 'arrive-by';
   const [isLocating, setIsLocating] = useState<boolean>(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [isCustomCity, setIsCustomCity] = useState<boolean>(() => !POPULAR_CITIES.includes(selectedCity));
+
+  const activeCity = searchScope === 'city' ? selectedCity.trim() : undefined;
 
   // Parse Date and Time parts
   const activeDateTime = isArriveBy ? arrivalBy : departureTime;
@@ -194,6 +228,128 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
         </div>
       </div>
 
+      {/* SEARCH SCOPE SELECTOR */}
+      <div className="search-scope-panel">
+        <div className="search-scope-header">
+          <div className="search-scope-title-wrap">
+            <span className="search-scope-badge">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="2" y1="12" x2="22" y2="12" />
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+              </svg>
+              <span>Область пошуку</span>
+            </span>
+            <span className="search-scope-hint">
+              {searchScope === 'all-ukraine'
+                ? 'Пошук по всій Україні (міжміські маршрути)'
+                : `Пошук обмежено містом: ${selectedCity || 'не вказано'}`}
+            </span>
+          </div>
+
+          <div className="scope-pills-group" role="radiogroup" aria-label="Область пошуку адрес">
+            <button
+              type="button"
+              role="radio"
+              aria-checked={searchScope === 'all-ukraine'}
+              className={`scope-pill-btn ${searchScope === 'all-ukraine' ? 'active' : ''}`}
+              onClick={() => onSearchScopeChange('all-ukraine')}
+              disabled={isLoading}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="2" x2="12" y2="22" />
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+              </svg>
+              <span>Вся Україна</span>
+            </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={searchScope === 'city'}
+              className={`scope-pill-btn ${searchScope === 'city' ? 'active' : ''}`}
+              onClick={() => onSearchScopeChange('city')}
+              disabled={isLoading}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
+                <line x1="9" y1="6" x2="9" y2="6.01" />
+                <line x1="15" y1="6" x2="15" y2="6.01" />
+                <line x1="9" y1="10" x2="9" y2="10.01" />
+                <line x1="15" y1="10" x2="15" y2="10.01" />
+                <line x1="9" y1="14" x2="9" y2="14.01" />
+                <line x1="15" y1="14" x2="15" y2="14.01" />
+                <path d="M10 22v-4h4v4" />
+              </svg>
+              <span>Вибране місто</span>
+            </button>
+          </div>
+        </div>
+
+        {searchScope === 'city' && (
+          <div className="city-scope-picker">
+            <div className="city-scope-controls">
+              <label htmlFor="city-select-dropdown" className="city-scope-label">
+                Місто для пошуку адрес:
+              </label>
+              <div className="city-inputs-row">
+                <select
+                  id="city-select-dropdown"
+                  className="form-select city-select-input"
+                  value={POPULAR_CITIES.includes(selectedCity) && !isCustomCity ? selectedCity : '__custom__'}
+                  onChange={(e) => {
+                    if (e.target.value === '__custom__') {
+                      setIsCustomCity(true);
+                    } else {
+                      setIsCustomCity(false);
+                      onSelectedCityChange(e.target.value);
+                    }
+                  }}
+                  disabled={isLoading}
+                >
+                  {POPULAR_CITIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                  <option value="__custom__">Інше місто (ввести вручну)...</option>
+                </select>
+
+                {(isCustomCity || !POPULAR_CITIES.includes(selectedCity)) && (
+                  <input
+                    type="text"
+                    className="form-input form-input-sm city-text-input"
+                    placeholder="Введіть назву міста (наприклад: Бровари)"
+                    value={selectedCity}
+                    onChange={(e) => onSelectedCityChange(e.target.value)}
+                    disabled={isLoading}
+                    autoFocus
+                  />
+                )}
+              </div>
+            </div>
+
+            <div className="city-quick-pills">
+              <span className="city-quick-hint">Швидкий вибір:</span>
+              {['Житомир', 'Київ', 'Львів', 'Вінниця', 'Дніпро', 'Одеса'].map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  className={`city-pill-btn ${selectedCity === c && !isCustomCity ? 'active' : ''}`}
+                  onClick={() => {
+                    setIsCustomCity(false);
+                    onSelectedCityChange(c);
+                  }}
+                  disabled={isLoading}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Vertical Route Journey Chain */}
       <div className="route-chain-flow">
         {/* START POINT */}
@@ -215,8 +371,13 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
               <AddressAutocompleteInput
                 id="start-address"
                 className="form-input"
-                placeholder="Введіть адресу або точку старту"
+                placeholder={
+                  activeCity
+                    ? `Введіть адресу або точку старту в м. ${activeCity}`
+                    : 'Введіть адресу або точку старту'
+                }
                 value={start.address}
+                city={activeCity}
                 onChange={(newAddress) => {
                   setLocationError(null);
                   onStartChange({
@@ -351,6 +512,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
                 onAddStop={onAddStop}
                 onRemoveStop={onRemoveStop}
                 onUpdateStop={onUpdateStop}
+                city={activeCity}
               />
             </div>
           )}
@@ -374,8 +536,13 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
             <AddressAutocompleteInput
               id="destination-address"
               className="form-input"
-              placeholder="Введіть адресу або заклад фінішу"
+              placeholder={
+                activeCity
+                  ? `Введіть адресу фінішу в м. ${activeCity}`
+                  : 'Введіть адресу або заклад фінішу'
+              }
               value={destination.address}
+              city={activeCity}
               onChange={(newAddress) => {
                 onDestinationChange({
                   ...destination,

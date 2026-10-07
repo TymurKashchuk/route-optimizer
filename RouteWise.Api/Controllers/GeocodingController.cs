@@ -24,6 +24,7 @@ namespace RouteWise.Api.Controllers
         public async Task<ActionResult<IReadOnlyList<AddressSuggestionDto>>> Search(
             [FromQuery] string? query,
             [FromQuery] int limit = 5,
+            [FromQuery] string? city = null,
             CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(query) || query.Trim().Length < 2)
@@ -33,7 +34,7 @@ namespace RouteWise.Api.Controllers
 
             try
             {
-                var results = await _geocodingSearchService.SearchAsync(query, limit, cancellationToken);
+                var results = await _geocodingSearchService.SearchAsync(query, limit, city, cancellationToken);
                 return Ok(results);
             }
             catch (OpenRouteServiceException ex)

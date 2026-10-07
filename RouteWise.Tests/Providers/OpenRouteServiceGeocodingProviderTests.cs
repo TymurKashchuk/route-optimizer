@@ -97,7 +97,7 @@ namespace RouteWise.Tests.Providers
 
             Assert.NotNull(handler.LastRequest);
             Assert.Equal(HttpMethod.Get, handler.LastRequest.Method);
-            Assert.Contains("search?text=Zhytomyr&size=5", handler.LastRequest.RequestUri?.ToString());
+            Assert.Contains("autocomplete?text=Zhytomyr&size=5", handler.LastRequest.RequestUri?.ToString());
             Assert.True(handler.LastRequest.Headers.Contains("Authorization"));
             Assert.Equal("test-api-key", handler.LastRequest.Headers.GetValues("Authorization").First());
 
@@ -113,6 +113,72 @@ namespace RouteWise.Tests.Providers
             Assert.Equal(50.26407, results[1].Coordinates.Latitude);
             Assert.Equal(28.67669, results[1].Coordinates.Longitude);
             Assert.Equal("Railway Station", results[1].DisplayName);
+        }
+
+        [Fact]
+        public async Task SearchAsync_WhenKnownCityProvided_SetsFocusPointAndBoundaryCircle()
+        {
+            var jsonResponse = """
+            {
+              "type": "FeatureCollection",
+              "features": []
+            }
+            """;
+
+            var (provider, handler) = CreateProvider(jsonResponse);
+
+            await provider.SearchAsync("Київська", limit: 5, city: "Житомир");
+
+            Assert.NotNull(handler.LastRequest);
+            var requestUri = handler.LastRequest.RequestUri?.ToString();
+            Assert.NotNull(requestUri);
+            var unescapedUri = Uri.UnescapeDataString(requestUri);
+            Assert.Contains("autocomplete?text=Київська", unescapedUri);
+            Assert.Contains("focus.point.lat=50.25465", unescapedUri);
+            Assert.Contains("boundary.circle.radius=25", unescapedUri);
+        }
+
+        [Fact]
+        public async Task SearchAsync_WhenCustomCityProvided_AppendsCityToSearchText()
+        {
+            var jsonResponse = """
+            {
+              "type": "FeatureCollection",
+              "features": []
+            }
+            """;
+
+            var (provider, handler) = CreateProvider(jsonResponse);
+
+            await provider.SearchAsync("Шевченка", limit: 5, city: "Бровари");
+
+            Assert.NotNull(handler.LastRequest);
+            var requestUri = handler.LastRequest.RequestUri?.ToString();
+            Assert.NotNull(requestUri);
+            var unescapedUri = Uri.UnescapeDataString(requestUri);
+            Assert.Contains("Шевченка, Бровари", unescapedUri);
+        }
+
+        [Fact]
+        public async Task SearchAsync_WhenQueryAlreadyContainsCity_DoesNotDuplicateCity()
+        {
+            var jsonResponse = """
+            {
+              "type": "FeatureCollection",
+              "features": []
+            }
+            """;
+
+            var (provider, handler) = CreateProvider(jsonResponse);
+
+            await provider.SearchAsync("Шевченка, Бровари", limit: 5, city: "Бровари");
+
+            Assert.NotNull(handler.LastRequest);
+            var requestUri = handler.LastRequest.RequestUri?.ToString();
+            Assert.NotNull(requestUri);
+            var unescapedUri = Uri.UnescapeDataString(requestUri);
+            Assert.Contains("Шевченка, Бровари", unescapedUri);
+            Assert.DoesNotContain("Бровари, Бровари", unescapedUri);
         }
 
         [Fact]
@@ -160,12 +226,14 @@ namespace RouteWise.Tests.Providers
             }
             """;
 
-            var (provider, _) = CreateProvider(jsonResponse);
+            var (provider, handler) = CreateProvider(jsonResponse);
 
             var location = provider.Geocode("Khreshchatyk");
 
             Assert.Equal(50.4547, location.Latitude);
             Assert.Equal(30.5238, location.Longitude);
+            Assert.NotNull(handler.LastRequest);
+            Assert.Contains("search?text=Khreshchatyk&size=1", handler.LastRequest.RequestUri?.ToString());
         }
 
         [Fact]
@@ -189,13 +257,70 @@ namespace RouteWise.Tests.Providers
             }
             """;
 
-            var (provider, _) = CreateProvider(jsonResponse);
+            var (provider, handler) = CreateProvider(jsonResponse);
 
             var location = await provider.GeocodeAsync("Khreshchatyk");
 
             Assert.Equal(50.4547, location.Latitude);
             Assert.Equal(30.5238, location.Longitude);
+            Assert.NotNull(handler.LastRequest);
+            Assert.Contains("search?text=Khreshchatyk&size=1", handler.LastRequest.RequestUri?.ToString());
         }
+
+        [Fact]
+        public async Task GeocodeAsync_WhenSearchReturnsEmpty_FallsBackToAutocomplete()
+        {
+            var emptySearchResponse = """{ "type": "FeatureCollection", "features": [] }""";
+            var foundAutocompleteResponse = """
+            {
+              "type": "FeatureCollection",
+              "features": [
+                {
+                  "type": "Feature",
+                  "geometry": {
+                    "type": "Point",
+                    "coordinates": [30.51519, 50.44585]
+                  },
+                  "properties": {
+                    "label": "Золоті ворота, Kyiv, Ukraine"
+                  }
+                }
+              ]
+            }
+            """;
+
+            var handler = new TestHttpMessageHandler(req =>
+            {
+                if (req.RequestUri?.ToString().Contains("search") == true)
+                {
+                    return new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent(emptySearchResponse, System.Text.Encoding.UTF8, "application/json")
+                    };
+                }
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(foundAutocompleteResponse, System.Text.Encoding.UTF8, "application/json")
+                };
+            });
+
+            var httpClient = new HttpClient(handler) { BaseAddress = new Uri("https://api.openrouteservice.org/") };
+            var options = Microsoft.Extensions.Options.Options.Create(new OpenRouteServiceOptions
+            {
+                ApiKey = "test-api-key",
+                TimeoutSeconds = 10
+            });
+            var provider = new OpenRouteServiceGeocodingProvider(httpClient, options);
+
+            var location = await provider.GeocodeAsync("Золоті ворота, Kyiv, Ukraine");
+
+            Assert.Equal(50.44585, location.Latitude);
+            Assert.Equal(30.51519, location.Longitude);
+            Assert.Equal(2, handler.Requests.Count);
+            Assert.Contains("search", handler.Requests[0].RequestUri?.ToString());
+            Assert.Contains("autocomplete", handler.Requests[1].RequestUri?.ToString());
+        }
+
 
         [Fact]
         public void Geocode_WhenNotFound_ThrowsInvalidOperationException()

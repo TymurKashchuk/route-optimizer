@@ -8,6 +8,7 @@ interface StopsSectionProps {
   onAddStop: () => void;
   onRemoveStop: (id: string) => void;
   onUpdateStop: (id: string, fields: Partial<RouteStop>) => void;
+  city?: string;
 }
 
 export const StopsSection: React.FC<StopsSectionProps> = ({
@@ -16,6 +17,7 @@ export const StopsSection: React.FC<StopsSectionProps> = ({
   onAddStop,
   onRemoveStop,
   onUpdateStop,
+  city,
 }) => {
   const isMaxStopsReached = stops.length >= 10;
 
@@ -42,8 +44,13 @@ export const StopsSection: React.FC<StopsSectionProps> = ({
                 <AddressAutocompleteInput
                   id={`stop-address-${stop.id}`}
                   className="form-input form-input-sm stop-address-input"
-                  placeholder={`Адреса зупинки ${index + 1}`}
+                  placeholder={
+                    city
+                      ? `Адреса зупинки ${index + 1} (${city})`
+                      : `Адреса зупинки ${index + 1}`
+                  }
                   value={stop.address}
+                  city={city}
                   onChange={(newAddress) => {
                     const cleanLabel =
                       stop.label && !stop.label.startsWith('Зупинка')
