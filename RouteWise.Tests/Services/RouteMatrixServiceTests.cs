@@ -169,16 +169,43 @@ namespace RouteWise.Tests.Services
             Assert.Equal(2, result.Locations.Count);
         }
 
+        [Fact]
+        public async Task BuildMatrix_WithMultipleUnresolvedAddresses_ResolvesAllPreservingExactOrder()
+        {
+            var spyGeocodingProvider = new SpyGeocodingProvider();
+            var routeProvider = new StaticRouteProvider();
+            var service = new RouteMatrixService(spyGeocodingProvider, routeProvider);
+
+            var start = new AddressInput { Label = "Start", Address = "Point A" };
+            var stops = new List<RouteStop>
+            {
+                new RouteStop { Id = "1", Label = "Stop 1", Address = "Point B" },
+                new RouteStop { Id = "2", Label = "Stop 2", Address = "Point C" }
+            };
+            var destination = new AddressInput { Label = "Dest", Address = "Point D" };
+
+            var result = await service.BuildMatrixAsync(start, stops, destination);
+
+            Assert.Equal(4, spyGeocodingProvider.GeocodeCallCount);
+            Assert.Equal(4, result.Locations.Count);
+            Assert.Equal("Point A", spyGeocodingProvider.RequestedAddresses[0]);
+            Assert.Equal("Point B", spyGeocodingProvider.RequestedAddresses[1]);
+            Assert.Equal("Point C", spyGeocodingProvider.RequestedAddresses[2]);
+            Assert.Equal("Point D", spyGeocodingProvider.RequestedAddresses[3]);
+        }
+
         private class SpyGeocodingProvider : IGeocodingProvider
         {
             public int GeocodeCallCount { get; private set; }
+            public List<string> RequestedAddresses { get; } = new();
 
             public LocationPoint Geocode(string address) => throw new NotImplementedException();
 
             public Task<LocationPoint> GeocodeAsync(string address, CancellationToken cancellationToken = default)
             {
                 GeocodeCallCount++;
-                return Task.FromResult(new LocationPoint { Latitude = 50.0, Longitude = 30.0 });
+                RequestedAddresses.Add(address);
+                return Task.FromResult(new LocationPoint { Latitude = 50.0 + GeocodeCallCount, Longitude = 30.0 });
             }
 
             public Task<IReadOnlyList<AddressSearchResult>> SearchAsync(string query, int limit = 5, string? city = null, CancellationToken cancellationToken = default)

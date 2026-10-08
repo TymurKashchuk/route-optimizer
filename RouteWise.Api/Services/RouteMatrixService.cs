@@ -31,22 +31,23 @@ namespace RouteWise.Api.Services
             AddressInput? destination,
             CancellationToken cancellationToken = default)
         {
-            var locations = new List<LocationPoint>();
-
-            var startLocation = await ResolveLocationAsync(start.Address, start.Latitude, start.Longitude, cancellationToken);
-            locations.Add(startLocation);
+            var resolveTasks = new List<Task<LocationPoint>>
+            {
+                ResolveLocationAsync(start.Address, start.Latitude, start.Longitude, cancellationToken)
+            };
 
             foreach (var stop in stops)
             {
-                var stopLocation = await ResolveLocationAsync(stop.Address, stop.Latitude, stop.Longitude, cancellationToken);
-                locations.Add(stopLocation);
+                resolveTasks.Add(ResolveLocationAsync(stop.Address, stop.Latitude, stop.Longitude, cancellationToken));
             }
 
             if (destination != null)
             {
-                var destinationLocation = await ResolveLocationAsync(destination.Address, destination.Latitude, destination.Longitude, cancellationToken);
-                locations.Add(destinationLocation);
+                resolveTasks.Add(ResolveLocationAsync(destination.Address, destination.Latitude, destination.Longitude, cancellationToken));
             }
+
+            var resolvedLocations = await Task.WhenAll(resolveTasks);
+            var locations = resolvedLocations.ToList();
 
             var matrix = await _routeProvider.BuildMatrixAsync(locations, cancellationToken);
 
@@ -57,7 +58,7 @@ namespace RouteWise.Api.Services
             };
         }
 
-        private async Task<LocationPoint> ResolveLocationAsync(
+        private Task<LocationPoint> ResolveLocationAsync(
             string address,
             double? latitude,
             double? longitude,
@@ -65,14 +66,14 @@ namespace RouteWise.Api.Services
         {
             if (latitude.HasValue && longitude.HasValue)
             {
-                return new LocationPoint
+                return Task.FromResult(new LocationPoint
                 {
                     Latitude = latitude.Value,
                     Longitude = longitude.Value
-                };
+                });
             }
 
-            return await _geocodingProvider.GeocodeAsync(address, cancellationToken);
+            return _geocodingProvider.GeocodeAsync(address, cancellationToken);
         }
     }
 }
