@@ -3,6 +3,7 @@ import type { OptimizeRouteResponse } from '../types/route';
 import { RouteMetricsSummary } from './results/RouteMetricsSummary';
 import { TimelineView } from './results/TimelineView';
 import { RouteMapPreview } from './results/RouteMapPreview';
+import { RouteExportBar } from './results/RouteExportBar';
 
 function formatTime(isoString: string): string {
   if (!isoString) return '--:--';
@@ -147,6 +148,9 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ result, isLoadin
             savedDistanceKm={result.savedDistanceKm}
             improvementPercent={result.improvementPercent}
           />
+
+          {/* Quick Action: Open in Google Maps & Copy Link */}
+          <RouteExportBar preview={result.routePreview} />
 
           {/* Interactive Map Preview */}
           <RouteMapPreview preview={result.routePreview} />
