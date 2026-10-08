@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import './App.css';
 import { Header } from './components/Header';
 import { RouteFormSection } from './components/RouteFormSection';
@@ -6,6 +6,7 @@ import { ResultsSection } from './components/ResultsSection';
 import { Toast } from './components/Toast';
 import type { AddressInput, AlgorithmType, OptimizeRouteResponse, PlanningMode, RouteStop, SearchScope } from './types/route';
 import { optimizeRoute } from './api/routeClient';
+import { clearTripDraft, loadTripDraft, saveTripDraft } from './utils/draftStorage';
 
 function getTodayDateString(): string {
   const now = new Date();
@@ -18,11 +19,15 @@ function getTodayDateString(): string {
 const DEFAULT_START: AddressInput = {
   label: 'Home',
   address: 'майдан Соборний, Житомир',
+  latitude: 50.255318,
+  longitude: 28.659181,
 };
 
 const DEFAULT_DESTINATION: AddressInput = {
   label: 'Office',
   address: 'вулиця Київська, Житомир',
+  latitude: 50.255577,
+  longitude: 28.659561,
 };
 
 const DEFAULT_STOPS: RouteStop[] = [
@@ -31,27 +36,35 @@ const DEFAULT_STOPS: RouteStop[] = [
     label: 'Pharmacy',
     address: 'майдан Перемоги, Житомир',
     serviceMinutes: 15,
+    latitude: 50.257481,
+    longitude: 28.659194,
   },
   {
     id: 'stop-2',
     label: 'Supermarket',
     address: 'вулиця Покровська, Житомир',
     serviceMinutes: 20,
+    latitude: 50.26425,
+    longitude: 28.66683,
   },
 ];
 
 export const App: React.FC = () => {
+  // Load saved trip draft on mount if available
+  const [initialDraft] = useState(() => loadTripDraft());
+
   // Form State
-  const [start, setStart] = useState<AddressInput>(DEFAULT_START);
-  const [destination, setDestination] = useState<AddressInput>(DEFAULT_DESTINATION);
-  const [planningMode, setPlanningMode] = useState<PlanningMode>('depart-at');
-  const [departureTime, setDepartureTime] = useState<string>(() => `${getTodayDateString()}T09:00`);
-  const [arrivalBy, setArrivalBy] = useState<string>(() => `${getTodayDateString()}T14:00`);
-  const [algorithm, setAlgorithm] = useState<AlgorithmType>('two-opt');
-  const [stops, setStops] = useState<RouteStop[]>(DEFAULT_STOPS);
-  const [isDirectTrip, setIsDirectTrip] = useState<boolean>(false);
-  const [searchScope, setSearchScope] = useState<SearchScope>('all-ukraine');
-  const [selectedCity, setSelectedCity] = useState<string>('Житомир');
+  const [start, setStart] = useState<AddressInput>(() => initialDraft?.start ?? DEFAULT_START);
+  const [destination, setDestination] = useState<AddressInput>(() => initialDraft?.destination ?? DEFAULT_DESTINATION);
+  const [planningMode, setPlanningMode] = useState<PlanningMode>(() => initialDraft?.planningMode ?? 'depart-at');
+  const [departureTime, setDepartureTime] = useState<string>(() => initialDraft?.departureTime ?? `${getTodayDateString()}T09:00`);
+  const [arrivalBy, setArrivalBy] = useState<string>(() => initialDraft?.arrivalBy ?? `${getTodayDateString()}T14:00`);
+  const [algorithm, setAlgorithm] = useState<AlgorithmType>(() => initialDraft?.algorithm ?? 'two-opt');
+  const [stops, setStops] = useState<RouteStop[]>(() => initialDraft?.stops ?? DEFAULT_STOPS);
+  const [isDirectTrip, setIsDirectTrip] = useState<boolean>(() => initialDraft?.isDirectTrip ?? false);
+  const [searchScope, setSearchScope] = useState<SearchScope>(() => initialDraft?.searchScope ?? 'all-ukraine');
+  const [selectedCity, setSelectedCity] = useState<string>(() => initialDraft?.selectedCity ?? 'Житомир');
+  const [isDraftSaved, setIsDraftSaved] = useState<boolean>(Boolean(initialDraft));
 
   const handlePlanningModeChange = (mode: PlanningMode) => {
     setPlanningMode(mode);
@@ -115,6 +128,55 @@ export const App: React.FC = () => {
     setStops((prev) =>
       prev.map((s) => (s.id === id ? { ...s, ...fields } : s))
     );
+  };
+
+  // Autosave draft on form changes with debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      saveTripDraft({
+        start,
+        destination,
+        stops,
+        isDirectTrip,
+        planningMode,
+        departureTime,
+        arrivalBy,
+        algorithm,
+        searchScope,
+        selectedCity,
+      });
+      setIsDraftSaved(true);
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [
+    start,
+    destination,
+    stops,
+    isDirectTrip,
+    planningMode,
+    departureTime,
+    arrivalBy,
+    algorithm,
+    searchScope,
+    selectedCity,
+  ]);
+
+  const handleResetDraft = () => {
+    clearTripDraft();
+    setStart(DEFAULT_START);
+    setDestination(DEFAULT_DESTINATION);
+    setStops(DEFAULT_STOPS);
+    setIsDirectTrip(false);
+    setPlanningMode('depart-at');
+    setDepartureTime(`${getTodayDateString()}T09:00`);
+    setArrivalBy(`${getTodayDateString()}T14:00`);
+    setAlgorithm('two-opt');
+    setSearchScope('all-ukraine');
+    setSelectedCity('Житомир');
+    setResult(null);
+    setError(null);
+    setIsDraftSaved(false);
   };
 
   const handleOptimize = async () => {
@@ -190,6 +252,8 @@ export const App: React.FC = () => {
               onAlgorithmChange={setAlgorithm}
               isLoading={isLoading}
               onOptimize={handleOptimize}
+              isDraftSaved={isDraftSaved}
+              onResetDraft={handleResetDraft}
             />
           </div>
           <div className="right-column">

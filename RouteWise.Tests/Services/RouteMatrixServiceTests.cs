@@ -92,5 +92,127 @@ namespace RouteWise.Tests.Services
             Assert.Equal(4, result.Matrix.TravelTimesMinutes.Count);
             Assert.Equal(4, result.Matrix.TravelTimesMinutes[0].Count);
         }
+
+        [Fact]
+        public async Task BuildMatrix_WithCoordinatesProvided_DoesNotCallGeocodingProvider()
+        {
+            var spyGeocodingProvider = new SpyGeocodingProvider();
+            var routeProvider = new StaticRouteProvider();
+            var service = new RouteMatrixService(spyGeocodingProvider, routeProvider);
+
+            var start = new AddressInput
+            {
+                Label = "Start",
+                Address = "Some Custom Address A",
+                Latitude = 50.25,
+                Longitude = 28.65
+            };
+
+            var stops = new List<RouteStop>
+            {
+                new RouteStop
+                {
+                    Id = "1",
+                    Label = "Stop 1",
+                    Address = "Some Custom Address B",
+                    Latitude = 50.26,
+                    Longitude = 28.66
+                }
+            };
+
+            var destination = new AddressInput
+            {
+                Label = "Destination",
+                Address = "Some Custom Address C",
+                Latitude = 50.27,
+                Longitude = 28.67
+            };
+
+            var result = await service.BuildMatrixAsync(start, stops, destination);
+
+            Assert.Equal(0, spyGeocodingProvider.GeocodeCallCount);
+            Assert.Equal(3, result.Locations.Count);
+            Assert.Equal(50.25, result.Locations[0].Latitude);
+            Assert.Equal(28.65, result.Locations[0].Longitude);
+            Assert.Equal(50.26, result.Locations[1].Latitude);
+            Assert.Equal(28.66, result.Locations[1].Longitude);
+            Assert.Equal(50.27, result.Locations[2].Latitude);
+            Assert.Equal(28.67, result.Locations[2].Longitude);
+        }
+
+        [Fact]
+        public async Task BuildMatrix_WithMissingCoordinates_CallsGeocodingProviderFallback()
+        {
+            var spyGeocodingProvider = new SpyGeocodingProvider();
+            var routeProvider = new StaticRouteProvider();
+            var service = new RouteMatrixService(spyGeocodingProvider, routeProvider);
+
+            var start = new AddressInput
+            {
+                Label = "Start",
+                Address = "Manual Address Without Coords"
+            };
+
+            var stops = new List<RouteStop>
+            {
+                new RouteStop
+                {
+                    Id = "1",
+                    Label = "Stop 1",
+                    Address = "Another Manual Address"
+                }
+            };
+
+            var result = await service.BuildMatrixAsync(start, stops);
+
+            Assert.Equal(2, spyGeocodingProvider.GeocodeCallCount);
+            Assert.Equal(2, result.Locations.Count);
+        }
+
+        [Fact]
+        public async Task BuildMatrix_WithMultipleUnresolvedAddresses_ResolvesAllPreservingExactOrder()
+        {
+            var spyGeocodingProvider = new SpyGeocodingProvider();
+            var routeProvider = new StaticRouteProvider();
+            var service = new RouteMatrixService(spyGeocodingProvider, routeProvider);
+
+            var start = new AddressInput { Label = "Start", Address = "Point A" };
+            var stops = new List<RouteStop>
+            {
+                new RouteStop { Id = "1", Label = "Stop 1", Address = "Point B" },
+                new RouteStop { Id = "2", Label = "Stop 2", Address = "Point C" }
+            };
+            var destination = new AddressInput { Label = "Dest", Address = "Point D" };
+
+            var result = await service.BuildMatrixAsync(start, stops, destination);
+
+            Assert.Equal(4, spyGeocodingProvider.GeocodeCallCount);
+            Assert.Equal(4, result.Locations.Count);
+            Assert.Equal("Point A", spyGeocodingProvider.RequestedAddresses[0]);
+            Assert.Equal("Point B", spyGeocodingProvider.RequestedAddresses[1]);
+            Assert.Equal("Point C", spyGeocodingProvider.RequestedAddresses[2]);
+            Assert.Equal("Point D", spyGeocodingProvider.RequestedAddresses[3]);
+        }
+
+        private class SpyGeocodingProvider : IGeocodingProvider
+        {
+            public int GeocodeCallCount { get; private set; }
+            public List<string> RequestedAddresses { get; } = new();
+
+            public LocationPoint Geocode(string address) => throw new NotImplementedException();
+
+            public Task<LocationPoint> GeocodeAsync(string address, CancellationToken cancellationToken = default)
+            {
+                GeocodeCallCount++;
+                RequestedAddresses.Add(address);
+                return Task.FromResult(new LocationPoint { Latitude = 50.0 + GeocodeCallCount, Longitude = 30.0 });
+            }
+
+            public Task<IReadOnlyList<AddressSearchResult>> SearchAsync(string query, int limit = 5, string? city = null, CancellationToken cancellationToken = default)
+                => Task.FromResult<IReadOnlyList<AddressSearchResult>>(Array.Empty<AddressSearchResult>());
+
+            public Task<AddressSearchResult?> ReverseGeocodeAsync(double latitude, double longitude, CancellationToken cancellationToken = default)
+                => Task.FromResult<AddressSearchResult?>(null);
+        }
     }
 }

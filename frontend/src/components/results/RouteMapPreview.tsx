@@ -2,6 +2,7 @@ import React, { useEffect, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import type { RoutePreviewDto } from '../../types/route';
+import { buildGoogleMapsDirectionsUrl } from '../../utils/googleMaps';
 
 interface RouteMapPreviewProps {
   preview?: RoutePreviewDto;
@@ -106,6 +107,7 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({ preview, isLoa
   ];
 
   const totalPointsCount = preview.orderedStops.length + 1 + (preview.destinationPoint?.address ? 1 : 0);
+  const googleMapsUrl = buildGoogleMapsDirectionsUrl(preview);
 
   return (
     <div className="card route-map-card">
@@ -115,6 +117,17 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({ preview, isLoa
           <span className="badge-muted">
             {totalPointsCount <= 2 ? 'Пряма лінія (2 точки)' : `${totalPointsCount} точок маршруту`}
           </span>
+          {googleMapsUrl && (
+            <a
+              href={googleMapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="map-header-ext-link"
+              title="Відкрити цей маршрут у Google Maps"
+            >
+              Google Maps ↗
+            </a>
+          )}
         </div>
         <div className="map-legend">
           <span className="legend-item">

@@ -69,6 +69,8 @@ interface RouteFormSectionProps {
   onAlgorithmChange: (algorithm: AlgorithmType) => void;
   isLoading: boolean;
   onOptimize: () => void;
+  isDraftSaved?: boolean;
+  onResetDraft?: () => void;
 }
 
 export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
@@ -96,6 +98,8 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
   onAlgorithmChange,
   isLoading,
   onOptimize,
+  isDraftSaved,
+  onResetDraft,
 }) => {
   const isArriveBy = planningMode === 'arrive-by';
   const [isLocating, setIsLocating] = useState<boolean>(false);
@@ -147,6 +151,8 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
           onStartChange({
             label: 'Моє місцезнаходження',
             address: result.address,
+            latitude,
+            longitude,
           });
         } catch (err: unknown) {
           const message =
@@ -192,9 +198,29 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
     <section className="card trip-planner-card" aria-labelledby="trip-planner-title">
       <div className="trip-planner-header">
         <div>
-          <h2 id="trip-planner-title" className="section-title">
-            Маршрут подорожі
-          </h2>
+          <div className="trip-planner-title-row">
+            <h2 id="trip-planner-title" className="section-title">
+              Маршрут подорожі
+            </h2>
+            {isDraftSaved && (
+              <span className="draft-status-badge" title="Зміни автоматично збережені у вашому браузері">
+                <svg
+                  width="11"
+                  height="11"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                <span>Чернетку збережено</span>
+              </span>
+            )}
+          </div>
           <p className="section-subtitle">
             {isDirectTrip
               ? 'Пряма поїздка від точки старту до фінішу'
@@ -202,29 +228,57 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
           </p>
         </div>
 
-        {/* Mode Selector Tabs */}
-        <div className="trip-mode-tabs" role="tablist" aria-label="Тип поїздки">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={isDirectTrip}
-            className={`trip-mode-tab ${isDirectTrip ? 'active' : ''}`}
-            onClick={() => onDirectTripChange(true)}
-            disabled={isLoading}
-          >
-            <span>Пряма (А → Б)</span>
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={!isDirectTrip}
-            className={`trip-mode-tab ${!isDirectTrip ? 'active' : ''}`}
-            onClick={() => onDirectTripChange(false)}
-            disabled={isLoading}
-          >
-            <span>Із зупинками</span>
-            {stops.length > 0 && <span className="tab-count-badge">{stops.length}</span>}
-          </button>
+        {/* Header Actions: Reset Button & Mode Selector Tabs */}
+        <div className="trip-header-actions">
+          {onResetDraft && (
+            <button
+              type="button"
+              className="btn-reset-draft"
+              onClick={onResetDraft}
+              title="Скинути форму та очистити збережену чернетку"
+              disabled={isLoading}
+            >
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
+              </svg>
+              <span>Скинути</span>
+            </button>
+          )}
+
+          <div className="trip-mode-tabs" role="tablist" aria-label="Тип поїздки">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={isDirectTrip}
+              className={`trip-mode-tab ${isDirectTrip ? 'active' : ''}`}
+              onClick={() => onDirectTripChange(true)}
+              disabled={isLoading}
+            >
+              <span>Пряма (А → Б)</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={!isDirectTrip}
+              className={`trip-mode-tab ${!isDirectTrip ? 'active' : ''}`}
+              onClick={() => onDirectTripChange(false)}
+              disabled={isLoading}
+            >
+              <span>Із зупинками</span>
+              {stops.length > 0 && <span className="tab-count-badge">{stops.length}</span>}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -378,12 +432,14 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
                 }
                 value={start.address}
                 city={activeCity}
-                onChange={(newAddress) => {
+                onChange={(newAddress, suggestion) => {
                   setLocationError(null);
                   onStartChange({
                     ...start,
                     label: start.label || 'Старт',
                     address: newAddress,
+                    latitude: suggestion?.latitude,
+                    longitude: suggestion?.longitude,
                   });
                 }}
                 disabled={isLoading || isLocating}
@@ -543,11 +599,13 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
               }
               value={destination.address}
               city={activeCity}
-              onChange={(newAddress) => {
+              onChange={(newAddress, suggestion) => {
                 onDestinationChange({
                   ...destination,
                   label: destination.label || 'Фініш',
                   address: newAddress,
+                  latitude: suggestion?.latitude,
+                  longitude: suggestion?.longitude,
                 });
               }}
               disabled={isLoading}

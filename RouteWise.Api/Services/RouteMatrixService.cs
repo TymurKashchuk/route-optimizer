@@ -31,22 +31,23 @@ namespace RouteWise.Api.Services
             AddressInput? destination,
             CancellationToken cancellationToken = default)
         {
-            var locations = new List<LocationPoint>();
-
-            var startLocation = await _geocodingProvider.GeocodeAsync(start.Address, cancellationToken);
-            locations.Add(startLocation);
+            var resolveTasks = new List<Task<LocationPoint>>
+            {
+                ResolveLocationAsync(start.Address, start.Latitude, start.Longitude, cancellationToken)
+            };
 
             foreach (var stop in stops)
             {
-                var stopLocation = await _geocodingProvider.GeocodeAsync(stop.Address, cancellationToken);
-                locations.Add(stopLocation);
+                resolveTasks.Add(ResolveLocationAsync(stop.Address, stop.Latitude, stop.Longitude, cancellationToken));
             }
 
             if (destination != null)
             {
-                var destinationLocation = await _geocodingProvider.GeocodeAsync(destination.Address, cancellationToken);
-                locations.Add(destinationLocation);
+                resolveTasks.Add(ResolveLocationAsync(destination.Address, destination.Latitude, destination.Longitude, cancellationToken));
             }
+
+            var resolvedLocations = await Task.WhenAll(resolveTasks);
+            var locations = resolvedLocations.ToList();
 
             var matrix = await _routeProvider.BuildMatrixAsync(locations, cancellationToken);
 
@@ -55,6 +56,24 @@ namespace RouteWise.Api.Services
                 Locations = locations,
                 Matrix = matrix
             };
+        }
+
+        private Task<LocationPoint> ResolveLocationAsync(
+            string address,
+            double? latitude,
+            double? longitude,
+            CancellationToken cancellationToken)
+        {
+            if (latitude.HasValue && longitude.HasValue)
+            {
+                return Task.FromResult(new LocationPoint
+                {
+                    Latitude = latitude.Value,
+                    Longitude = longitude.Value
+                });
+            }
+
+            return _geocodingProvider.GeocodeAsync(address, cancellationToken);
         }
     }
 }
