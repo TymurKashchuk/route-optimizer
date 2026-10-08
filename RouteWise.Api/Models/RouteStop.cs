@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace RouteWise.Api.Models
 {
@@ -15,5 +15,9 @@ namespace RouteWise.Api.Models
 
         [Range(0, 480)]
         public int ServiceMinutes { get; set; }
+
+        public double? Latitude { get; set; }
+
+        public double? Longitude { get; set; }
     }
 }

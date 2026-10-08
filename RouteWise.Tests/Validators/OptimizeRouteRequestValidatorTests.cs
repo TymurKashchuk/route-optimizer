@@ -147,5 +147,65 @@ namespace RouteWise.Tests.Validators
             result.ShouldHaveValidationErrorFor(x => x.Stops)
                 .WithErrorMessage("Stops are required");
         }
+
+        [Fact]
+        public void Validate_ValidCoordinates_IsValid()
+        {
+            var request = CreateValidBaseRequest();
+            request.Start.Latitude = 50.45;
+            request.Start.Longitude = 30.52;
+            request.Destination.Latitude = 49.84;
+            request.Destination.Longitude = 24.03;
+            request.Stops[0].Latitude = 50.25;
+            request.Stops[0].Longitude = 28.66;
+
+            var result = _validator.TestValidate(request);
+
+            result.ShouldNotHaveValidationErrorFor(x => x.Start.Latitude);
+            result.ShouldNotHaveValidationErrorFor(x => x.Start.Longitude);
+            result.ShouldNotHaveValidationErrorFor(x => x.Destination.Latitude);
+            result.ShouldNotHaveValidationErrorFor(x => x.Destination.Longitude);
+            result.ShouldNotHaveValidationErrorFor(x => x.Stops[0].Latitude);
+            result.ShouldNotHaveValidationErrorFor(x => x.Stops[0].Longitude);
+        }
+
+        [Fact]
+        public void Validate_InvalidLatitude_HasValidationError()
+        {
+            var request = CreateValidBaseRequest();
+            request.Start.Latitude = 150.0;
+            request.Start.Longitude = 30.0;
+
+            var result = _validator.TestValidate(request);
+
+            result.ShouldHaveValidationErrorFor(x => x.Start.Latitude)
+                .WithErrorMessage("Start latitude must be between -90 and 90");
+        }
+
+        [Fact]
+        public void Validate_InvalidLongitude_HasValidationError()
+        {
+            var request = CreateValidBaseRequest();
+            request.Start.Latitude = 50.0;
+            request.Start.Longitude = -200.0;
+
+            var result = _validator.TestValidate(request);
+
+            result.ShouldHaveValidationErrorFor(x => x.Start.Longitude)
+                .WithErrorMessage("Start longitude must be between -180 and 180");
+        }
+
+        [Fact]
+        public void Validate_LatitudeWithoutLongitude_HasValidationError()
+        {
+            var request = CreateValidBaseRequest();
+            request.Start.Latitude = 50.0;
+            request.Start.Longitude = null;
+
+            var result = _validator.TestValidate(request);
+
+            result.ShouldHaveValidationErrorFor(x => x.Start.Longitude)
+                .WithErrorMessage("Start longitude is required when latitude is provided");
+        }
     }
 }

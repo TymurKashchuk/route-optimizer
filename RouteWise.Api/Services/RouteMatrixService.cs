@@ -33,18 +33,18 @@ namespace RouteWise.Api.Services
         {
             var locations = new List<LocationPoint>();
 
-            var startLocation = await _geocodingProvider.GeocodeAsync(start.Address, cancellationToken);
+            var startLocation = await ResolveLocationAsync(start.Address, start.Latitude, start.Longitude, cancellationToken);
             locations.Add(startLocation);
 
             foreach (var stop in stops)
             {
-                var stopLocation = await _geocodingProvider.GeocodeAsync(stop.Address, cancellationToken);
+                var stopLocation = await ResolveLocationAsync(stop.Address, stop.Latitude, stop.Longitude, cancellationToken);
                 locations.Add(stopLocation);
             }
 
             if (destination != null)
             {
-                var destinationLocation = await _geocodingProvider.GeocodeAsync(destination.Address, cancellationToken);
+                var destinationLocation = await ResolveLocationAsync(destination.Address, destination.Latitude, destination.Longitude, cancellationToken);
                 locations.Add(destinationLocation);
             }
 
@@ -55,6 +55,24 @@ namespace RouteWise.Api.Services
                 Locations = locations,
                 Matrix = matrix
             };
+        }
+
+        private async Task<LocationPoint> ResolveLocationAsync(
+            string address,
+            double? latitude,
+            double? longitude,
+            CancellationToken cancellationToken)
+        {
+            if (latitude.HasValue && longitude.HasValue)
+            {
+                return new LocationPoint
+                {
+                    Latitude = latitude.Value,
+                    Longitude = longitude.Value
+                };
+            }
+
+            return await _geocodingProvider.GeocodeAsync(address, cancellationToken);
         }
     }
 }
