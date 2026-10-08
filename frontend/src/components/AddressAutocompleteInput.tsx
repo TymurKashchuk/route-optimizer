@@ -5,7 +5,7 @@ import type { AddressSuggestionDto } from '../types/route';
 interface AddressAutocompleteInputProps {
   id?: string;
   value: string;
-  onChange: (value: string) => void;
+  onChange: (value: string, suggestion?: AddressSuggestionDto) => void;
   placeholder?: string;
   disabled?: boolean;
   className?: string;
@@ -94,7 +94,7 @@ export const AddressAutocompleteInput: React.FC<AddressAutocompleteInputProps> =
 
   const handleSelect = (suggestion: AddressSuggestionDto) => {
     hasUserTypedRef.current = false;
-    onChange(suggestion.address);
+    onChange(suggestion.address, suggestion);
     setIsOpen(false);
     setSuggestions([]);
     setHighlightedIndex(-1);

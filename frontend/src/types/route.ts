@@ -5,6 +5,8 @@ export type SearchScope = 'all-ukraine' | 'city';
 export interface AddressInput {
   label: string;
   address: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface RouteStop {
@@ -12,6 +14,8 @@ export interface RouteStop {
   label: string;
   address: string;
   serviceMinutes: number;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface OptimizeRouteRequest {

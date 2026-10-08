@@ -147,6 +147,8 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
           onStartChange({
             label: 'Моє місцезнаходження',
             address: result.address,
+            latitude,
+            longitude,
           });
         } catch (err: unknown) {
           const message =
@@ -378,12 +380,14 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
                 }
                 value={start.address}
                 city={activeCity}
-                onChange={(newAddress) => {
+                onChange={(newAddress, suggestion) => {
                   setLocationError(null);
                   onStartChange({
                     ...start,
                     label: start.label || 'Старт',
                     address: newAddress,
+                    latitude: suggestion?.latitude,
+                    longitude: suggestion?.longitude,
                   });
                 }}
                 disabled={isLoading || isLocating}
@@ -543,11 +547,13 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
               }
               value={destination.address}
               city={activeCity}
-              onChange={(newAddress) => {
+              onChange={(newAddress, suggestion) => {
                 onDestinationChange({
                   ...destination,
                   label: destination.label || 'Фініш',
                   address: newAddress,
+                  latitude: suggestion?.latitude,
+                  longitude: suggestion?.longitude,
                 });
               }}
               disabled={isLoading}

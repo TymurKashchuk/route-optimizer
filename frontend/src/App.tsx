@@ -18,11 +18,15 @@ function getTodayDateString(): string {
 const DEFAULT_START: AddressInput = {
   label: 'Home',
   address: 'майдан Соборний, Житомир',
+  latitude: 50.255318,
+  longitude: 28.659181,
 };
 
 const DEFAULT_DESTINATION: AddressInput = {
   label: 'Office',
   address: 'вулиця Київська, Житомир',
+  latitude: 50.255577,
+  longitude: 28.659561,
 };
 
 const DEFAULT_STOPS: RouteStop[] = [
@@ -31,12 +35,16 @@ const DEFAULT_STOPS: RouteStop[] = [
     label: 'Pharmacy',
     address: 'майдан Перемоги, Житомир',
     serviceMinutes: 15,
+    latitude: 50.257481,
+    longitude: 28.659194,
   },
   {
     id: 'stop-2',
     label: 'Supermarket',
     address: 'вулиця Покровська, Житомир',
     serviceMinutes: 20,
+    latitude: 50.26425,
+    longitude: 28.66683,
   },
 ];
 
