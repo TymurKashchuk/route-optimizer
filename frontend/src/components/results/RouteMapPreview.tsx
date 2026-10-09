@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import type { RoutePreviewDto } from '../../types/route';
-import { buildGoogleMapsDirectionsUrl } from '../../utils/googleMaps';
+import { buildGoogleMapsDirectionsUrl, copyToClipboard } from '../../utils/googleMaps';
 
 interface RouteMapPreviewProps {
   preview?: RoutePreviewDto;
@@ -48,6 +48,17 @@ const MapBoundsUpdater: React.FC<{ points: [number, number][] }> = ({ points }) 
 };
 
 export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({ preview, isLoading }) => {
+  const [copied, setCopied] = useState(false);
+  const timeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current !== null) {
+        window.clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
   const polylinePositions = useMemo<[number, number][]>(() => {
     if (!preview) return [];
 
@@ -109,6 +120,21 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({ preview, isLoa
   const totalPointsCount = preview.orderedStops.length + 1 + (preview.destinationPoint?.address ? 1 : 0);
   const googleMapsUrl = buildGoogleMapsDirectionsUrl(preview);
 
+  const handleCopy = async () => {
+    if (!googleMapsUrl) return;
+    const success = await copyToClipboard(googleMapsUrl);
+    if (success) {
+      setCopied(true);
+      if (timeoutRef.current !== null) {
+        window.clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = window.setTimeout(() => {
+        setCopied(false);
+        timeoutRef.current = null;
+      }, 2500);
+    }
+  };
+
   return (
     <div className="card route-map-card">
       <div className="route-map-header">
@@ -117,30 +143,97 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({ preview, isLoa
           <span className="badge-muted">
             {totalPointsCount <= 2 ? 'Пряма лінія (2 точки)' : `${totalPointsCount} точок маршруту`}
           </span>
-          {googleMapsUrl && (
-            <a
-              href={googleMapsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="map-header-ext-link"
-              title="Відкрити цей маршрут у Google Maps"
-            >
-              Google Maps ↗
-            </a>
-          )}
         </div>
-        <div className="map-legend">
-          <span className="legend-item">
-            <span className="legend-badge legend-start">A</span> Старт
-          </span>
-          {preview.orderedStops.length > 0 && (
+
+        <div className="route-map-header-right">
+          <div className="map-legend">
             <span className="legend-item">
-              <span className="legend-badge legend-stop">1..N</span> Зупинки
+              <span className="legend-badge legend-start">A</span> Старт
             </span>
+            {preview.orderedStops.length > 0 && (
+              <span className="legend-item">
+                <span className="legend-badge legend-stop">1..N</span> Зупинки
+              </span>
+            )}
+            <span className="legend-item">
+              <span className="legend-badge legend-dest">B</span> Фініш
+            </span>
+          </div>
+
+          <span className="map-header-divider" aria-hidden="true" />
+
+          {googleMapsUrl && (
+            <div className="map-actions-group">
+              <a
+                href={googleMapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="map-header-ext-link"
+                title="Відкрити оптимізований маршрут у Google Maps"
+              >
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+                <span>Google Maps</span>
+              </a>
+
+              <button
+                type="button"
+                className={`map-header-copy-btn ${copied ? 'copied' : ''}`}
+                onClick={handleCopy}
+                title="Скопіювати посилання на Google Maps"
+                aria-live="polite"
+              >
+                {copied ? (
+                  <>
+                    <svg
+                      width="13"
+                      height="13"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    <span>Скопійовано!</span>
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      width="13"
+                      height="13"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                    <span>Скопіювати</span>
+                  </>
+                )}
+              </button>
+            </div>
           )}
-          <span className="legend-item">
-            <span className="legend-badge legend-dest">B</span> Фініш
-          </span>
         </div>
       </div>
 
@@ -206,7 +299,7 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({ preview, isLoa
             </Marker>
           )}
 
-          {/* Route Polyline */}
+          {/* Optimized Route Polyline */}
           {polylinePositions.length > 1 && (
             <Polyline
               positions={polylinePositions}
@@ -221,6 +314,25 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({ preview, isLoa
           )}
         </MapContainer>
       </div>
+
+      {copied && (
+        <div className="export-toast-snackbar" role="status" aria-live="polite">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          <span>Посилання на маршрут скопійовано!</span>
+        </div>
+      )}
     </div>
   );
 };
