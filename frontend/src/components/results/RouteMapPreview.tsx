@@ -160,6 +160,8 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({ preview, isLoa
             </span>
           </div>
 
+          <span className="map-header-divider" aria-hidden="true" />
+
           {googleMapsUrl && (
             <div className="map-actions-group">
               <a

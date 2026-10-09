@@ -108,11 +108,11 @@ export const RouteMetricsSummary: React.FC<RouteMetricsSummaryProps> = ({
             </svg>
           </div>
           <span className="trip-metric-value">
-            {hasSavings ? `–${savedMinutes} хв` : 'Прямий'}
+            {hasSavings ? `${Math.abs(savedMinutes)} хв` : 'Прямий'}
           </span>
           <span className="trip-metric-subtext">
             {hasSavings
-              ? `–${savedDistanceKm.toFixed(1)} км (+${improvementPercent.toFixed(1)}%)`
+              ? `${Math.abs(savedDistanceKm).toFixed(1)} км${improvementPercent > 0 ? ` (+${improvementPercent.toFixed(1)}%)` : ''}`
               : 'Найшвидший шлях'}
           </span>
         </div>
@@ -139,7 +139,7 @@ export const RouteMetricsSummary: React.FC<RouteMetricsSummaryProps> = ({
             </div>
             <div className="savings-banner-text">
               <strong>Маршрут оптимізовано!</strong> Завдяки кращій послідовності зупинок
-              ви заощадите <strong>{savedMinutes} хв</strong> та <strong>{savedDistanceKm.toFixed(1)} км</strong>.
+              ви заощадите <strong>{Math.abs(savedMinutes)} хв</strong> та <strong>{Math.abs(savedDistanceKm).toFixed(1)} км</strong>.
             </div>
           </div>
           <button
