@@ -19,4 +19,9 @@ Thumbs.db
 # Node / Frontend
 node_modules/
 dist/
-*.local
+*.local
+
+# Environment & Secrets
+.env
+.env.*.local
+.env.local
