@@ -1,0 +1,32 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: RouteWise.Api/Dockerfile
+    container_name: routewise-backend
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - OpenRouteService__ApiKey=${OPENROUTE_SERVICE_API_KEY:-}
+    ports:
+      - "5044:8080"
+    networks:
+      - routewise-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: routewise-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    networks:
+      - routewise-network
+    restart: unless-stopped
+
+networks:
+  routewise-network:
+    driver: bridge
