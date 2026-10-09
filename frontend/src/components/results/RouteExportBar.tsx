@@ -23,12 +23,12 @@ export const RouteExportBar: React.FC<RouteExportBarProps> = ({ preview }) => {
   };
 
   return (
-    <div className="route-export-card" aria-label="Експорт та навігація маршруту">
-      <div className="route-export-info">
+    <div className="route-export-card" role="region" aria-label="Експорт та навігація маршруту">
+      <div className="route-export-header">
         <div className="route-export-badge" aria-hidden="true">
           <svg
-            width="20"
-            height="20"
+            width="16"
+            height="16"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -39,12 +39,7 @@ export const RouteExportBar: React.FC<RouteExportBarProps> = ({ preview }) => {
             <polygon points="3 11 22 2 13 21 11 13 3 11" />
           </svg>
         </div>
-        <div className="route-export-text">
-          <h4 className="route-export-title">Готові вирушати у подорож?</h4>
-          <p className="route-export-desc">
-            Відкрийте оптимізований маршрут у Google Maps для живої покрокової GPS-навігації або надішліть посилання супутникам.
-          </p>
-        </div>
+        <h4 className="route-export-title">Навігація у Google Maps</h4>
       </div>
 
       <div className="route-export-actions">
@@ -56,8 +51,8 @@ export const RouteExportBar: React.FC<RouteExportBarProps> = ({ preview }) => {
           title="Відкрити маршрут у додатку або на сайті Google Maps"
         >
           <svg
-            width="18"
-            height="18"
+            width="16"
+            height="16"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -93,12 +88,13 @@ export const RouteExportBar: React.FC<RouteExportBarProps> = ({ preview }) => {
           className={`btn btn-copy-maps ${copied ? 'copied' : ''}`}
           onClick={handleCopy}
           title="Скопіювати посилання для навігації"
+          aria-live="polite"
         >
           {copied ? (
             <>
               <svg
-                width="16"
-                height="16"
+                width="15"
+                height="15"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -114,8 +110,8 @@ export const RouteExportBar: React.FC<RouteExportBarProps> = ({ preview }) => {
           ) : (
             <>
               <svg
-                width="16"
-                height="16"
+                width="15"
+                height="15"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
