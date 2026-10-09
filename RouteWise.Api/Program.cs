@@ -27,11 +27,23 @@ namespace RouteWise.Api
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            var defaultCorsOrigins = new[]
+            {
+                "http://localhost:5173",
+                "http://localhost:3000",
+                "http://localhost:80",
+                "http://localhost"
+            };
+            var configuredCorsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+            var allowedOrigins = (configuredCorsOrigins != null && configuredCorsOrigins.Length > 0)
+                ? configuredCorsOrigins
+                : defaultCorsOrigins;
+
             builder.Services.AddCors(options =>
             {
                 options.AddDefaultPolicy(policy =>
                 {
-                    policy.WithOrigins("http://localhost:5173")
+                    policy.WithOrigins(allowedOrigins)
                           .AllowAnyHeader()
                           .AllowAnyMethod();
                 });
