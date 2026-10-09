@@ -1967,6 +1967,20 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.route-map-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.map-actions-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .map-legend {
@@ -2211,109 +2225,58 @@
   pointer-events: none;
 }
 
-/* Route Export & Navigation Bar */
-.route-export-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.75rem 1rem;
-  background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
-  border: 1px solid #bbf7d0;
-  border-left: 4px solid #16a34a;
-  border-radius: var(--radius-md);
-  padding: 0.75rem 1.15rem;
-  box-shadow: var(--shadow-sm);
-  box-sizing: border-box;
-}
-
-.route-export-header {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  min-width: 0;
-}
-
-.route-export-badge {
-  color: #16a34a;
-  background: #dcfce7;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  box-shadow: 0 1px 3px rgba(22, 163, 74, 0.15);
-}
-
-.route-export-title {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--text-main);
-  margin: 0;
-  white-space: nowrap;
-}
-
-.route-export-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  max-width: 100%;
-}
-
-.btn-google-maps {
+/* Map Header Action Buttons (Google Maps & Copy Link) */
+.map-header-ext-link {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  background: linear-gradient(135deg, #1a73e8 0%, #1557b0 100%);
-  color: #ffffff !important;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1a73e8;
   text-decoration: none;
-  font-size: 0.85rem;
-  font-weight: 600;
-  padding: 0.55rem 0.95rem;
+  padding: 0.32rem 0.65rem;
   border-radius: var(--radius-sm);
-  box-shadow: 0 2px 5px rgba(26, 115, 232, 0.25);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  white-space: nowrap;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  transition: all 0.15s ease;
   box-sizing: border-box;
 }
 
-.btn-google-maps:hover {
-  background: linear-gradient(135deg, #1557b0 0%, #0d47a1 100%);
+.map-header-ext-link:hover {
+  background: #dbeafe;
+  color: #1557b0;
+  border-color: #93c5fd;
   transform: translateY(-1px);
-  box-shadow: 0 3px 8px rgba(26, 115, 232, 0.35);
 }
 
-.btn-google-maps:active {
-  transform: translateY(0);
+.map-ext-arrow {
+  font-size: 0.85rem;
+  line-height: 1;
 }
 
-.btn-copy-maps {
+.map-header-copy-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-main);
   background: #ffffff;
   border: 1px solid var(--border-color);
-  color: var(--text-main);
-  font-size: 0.85rem;
-  font-weight: 500;
-  padding: 0.53rem 0.85rem;
+  padding: 0.32rem 0.65rem;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
+  transition: all 0.15s ease;
   box-sizing: border-box;
 }
 
-.btn-copy-maps:hover {
+.map-header-copy-btn:hover {
   background: #f8fafc;
   border-color: #cbd5e1;
   color: var(--text-main);
 }
 
-.btn-copy-maps.copied {
+.map-header-copy-btn.copied {
   background: #ecfdf5;
   border-color: #10b981;
   color: #059669;
@@ -2359,44 +2322,22 @@
   }
 }
 
-.map-header-ext-link {
-  display: inline-flex;
-  align-items: center;
-  font-size: 0.775rem;
-  font-weight: 600;
-  color: var(--primary);
-  text-decoration: none;
-  padding: 0.25rem 0.55rem;
-  border-radius: var(--radius-sm);
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  transition: all 0.15s ease;
-  margin-left: 0.5rem;
-}
-
-.map-header-ext-link:hover {
-  background: #dbeafe;
-  color: var(--primary-hover);
-  border-color: #93c5fd;
-}
-
 @media (max-width: 680px) {
-  .route-export-card {
+  .route-map-header {
     flex-direction: column;
-    align-items: stretch;
-    gap: 0.75rem;
+    align-items: flex-start;
+    gap: 0.65rem;
   }
 
-  .route-export-actions {
+  .route-map-header-right {
     width: 100%;
-    flex-direction: column;
+    justify-content: space-between;
     gap: 0.5rem;
   }
 
-  .btn-google-maps,
-  .btn-copy-maps {
-    width: 100%;
-    justify-content: center;
+  .map-actions-group {
+    display: flex;
+    gap: 0.4rem;
   }
 }
 
