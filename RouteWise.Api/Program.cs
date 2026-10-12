@@ -8,6 +8,7 @@ using RouteWise.Api.Validators;
 using RouteWise.Api.Options;
 using Microsoft.Extensions.Options;
 using System.Reflection;
+using RouteWise.Api.Middleware;
 
 namespace RouteWise.Api
 {
@@ -104,6 +105,8 @@ namespace RouteWise.Api
             });
 
             var app = builder.Build();
+
+            app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
