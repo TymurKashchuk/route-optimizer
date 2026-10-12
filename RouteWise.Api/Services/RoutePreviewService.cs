@@ -68,7 +68,7 @@ namespace RouteWise.Api.Services
                 });
             }
 
-            RoutePointDto destinationPoint = new();
+            RoutePointDto? destinationPoint = null;
             if (destination != null && allLocations.Count > orderedStops.Count + 1)
             {
                 var destLocationIndex = orderedStops.Count + 1;

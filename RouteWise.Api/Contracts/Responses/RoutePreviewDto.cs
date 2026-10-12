@@ -6,7 +6,7 @@ namespace RouteWise.Api.Contracts.Responses
     {
         public RoutePointDto StartPoint { get; set; } = new();
 
-        public RoutePointDto DestinationPoint { get; set; } = new();
+        public RoutePointDto? DestinationPoint { get; set; }
 
         public List<RoutePointDto> OrderedStops { get; set; } = new();
 

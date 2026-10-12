@@ -199,8 +199,6 @@ namespace RouteWise.Tests.Services
             public int GeocodeCallCount { get; private set; }
             public List<string> RequestedAddresses { get; } = new();
 
-            public LocationPoint Geocode(string address) => throw new NotImplementedException();
-
             public Task<LocationPoint> GeocodeAsync(string address, CancellationToken cancellationToken = default)
             {
                 GeocodeCallCount++;

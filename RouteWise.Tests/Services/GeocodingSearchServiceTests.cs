@@ -13,8 +13,6 @@ namespace RouteWise.Tests.Services
             public string? LastCity { get; private set; }
             public List<AddressSearchResult> ResultsToReturn { get; set; } = new();
 
-            public LocationPoint Geocode(string address) => new();
-
             public Task<LocationPoint> GeocodeAsync(
                 string address,
                 CancellationToken cancellationToken = default) => Task.FromResult(new LocationPoint());

@@ -206,37 +206,6 @@ namespace RouteWise.Tests.Providers
         }
 
         [Fact]
-        public void Geocode_WhenAddressFound_ReturnsFirstCoordinates()
-        {
-            var jsonResponse = """
-            {
-              "type": "FeatureCollection",
-              "features": [
-                {
-                  "type": "Feature",
-                  "geometry": {
-                    "type": "Point",
-                    "coordinates": [30.5238, 50.4547]
-                  },
-                  "properties": {
-                    "label": "Khreshchatyk, Kyiv"
-                  }
-                }
-              ]
-            }
-            """;
-
-            var (provider, handler) = CreateProvider(jsonResponse);
-
-            var location = provider.Geocode("Khreshchatyk");
-
-            Assert.Equal(50.4547, location.Latitude);
-            Assert.Equal(30.5238, location.Longitude);
-            Assert.NotNull(handler.LastRequest);
-            Assert.Contains("search?text=Khreshchatyk&size=1", handler.LastRequest.RequestUri?.ToString());
-        }
-
-        [Fact]
         public async Task GeocodeAsync_WhenAddressFound_ReturnsFirstCoordinatesAsync()
         {
             var jsonResponse = """
@@ -323,7 +292,7 @@ namespace RouteWise.Tests.Providers
 
 
         [Fact]
-        public void Geocode_WhenNotFound_ThrowsInvalidOperationException()
+        public async Task GeocodeAsync_WhenNotFound_ThrowsInvalidOperationException()
         {
             var jsonResponse = """
             {
@@ -334,8 +303,8 @@ namespace RouteWise.Tests.Providers
 
             var (provider, _) = CreateProvider(jsonResponse);
 
-            var exception = Assert.Throws<InvalidOperationException>(() =>
-                provider.Geocode("NonExistentAddress123"));
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                provider.GeocodeAsync("NonExistentAddress123"));
 
             Assert.Contains("Address not found", exception.Message);
         }

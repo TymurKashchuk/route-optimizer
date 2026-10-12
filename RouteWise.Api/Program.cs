@@ -8,6 +8,7 @@ using RouteWise.Api.Validators;
 using RouteWise.Api.Options;
 using Microsoft.Extensions.Options;
 using System.Reflection;
+using RouteWise.Api.Middleware;
 
 namespace RouteWise.Api
 {
@@ -49,12 +50,12 @@ namespace RouteWise.Api
                 });
             });
 
-            builder.Services.AddScoped<RouteOptimizationService>();
             builder.Services.AddScoped<RouteMatrixService>();
 
             builder.Services.AddScoped<IRouteOptimizer, OriginalOrderOptimizer>();
-            builder.Services.AddScoped<IRouteOptimizer, NearestNeighborOptimizer>();
-            builder.Services.AddScoped<IRouteOptimizer>(sp => new TwoOptOptimizer(new NearestNeighborOptimizer()));
+            builder.Services.AddScoped<NearestNeighborOptimizer>();
+            builder.Services.AddScoped<IRouteOptimizer>(sp => sp.GetRequiredService<NearestNeighborOptimizer>());
+            builder.Services.AddScoped<IRouteOptimizer>(sp => new TwoOptOptimizer(sp.GetRequiredService<NearestNeighborOptimizer>()));
 
             builder.Services.AddMemoryCache();
             builder.Services.AddScoped<GeocodingSearchService>();
@@ -104,6 +105,8 @@ namespace RouteWise.Api
             });
 
             var app = builder.Build();
+
+            app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
