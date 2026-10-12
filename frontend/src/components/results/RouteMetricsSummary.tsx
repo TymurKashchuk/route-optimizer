@@ -24,7 +24,9 @@ export const RouteMetricsSummary: React.FC<RouteMetricsSummaryProps> = ({
   improvementPercent,
 }) => {
   const [showComparison, setShowComparison] = useState(false);
-  const hasSavings = savedMinutes > 0 || savedDistanceKm > 0;
+  const hasTimeSavings = savedMinutes > 0;
+  const hasDistanceSavings = savedDistanceKm > 0;
+  const hasSavings = hasTimeSavings || hasDistanceSavings;
   const totalTripMinutes = optimized.totalTravelMinutes + optimized.totalServiceMinutes;
 
   return (
@@ -108,11 +110,19 @@ export const RouteMetricsSummary: React.FC<RouteMetricsSummaryProps> = ({
             </svg>
           </div>
           <span className="trip-metric-value">
-            {hasSavings ? `${Math.abs(savedMinutes)} хв` : 'Прямий'}
+            {hasSavings
+              ? hasTimeSavings
+                ? `${savedMinutes} хв`
+                : `${savedDistanceKm.toFixed(1)} км`
+              : optimized.totalServiceMinutes > 0
+              ? 'Без змін'
+              : 'Прямий'}
           </span>
           <span className="trip-metric-subtext">
             {hasSavings
-              ? `${Math.abs(savedDistanceKm).toFixed(1)} км${improvementPercent > 0 ? ` (+${improvementPercent.toFixed(1)}%)` : ''}`
+              ? `${hasDistanceSavings ? `${savedDistanceKm.toFixed(1)} км` : ''}${improvementPercent > 0 ? ` (+${improvementPercent.toFixed(1)}%)` : ''}`.trim() || 'Оптимізовано'
+              : optimized.totalServiceMinutes > 0
+              ? 'Початковий порядок'
               : 'Найшвидший шлях'}
           </span>
         </div>
@@ -139,7 +149,13 @@ export const RouteMetricsSummary: React.FC<RouteMetricsSummaryProps> = ({
             </div>
             <div className="savings-banner-text">
               <strong>Маршрут оптимізовано!</strong> Завдяки кращій послідовності зупинок
-              ви заощадите <strong>{Math.abs(savedMinutes)} хв</strong> та <strong>{Math.abs(savedDistanceKm).toFixed(1)} км</strong>.
+              {hasTimeSavings && hasDistanceSavings ? (
+                <> ви заощадите <strong>{savedMinutes} хв</strong> та <strong>{savedDistanceKm.toFixed(1)} км</strong>.</>
+              ) : hasTimeSavings ? (
+                <> ви заощадите <strong>{savedMinutes} хв</strong>.</>
+              ) : (
+                <> відстань скорочено на <strong>{savedDistanceKm.toFixed(1)} км</strong>.</>
+              )}
             </div>
           </div>
           <button

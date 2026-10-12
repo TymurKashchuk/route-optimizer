@@ -52,10 +52,13 @@ export const StopsSection: React.FC<StopsSectionProps> = ({
                   value={stop.address}
                   city={city}
                   onChange={(newAddress, suggestion) => {
-                    const cleanLabel =
-                      stop.label && !stop.label.startsWith('Зупинка')
-                        ? stop.label
-                        : newAddress.split(',')[0]?.trim() || `Зупинка ${index + 1}`;
+                    const isDefaultLabel =
+                      !stop.label ||
+                      stop.label.startsWith('Зупинка') ||
+                      stop.label.startsWith('Stop');
+                    const cleanLabel = isDefaultLabel
+                      ? newAddress.split(',')[0]?.trim() || `Зупинка ${index + 1}`
+                      : stop.label;
                     onUpdateStop(stop.id, {
                       address: newAddress,
                       label: cleanLabel,

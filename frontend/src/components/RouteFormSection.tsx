@@ -104,7 +104,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
   const isArriveBy = planningMode === 'arrive-by';
   const [isLocating, setIsLocating] = useState<boolean>(false);
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [isCustomCity, setIsCustomCity] = useState<boolean>(() => !POPULAR_CITIES.includes(selectedCity));
+  const isCustomCity = !POPULAR_CITIES.includes(selectedCity);
 
   const activeCity = searchScope === 'city' ? selectedCity.trim() : undefined;
 
@@ -189,9 +189,6 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
 
   const handleEnableStopsMode = () => {
     onDirectTripChange(false);
-    if (stops.length === 0) {
-      onAddStop();
-    }
   };
 
   return (
@@ -350,12 +347,11 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
                 <select
                   id="city-select-dropdown"
                   className="form-select city-select-input"
-                  value={POPULAR_CITIES.includes(selectedCity) && !isCustomCity ? selectedCity : '__custom__'}
+                  value={POPULAR_CITIES.includes(selectedCity) ? selectedCity : '__custom__'}
                   onChange={(e) => {
                     if (e.target.value === '__custom__') {
-                      setIsCustomCity(true);
+                      onSelectedCityChange('');
                     } else {
-                      setIsCustomCity(false);
                       onSelectedCityChange(e.target.value);
                     }
                   }}
@@ -369,7 +365,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
                   <option value="__custom__">Інше місто (ввести вручну)...</option>
                 </select>
 
-                {(isCustomCity || !POPULAR_CITIES.includes(selectedCity)) && (
+                {isCustomCity && (
                   <input
                     type="text"
                     className="form-input form-input-sm city-text-input"
@@ -389,11 +385,8 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
                 <button
                   key={c}
                   type="button"
-                  className={`city-pill-btn ${selectedCity === c && !isCustomCity ? 'active' : ''}`}
-                  onClick={() => {
-                    setIsCustomCity(false);
-                    onSelectedCityChange(c);
-                  }}
+                  className={`city-pill-btn ${selectedCity === c ? 'active' : ''}`}
+                  onClick={() => onSelectedCityChange(c)}
                   disabled={isLoading}
                 >
                   {c}
