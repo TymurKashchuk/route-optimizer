@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useId } from 'react';
 import { searchAddresses } from '../api/geocodingClient';
 import type { AddressSuggestionDto } from '../types/route';
 
@@ -21,6 +21,10 @@ export const AddressAutocompleteInput: React.FC<AddressAutocompleteInputProps> =
   className,
   city,
 }) => {
+  const generatedId = useId();
+  const inputId = id || generatedId;
+  const listboxId = `${inputId}-listbox`;
+
   const [suggestions, setSuggestions] = useState<AddressSuggestionDto[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -28,7 +32,6 @@ export const AddressAutocompleteInput: React.FC<AddressAutocompleteInputProps> =
   const wrapperRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const hasUserTypedRef = useRef(false);
-  const abortControllerRef = useRef<AbortController | null>(null);
 
   const handleInputChange = (newValue: string) => {
     hasUserTypedRef.current = true;
@@ -52,16 +55,15 @@ export const AddressAutocompleteInput: React.FC<AddressAutocompleteInputProps> =
       return;
     }
 
-    const timer = setTimeout(async () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-      const controller = new AbortController();
-      abortControllerRef.current = controller;
+    let isCurrent = true;
+    const controller = new AbortController();
 
+    const timer = window.setTimeout(async () => {
       setIsLoading(true);
       try {
         const results = await searchAddresses(trimmed, 5, controller.signal, city);
+        if (!isCurrent) return;
+
         const isFocused = document.activeElement === inputRef.current;
         setSuggestions(results);
         setIsOpen(isFocused && hasUserTypedRef.current && results.length > 0);
@@ -69,19 +71,22 @@ export const AddressAutocompleteInput: React.FC<AddressAutocompleteInputProps> =
       } catch {
         // Silently ignore aborts or network issues in autocomplete
       } finally {
-        setIsLoading(false);
+        if (isCurrent) {
+          setIsLoading(false);
+        }
       }
     }, 300);
 
     return () => {
-      clearTimeout(timer);
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
+      isCurrent = false;
+      window.clearTimeout(timer);
+      controller.abort();
     };
   }, [value, city]);
 
   useEffect(() => {
+    if (!isOpen) return;
+
     function handleClickOutside(e: MouseEvent) {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
         setIsOpen(false);
@@ -90,7 +95,7 @@ export const AddressAutocompleteInput: React.FC<AddressAutocompleteInputProps> =
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [isOpen]);
 
   const handleSelect = (suggestion: AddressSuggestionDto) => {
     hasUserTypedRef.current = false;
@@ -126,6 +131,9 @@ export const AddressAutocompleteInput: React.FC<AddressAutocompleteInputProps> =
       if (highlightedIndex >= 0 && highlightedIndex < suggestions.length) {
         e.preventDefault();
         handleSelect(suggestions[highlightedIndex]);
+      } else if (suggestions.length > 0) {
+        e.preventDefault();
+        handleSelect(suggestions[0]);
       }
     } else if (e.key === 'Escape') {
       setIsOpen(false);
@@ -144,12 +152,24 @@ export const AddressAutocompleteInput: React.FC<AddressAutocompleteInputProps> =
     return { primary: text, secondary: '' };
   };
 
+  const isDropdownVisible = isOpen && suggestions.length > 0;
+
   return (
-    <div ref={wrapperRef} className={`autocomplete-wrapper ${isOpen && suggestions.length > 0 ? 'autocomplete-open' : ''}`}>
+    <div
+      ref={wrapperRef}
+      className={`autocomplete-wrapper ${isDropdownVisible ? 'autocomplete-open' : ''}`}
+    >
       <input
         ref={inputRef}
-        id={id}
+        id={inputId}
         type="text"
+        role="combobox"
+        aria-autocomplete="list"
+        aria-expanded={isDropdownVisible}
+        aria-controls={listboxId}
+        aria-activedescendant={
+          highlightedIndex >= 0 ? `${listboxId}-option-${highlightedIndex}` : undefined
+        }
         className={className}
         placeholder={placeholder}
         value={value}
@@ -186,10 +206,12 @@ export const AddressAutocompleteInput: React.FC<AddressAutocompleteInputProps> =
           </svg>
         </button>
       )}
-      {isOpen && suggestions.length > 0 && (
+      {isDropdownVisible && (
         <ul
+          id={listboxId}
           className="autocomplete-dropdown"
           role="listbox"
+          aria-label="Підказки адрес"
           onMouseDown={(e) => e.preventDefault()}
         >
           {suggestions.map((item, idx) => {
@@ -200,6 +222,7 @@ export const AddressAutocompleteInput: React.FC<AddressAutocompleteInputProps> =
             return (
               <li
                 key={`${item.address}-${idx}`}
+                id={`${listboxId}-option-${idx}`}
                 className={`autocomplete-item ${isHighlighted ? 'active' : ''}`}
                 onClick={() => handleSelect(item)}
                 onMouseEnter={() => setHighlightedIndex(idx)}

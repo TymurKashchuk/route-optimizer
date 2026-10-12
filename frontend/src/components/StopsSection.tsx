@@ -93,12 +93,20 @@ export const StopsSection: React.FC<StopsSectionProps> = ({
                   min={0}
                   max={480}
                   className="stay-pill-input"
-                  value={stop.serviceMinutes}
+                  value={stop.serviceMinutes === 0 ? '' : stop.serviceMinutes}
+                  placeholder="0"
                   onChange={(e) => {
-                    const minutes = parseInt(e.target.value, 10);
-                    onUpdateStop(stop.id, {
-                      serviceMinutes: isNaN(minutes) ? 0 : Math.max(0, minutes),
-                    });
+                    const raw = e.target.value;
+                    if (raw === '') {
+                      onUpdateStop(stop.id, { serviceMinutes: 0 });
+                      return;
+                    }
+                    const minutes = parseInt(raw, 10);
+                    if (!isNaN(minutes)) {
+                      onUpdateStop(stop.id, {
+                        serviceMinutes: Math.min(480, Math.max(0, minutes)),
+                      });
+                    }
                   }}
                   disabled={isLoading}
                   aria-label={`Час перебування на зупинці ${index + 1}`}
