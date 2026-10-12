@@ -18,8 +18,6 @@ namespace RouteWise.Tests.Controllers
             public Func<string, int, Task<IReadOnlyList<AddressSearchResult>>>? OnSearch { get; set; }
             public Func<string, int, string?, Task<IReadOnlyList<AddressSearchResult>>>? OnSearchWithCity { get; set; }
 
-            public LocationPoint Geocode(string address) => new();
-
             public Task<LocationPoint> GeocodeAsync(string address, CancellationToken cancellationToken = default) =>
                 Task.FromResult(new LocationPoint());
 

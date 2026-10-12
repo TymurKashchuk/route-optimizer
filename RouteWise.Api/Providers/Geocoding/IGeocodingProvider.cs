@@ -4,8 +4,6 @@ namespace RouteWise.Api.Providers.Geocoding
 {
     public interface IGeocodingProvider
     {
-        LocationPoint Geocode(string address);
-
         Task<LocationPoint> GeocodeAsync(
             string address,
             CancellationToken cancellationToken = default);

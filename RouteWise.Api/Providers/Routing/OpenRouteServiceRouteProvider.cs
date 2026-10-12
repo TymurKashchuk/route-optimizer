@@ -64,7 +64,7 @@ namespace RouteWise.Api.Providers.Routing
             {
                 if (!response.IsSuccessStatusCode)
                 {
-                    HandleErrorStatusCode(response.StatusCode);
+                    OpenRouteServiceException.ThrowForStatusCode(response.StatusCode);
                 }
 
                 OrsMatrixResponse? matrixResponse;
@@ -132,7 +132,7 @@ namespace RouteWise.Api.Providers.Routing
             {
                 if (!response.IsSuccessStatusCode)
                 {
-                    HandleErrorStatusCode(response.StatusCode);
+                    OpenRouteServiceException.ThrowForStatusCode(response.StatusCode);
                 }
 
                 OrsDirectionsGeoJsonResponse? geoJsonResponse;
@@ -165,31 +165,6 @@ namespace RouteWise.Api.Providers.Routing
                     Coordinates = points
                 };
             }
-        }
-
-        private static void HandleErrorStatusCode(HttpStatusCode statusCode)
-        {
-            if (statusCode == HttpStatusCode.Unauthorized)
-            {
-                throw new OpenRouteServiceException("Invalid or unauthorized OpenRouteService API key.", statusCode);
-            }
-
-            if (statusCode == HttpStatusCode.Forbidden)
-            {
-                throw new OpenRouteServiceException("Access to OpenRouteService is forbidden.", statusCode);
-            }
-
-            if (statusCode == HttpStatusCode.TooManyRequests)
-            {
-                throw new OpenRouteServiceException("OpenRouteService rate limit exceeded. Please try again later.", statusCode);
-            }
-
-            if ((int)statusCode >= 500)
-            {
-                throw new OpenRouteServiceException("OpenRouteService server error encountered. Service may be temporarily unavailable.", statusCode);
-            }
-
-            throw new OpenRouteServiceException($"OpenRouteService returned an unexpected error ({(int)statusCode}).", statusCode);
         }
 
         private static RouteMatrix MapToRouteMatrix(OrsMatrixResponse response, int expectedCount)

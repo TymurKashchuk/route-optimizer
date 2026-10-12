@@ -27,5 +27,19 @@ namespace RouteWise.Api.Exceptions
         {
             StatusCode = statusCode;
         }
+
+        public static void ThrowForStatusCode(HttpStatusCode statusCode)
+        {
+            var message = statusCode switch
+            {
+                HttpStatusCode.Unauthorized => "Invalid or unauthorized OpenRouteService API key.",
+                HttpStatusCode.Forbidden => "Access to OpenRouteService is forbidden.",
+                HttpStatusCode.TooManyRequests => "OpenRouteService rate limit exceeded. Please try again later.",
+                _ when (int)statusCode >= 500 => "OpenRouteService server error encountered. Service may be temporarily unavailable.",
+                _ => $"OpenRouteService returned an unexpected error ({(int)statusCode})."
+            };
+
+            throw new OpenRouteServiceException(message, statusCode);
+        }
     }
 }

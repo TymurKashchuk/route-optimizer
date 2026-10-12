@@ -66,11 +66,6 @@ namespace RouteWise.Api.Providers.Geocoding
             _options = options.Value;
         }
 
-        public LocationPoint Geocode(string address)
-        {
-            return GeocodeAsync(address).GetAwaiter().GetResult();
-        }
-
         public async Task<LocationPoint> GeocodeAsync(
             string address,
             CancellationToken cancellationToken = default)
@@ -174,7 +169,7 @@ namespace RouteWise.Api.Providers.Geocoding
             {
                 if (!response.IsSuccessStatusCode)
                 {
-                    HandleErrorStatusCode(response.StatusCode);
+                    OpenRouteServiceException.ThrowForStatusCode(response.StatusCode);
                 }
 
                 OrsGeocodingResponse? geocodingResponse;
@@ -231,7 +226,7 @@ namespace RouteWise.Api.Providers.Geocoding
             {
                 if (!response.IsSuccessStatusCode)
                 {
-                    HandleErrorStatusCode(response.StatusCode);
+                    OpenRouteServiceException.ThrowForStatusCode(response.StatusCode);
                 }
 
                 OrsGeocodingResponse? geocodingResponse;
@@ -282,31 +277,6 @@ namespace RouteWise.Api.Providers.Geocoding
             }
 
             return results;
-        }
-
-        private static void HandleErrorStatusCode(HttpStatusCode statusCode)
-        {
-            if (statusCode == HttpStatusCode.Unauthorized)
-            {
-                throw new OpenRouteServiceException("Invalid or unauthorized OpenRouteService API key.", statusCode);
-            }
-
-            if (statusCode == HttpStatusCode.Forbidden)
-            {
-                throw new OpenRouteServiceException("Access to OpenRouteService is forbidden.", statusCode);
-            }
-
-            if (statusCode == HttpStatusCode.TooManyRequests)
-            {
-                throw new OpenRouteServiceException("OpenRouteService rate limit exceeded. Please try again later.", statusCode);
-            }
-
-            if ((int)statusCode >= 500)
-            {
-                throw new OpenRouteServiceException("OpenRouteService server error encountered. Service may be temporarily unavailable.", statusCode);
-            }
-
-            throw new OpenRouteServiceException($"OpenRouteService returned an unexpected error ({(int)statusCode}).", statusCode);
         }
     }
 }

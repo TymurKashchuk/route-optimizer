@@ -188,8 +188,17 @@ namespace RouteWise.Api.Providers.Geocoding
             }
         };
 
-        public LocationPoint Geocode(string address) {
-            if (_knownAddresses.TryGetValue(address, out var location)) { 
+        public Task<LocationPoint> GeocodeAsync(
+            string address,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(ResolveLocation(address));
+        }
+
+        private LocationPoint ResolveLocation(string address)
+        {
+            if (_knownAddresses.TryGetValue(address, out var location))
+            { 
                 return location;
             }
 
@@ -205,13 +214,6 @@ namespace RouteWise.Api.Providers.Geocoding
             var availableAddresses = string.Join(",", _knownAddresses.Keys);
 
             throw new InvalidOperationException($"Unknown address: {address}. Available demo addresses: {availableAddresses}");
-        }
-
-        public Task<LocationPoint> GeocodeAsync(
-            string address,
-            CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(Geocode(address));
         }
 
         public Task<IReadOnlyList<AddressSearchResult>> SearchAsync(
