@@ -50,12 +50,12 @@ namespace RouteWise.Api
                 });
             });
 
-            builder.Services.AddScoped<RouteOptimizationService>();
             builder.Services.AddScoped<RouteMatrixService>();
 
             builder.Services.AddScoped<IRouteOptimizer, OriginalOrderOptimizer>();
-            builder.Services.AddScoped<IRouteOptimizer, NearestNeighborOptimizer>();
-            builder.Services.AddScoped<IRouteOptimizer>(sp => new TwoOptOptimizer(new NearestNeighborOptimizer()));
+            builder.Services.AddScoped<NearestNeighborOptimizer>();
+            builder.Services.AddScoped<IRouteOptimizer>(sp => sp.GetRequiredService<NearestNeighborOptimizer>());
+            builder.Services.AddScoped<IRouteOptimizer>(sp => new TwoOptOptimizer(sp.GetRequiredService<NearestNeighborOptimizer>()));
 
             builder.Services.AddMemoryCache();
             builder.Services.AddScoped<GeocodingSearchService>();

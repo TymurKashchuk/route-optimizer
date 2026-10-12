@@ -53,6 +53,7 @@ namespace RouteWise.Tests.Services
             Assert.Equal(50.26407, preview.OrderedStops[1].Latitude);
 
             Assert.Equal(3, preview.GeometryCoordinates.Count);
+            Assert.Null(preview.DestinationPoint);
         }
 
         [Fact]
