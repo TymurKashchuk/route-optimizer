@@ -9,21 +9,29 @@ interface RouteMapPreviewProps {
   isLoading?: boolean;
 }
 
-const createNumberedIcon = (label: string | number, type: 'start' | 'stop' | 'destination' = 'stop') => {
-  const badgeClass =
-    type === 'start'
-      ? 'map-marker-start'
-      : type === 'destination'
-      ? 'map-marker-dest'
-      : 'map-marker-stop';
+const iconCache = new Map<string, L.DivIcon>();
 
-  return L.divIcon({
-    className: 'custom-map-marker-container',
-    html: `<div class="map-marker-badge ${badgeClass}">${label}</div>`,
-    iconSize: [30, 30],
-    iconAnchor: [15, 15],
-    popupAnchor: [0, -15],
-  });
+const getNumberedIcon = (label: string | number, type: 'start' | 'stop' | 'destination' = 'stop'): L.DivIcon => {
+  const key = `${type}-${label}`;
+  let icon = iconCache.get(key);
+  if (!icon) {
+    const badgeClass =
+      type === 'start'
+        ? 'map-marker-start'
+        : type === 'destination'
+        ? 'map-marker-dest'
+        : 'map-marker-stop';
+
+    icon = L.divIcon({
+      className: 'custom-map-marker-container',
+      html: `<div class="map-marker-badge ${badgeClass}">${label}</div>`,
+      iconSize: [30, 30],
+      iconAnchor: [15, 15],
+      popupAnchor: [0, -15],
+    });
+    iconCache.set(key, icon);
+  }
+  return icon;
 };
 
 const MapBoundsUpdater: React.FC<{ points: [number, number][] }> = ({ points }) => {
@@ -38,10 +46,12 @@ const MapBoundsUpdater: React.FC<{ points: [number, number][] }> = ({ points }) 
     }
 
     const bounds = L.latLngBounds(points);
-    map.fitBounds(bounds, {
-      padding: [45, 45],
-      maxZoom: 16,
-    });
+    if (bounds.isValid()) {
+      map.fitBounds(bounds, {
+        padding: [45, 45],
+        maxZoom: 16,
+      });
+    }
   }, [map, points]);
 
   return null;
@@ -256,7 +266,7 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({ preview, isLoa
           {/* Start Marker */}
           <Marker
             position={[preview.startPoint.latitude, preview.startPoint.longitude]}
-            icon={createNumberedIcon('A', 'start')}
+            icon={getNumberedIcon('A', 'start')}
           >
             <Popup>
               <div className="map-popup-content">
@@ -271,7 +281,7 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({ preview, isLoa
             <Marker
               key={stop.id}
               position={[stop.latitude, stop.longitude]}
-              icon={createNumberedIcon(stop.order, 'stop')}
+              icon={getNumberedIcon(stop.order, 'stop')}
             >
               <Popup>
                 <div className="map-popup-content">
@@ -288,7 +298,7 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({ preview, isLoa
           {preview.destinationPoint && preview.destinationPoint.address && (
             <Marker
               position={[preview.destinationPoint.latitude, preview.destinationPoint.longitude]}
-              icon={createNumberedIcon('B', 'destination')}
+              icon={getNumberedIcon('B', 'destination')}
             >
               <Popup>
                 <div className="map-popup-content">

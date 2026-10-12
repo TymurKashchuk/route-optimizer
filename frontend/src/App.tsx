@@ -7,24 +7,24 @@ import { Toast } from './components/Toast';
 import type { AddressInput, AlgorithmType, OptimizeRouteResponse, PlanningMode, RouteStop, SearchScope } from './types/route';
 import { optimizeRoute } from './api/routeClient';
 import { clearTripDraft, loadTripDraft, saveTripDraft } from './utils/draftStorage';
+import { getTodayDateString } from './utils/dateTime';
 
-function getTodayDateString(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+function generateId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 }
 
 const DEFAULT_START: AddressInput = {
-  label: 'Home',
+  label: 'Дім',
   address: 'майдан Соборний, Житомир',
   latitude: 50.255318,
   longitude: 28.659181,
 };
 
 const DEFAULT_DESTINATION: AddressInput = {
-  label: 'Office',
+  label: 'Офіс',
   address: 'вулиця Київська, Житомир',
   latitude: 50.255577,
   longitude: 28.659561,
@@ -33,7 +33,7 @@ const DEFAULT_DESTINATION: AddressInput = {
 const DEFAULT_STOPS: RouteStop[] = [
   {
     id: 'stop-1',
-    label: 'Pharmacy',
+    label: 'Аптека',
     address: 'майдан Перемоги, Житомир',
     serviceMinutes: 15,
     latitude: 50.257481,
@@ -41,7 +41,7 @@ const DEFAULT_STOPS: RouteStop[] = [
   },
   {
     id: 'stop-2',
-    label: 'Supermarket',
+    label: 'Супермаркет',
     address: 'вулиця Покровська, Житомир',
     serviceMinutes: 20,
     latitude: 50.26425,
@@ -49,10 +49,10 @@ const DEFAULT_STOPS: RouteStop[] = [
   },
 ];
 
-export const App: React.FC = () => {
-  // Load saved trip draft on mount if available
-  const [initialDraft] = useState(() => loadTripDraft());
+// Load saved trip draft once on module evaluation
+const initialDraft = loadTripDraft();
 
+export const App: React.FC = () => {
   // Form State
   const [start, setStart] = useState<AddressInput>(() => initialDraft?.start ?? DEFAULT_START);
   const [destination, setDestination] = useState<AddressInput>(() => initialDraft?.destination ?? DEFAULT_DESTINATION);
@@ -84,8 +84,8 @@ export const App: React.FC = () => {
     if (!isDirect && stops.length === 0) {
       setStops([
         {
-          id: `stop-${crypto.randomUUID()}`,
-          label: 'Stop 1',
+          id: `stop-${generateId()}`,
+          label: 'Зупинка 1',
           address: '',
           serviceMinutes: 15,
         },
@@ -106,8 +106,8 @@ export const App: React.FC = () => {
     }
     if (stops.length >= 10) return;
     const newStop: RouteStop = {
-      id: `stop-${crypto.randomUUID()}`,
-      label: `Stop ${stops.length + 1}`,
+      id: `stop-${generateId()}`,
+      label: `Зупинка ${stops.length + 1}`,
       address: '',
       serviceMinutes: 10,
     };
@@ -115,13 +115,11 @@ export const App: React.FC = () => {
   };
 
   const handleRemoveStop = (id: string) => {
-    setStops((prev) => {
-      const updated = prev.filter((s) => s.id !== id);
-      if (updated.length === 0) {
-        setIsDirectTrip(true);
-      }
-      return updated;
-    });
+    const updated = stops.filter((s) => s.id !== id);
+    setStops(updated);
+    if (updated.length === 0) {
+      setIsDirectTrip(true);
+    }
   };
 
   const handleUpdateStop = (id: string, fields: Partial<RouteStop>) => {
