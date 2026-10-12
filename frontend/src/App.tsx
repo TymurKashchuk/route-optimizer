@@ -7,14 +7,7 @@ import { Toast } from './components/Toast';
 import type { AddressInput, AlgorithmType, OptimizeRouteResponse, PlanningMode, RouteStop, SearchScope } from './types/route';
 import { optimizeRoute } from './api/routeClient';
 import { clearTripDraft, loadTripDraft, saveTripDraft } from './utils/draftStorage';
-
-function getTodayDateString(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
+import { getTodayDateString } from './utils/dateTime';
 
 function generateId(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -56,10 +49,10 @@ const DEFAULT_STOPS: RouteStop[] = [
   },
 ];
 
-export const App: React.FC = () => {
-  // Load saved trip draft on mount if available
-  const [initialDraft] = useState(() => loadTripDraft());
+// Load saved trip draft once on module evaluation
+const initialDraft = loadTripDraft();
 
+export const App: React.FC = () => {
   // Form State
   const [start, setStart] = useState<AddressInput>(() => initialDraft?.start ?? DEFAULT_START);
   const [destination, setDestination] = useState<AddressInput>(() => initialDraft?.destination ?? DEFAULT_DESTINATION);

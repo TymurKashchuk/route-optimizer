@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { RouteMetricsDto } from '../../types/route';
+import { formatDuration } from '../../utils/dateTime';
 
 interface RouteMetricsSummaryProps {
   original: RouteMetricsDto;
@@ -7,13 +8,6 @@ interface RouteMetricsSummaryProps {
   savedMinutes: number;
   savedDistanceKm: number;
   improvementPercent: number;
-}
-
-function formatDuration(minutes: number): string {
-  if (minutes < 60) return `${minutes} хв`;
-  const hours = Math.floor(minutes / 60);
-  const remaining = minutes % 60;
-  return remaining > 0 ? `${hours} год ${remaining} хв` : `${hours} год`;
 }
 
 export const RouteMetricsSummary: React.FC<RouteMetricsSummaryProps> = ({

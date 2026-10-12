@@ -1,24 +1,11 @@
 import React from 'react';
 import type { PlanningMode, RouteStepDto, TimelineItemDto } from '../../types/route';
+import { formatTime, getServiceDuration } from '../../utils/dateTime';
 
 interface TimelineViewProps {
   timeline: TimelineItemDto[];
   planningMode?: PlanningMode;
   explanationSteps?: RouteStepDto[];
-}
-
-function formatTime(isoString: string): string {
-  if (!isoString) return '--:--';
-  const date = new Date(isoString);
-  if (isNaN(date.getTime())) return isoString;
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-}
-
-function getServiceDuration(arrivalIso: string, departureIso: string): number {
-  const arrival = new Date(arrivalIso).getTime();
-  const departure = new Date(departureIso).getTime();
-  if (isNaN(arrival) || isNaN(departure) || departure <= arrival) return 0;
-  return Math.round((departure - arrival) / (1000 * 60));
 }
 
 export const TimelineView: React.FC<TimelineViewProps> = ({

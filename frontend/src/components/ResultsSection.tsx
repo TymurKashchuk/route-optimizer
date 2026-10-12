@@ -3,13 +3,7 @@ import type { OptimizeRouteResponse } from '../types/route';
 import { RouteMetricsSummary } from './results/RouteMetricsSummary';
 import { TimelineView } from './results/TimelineView';
 import { RouteMapPreview } from './results/RouteMapPreview';
-
-function formatTime(isoString: string): string {
-  if (!isoString) return '--:--';
-  const date = new Date(isoString);
-  if (isNaN(date.getTime())) return isoString;
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-}
+import { formatTime } from '../utils/dateTime';
 
 interface ResultsSectionProps {
   result: OptimizeRouteResponse | null;

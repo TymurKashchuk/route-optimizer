@@ -3,6 +3,7 @@ import type { AddressInput, AlgorithmType, PlanningMode, RouteStop, SearchScope 
 import { AddressAutocompleteInput } from './AddressAutocompleteInput';
 import { StopsSection } from './StopsSection';
 import { reverseGeocode } from '../api/geocodingClient';
+import { getTodayDateString, getTomorrowDateString } from '../utils/dateTime';
 
 const POPULAR_CITIES = [
   'Житомир',
@@ -26,23 +27,6 @@ const POPULAR_CITIES = [
   'Чернівці',
   'Кропивницький',
 ];
-
-function getTodayDateString(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-function getTomorrowDateString(): string {
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const year = tomorrow.getFullYear();
-  const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
-  const day = String(tomorrow.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
 
 interface RouteFormSectionProps {
   start: AddressInput;
