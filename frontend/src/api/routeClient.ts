@@ -7,7 +7,7 @@ interface ValidationRule {
 
 const HTTP_STATUS_MESSAGES: Record<number, string> = {
   429: 'Перевищено ліміт запитів до картографічного сервісу. Зачекайте хвилину.',
-  502: 'Неможливо зʼєднатися з сервером RouteWise. Переконайтеся, що бекенд запущено на http://localhost:5044.',
+  502: 'Неможливо зʼєднатися з сервером RouteWise. Переконайтеся, що бекенд-сервіс працює.',
   503: 'Сервіс маршрутизації тимчасово недоступний. Спробуйте пізніше.',
   504: 'Сервер не відповідає (Gateway Timeout). Спробуйте ще раз.',
 };
@@ -121,7 +121,7 @@ export async function optimizeRoute(
     });
   } catch (err: unknown) {
     if (err instanceof DOMException && err.name === 'AbortError') throw err;
-    throw new Error('Network error: Unable to connect to the server. Ensure backend is running on http://localhost:5044.');
+    throw new Error('Помилка мережі: не вдалося зʼєднатися з сервером. Переконайтеся, що бекенд-сервіс працює.');
   }
 
   if (response.ok) {

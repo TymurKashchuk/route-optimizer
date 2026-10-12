@@ -3,6 +3,7 @@ import type { OptimizeRouteResponse } from '../types/route';
 import { RouteMetricsSummary } from './results/RouteMetricsSummary';
 import { TimelineView } from './results/TimelineView';
 import { RouteMapPreview } from './results/RouteMapPreview';
+import { ErrorBoundary } from './ErrorBoundary';
 import { formatTime } from '../utils/dateTime';
 
 interface ResultsSectionProps {
@@ -143,7 +144,12 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ result, isLoadin
           />
 
           {/* Interactive Map Preview with Google Maps navigation and copy action */}
-          <RouteMapPreview preview={result.routePreview} />
+          <ErrorBoundary
+            fallbackTitle="Не вдалося відобразити інтерактивну мапу"
+            fallbackMessage="Виникла помилка під час рендерингу карти Leaflet. Інші деталі маршруту та покроковий розклад доступні нижче."
+          >
+            <RouteMapPreview preview={result.routePreview} />
+          </ErrorBoundary>
 
           {/* Integrated Step-by-Step Itinerary */}
           <TimelineView
