@@ -1,5 +1,6 @@
 import type { OptimizeRouteRequest, OptimizeRouteResponse, RouteStop, TravelMode } from '../types/route';
 import { getTodayDateString } from '../utils/dateTime';
+import { deriveStopLabel } from '../utils/address';
 
 interface ValidationRule {
   condition: boolean;
@@ -18,7 +19,6 @@ function getStopValidationRule(stop: RouteStop, index: number): ValidationRule[]
   const isAddressInvalid = stop.address.trim().toLowerCase() === 'string';
 
   return [
-    { condition: !stop.label.trim(), message: `Зупинка #${num}: вкажіть назву.` },
     { condition: !stop.address.trim(), message: `Зупинка #${num}: вкажіть адресу.` },
     { condition: isAddressInvalid, message: `Зупинка #${num}: адреса має бути реальною назвою або вулицею.` },
     { condition: stop.serviceMinutes < 0 || stop.serviceMinutes > 480, message: `Зупинка #${num}: час має бути від 0 до 480 хв.` },
@@ -42,10 +42,8 @@ export function validateRouteRequest(request: OptimizeRouteRequest): string | nu
   const isPastDate = Boolean(datePart && datePart < todayStr);
 
   const globalRules: ValidationRule[] = [
-    { condition: !request.start?.label?.trim(), message: 'Вкажіть мітку точки старту.' },
     { condition: !request.start?.address?.trim(), message: 'Вкажіть адресу початку маршруту (Точка А).' },
     { condition: isStartString, message: 'Адреса старту має бути реальною вулицею або закладом.' },
-    { condition: !request.destination?.label?.trim(), message: 'Вкажіть мітку точки фінішу.' },
     { condition: !request.destination?.address?.trim(), message: 'Вкажіть адресу призначення (Точка B).' },
     { condition: isDestString, message: 'Адреса фінішу має бути реальною вулицею або закладом.' },
     {
@@ -122,6 +120,24 @@ export async function optimizeRoute(
     ...request,
     planningMode: request.planningMode || 'depart-at',
     travelMode: request.travelMode || 'driving',
+    start: {
+      ...request.start,
+      label: (request.start?.label && request.start.label.trim().length >= 3)
+        ? request.start.label.trim()
+        : deriveStopLabel(request.start?.address || '', 'Старт'),
+    },
+    destination: {
+      ...request.destination,
+      label: (request.destination?.label && request.destination.label.trim().length >= 3)
+        ? request.destination.label.trim()
+        : deriveStopLabel(request.destination?.address || '', 'Фініш'),
+    },
+    stops: (request.stops || []).map((s, idx) => ({
+      ...s,
+      label: (s.label && s.label.trim().length >= 3)
+        ? s.label.trim()
+        : deriveStopLabel(s.address, `Зупинка ${idx + 1}`),
+    })),
     departureTime: !isArriveBy && request.departureTime ? new Date(request.departureTime).toISOString() : undefined,
     arrivalBy: isArriveBy && request.arrivalBy ? new Date(request.arrivalBy).toISOString() : undefined,
   };

@@ -4,9 +4,7 @@ import { AddressAutocompleteInput } from './AddressAutocompleteInput';
 import { StopsSection } from './StopsSection';
 import { reverseGeocode } from '../api/geocodingClient';
 import { adjustTimeString, getCurrentRoundedTimeString, getTodayDateString, getTomorrowDateString } from '../utils/dateTime';
-
-const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
-const MINUTES = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'];
+import { deriveStopLabel } from '../utils/address';
 
 const POPULAR_CITIES = [
   'Житомир',
@@ -40,8 +38,6 @@ interface RouteFormSectionProps {
   onAddStop: () => void;
   onRemoveStop: (id: string) => void;
   onUpdateStop: (id: string, fields: Partial<RouteStop>) => void;
-  isDirectTrip: boolean;
-  onDirectTripChange: (isDirect: boolean) => void;
   searchScope: SearchScope;
   onSearchScopeChange: (scope: SearchScope) => void;
   selectedCity: string;
@@ -71,8 +67,6 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
   onAddStop,
   onRemoveStop,
   onUpdateStop,
-  isDirectTrip,
-  onDirectTripChange,
   searchScope,
   onSearchScopeChange,
   selectedCity,
@@ -103,10 +97,6 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
   const activeDateTime = isArriveBy ? arrivalBy : departureTime;
   const datePart = activeDateTime.split('T')[0] || getTodayDateString();
   const timePart = activeDateTime.split('T')[1] || (isArriveBy ? '14:00' : '09:00');
-  const [rawHour, rawMinute] = timePart.split(':');
-  const currentHour = rawHour || (isArriveBy ? '14' : '09');
-  const currentMinute = rawMinute || '00';
-  const minutesList = MINUTES.includes(currentMinute) ? MINUTES : [...MINUTES, currentMinute].sort();
 
   const todayStr = getTodayDateString();
   const tomorrowStr = getTomorrowDateString();
@@ -183,10 +173,6 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
     );
   };
 
-  const handleEnableStopsMode = () => {
-    onDirectTripChange(false);
-  };
-
   return (
     <section className="card trip-planner-card" aria-labelledby="trip-planner-title">
       <div className="trip-planner-header">
@@ -215,15 +201,15 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
             )}
           </div>
           <p className="section-subtitle">
-            {isDirectTrip
-              ? 'Пряма поїздка від точки старту до фінішу'
-              : `Поїздка із ${stops.length} ${stops.length === 1 ? 'проміжною зупинкою' : 'проміжними зупинками'}`}
+            {stops.length === 0
+              ? 'Прямий маршрут від точки старту до фінішу'
+              : `Маршрут із ${stops.length} ${stops.length === 1 ? 'проміжною зупинкою' : 'проміжними зупинками'}`}
           </p>
         </div>
 
-        {/* Header Actions: Reset Button & Mode Selector Tabs */}
-        <div className="trip-header-actions">
-          {onResetDraft && (
+        {/* Header Actions: Reset Button */}
+        {onResetDraft && (
+          <div className="trip-header-actions">
             <button
               type="button"
               className="btn-reset-draft"
@@ -247,149 +233,73 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
               </svg>
               <span>Скинути</span>
             </button>
-          )}
-
-          <div className="trip-mode-tabs" role="tablist" aria-label="Тип поїздки">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={isDirectTrip}
-              className={`trip-mode-tab ${isDirectTrip ? 'active' : ''}`}
-              onClick={() => onDirectTripChange(true)}
-              disabled={isLoading}
-            >
-              <span>Пряма (А → Б)</span>
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={!isDirectTrip}
-              className={`trip-mode-tab ${!isDirectTrip ? 'active' : ''}`}
-              onClick={() => onDirectTripChange(false)}
-              disabled={isLoading}
-            >
-              <span>Із зупинками</span>
-              {stops.length > 0 && <span className="tab-count-badge">{stops.length}</span>}
-            </button>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* SEARCH SCOPE SELECTOR */}
-      <div className="search-scope-panel">
-        <div className="search-scope-header">
-          <div className="search-scope-title-wrap">
-            <span className="search-scope-badge">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="2" y1="12" x2="22" y2="12" />
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-              </svg>
-              <span>Область пошуку</span>
-            </span>
-            <span className="search-scope-hint">
-              {searchScope === 'all-ukraine'
-                ? 'Пошук по всій Україні (міжміські маршрути)'
-                : `Пошук обмежено містом: ${selectedCity || 'не вказано'}`}
-            </span>
-          </div>
-
-          <div className="scope-pills-group" role="radiogroup" aria-label="Область пошуку адрес">
-            <button
-              type="button"
-              role="radio"
-              aria-checked={searchScope === 'all-ukraine'}
-              className={`scope-pill-btn ${searchScope === 'all-ukraine' ? 'active' : ''}`}
-              onClick={() => onSearchScopeChange('all-ukraine')}
-              disabled={isLoading}
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="2" x2="12" y2="22" />
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-              </svg>
-              <span>Вся Україна</span>
-            </button>
-            <button
-              type="button"
-              role="radio"
-              aria-checked={searchScope === 'city'}
-              className={`scope-pill-btn ${searchScope === 'city' ? 'active' : ''}`}
-              onClick={() => onSearchScopeChange('city')}
-              disabled={isLoading}
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
-                <line x1="9" y1="6" x2="9" y2="6.01" />
-                <line x1="15" y1="6" x2="15" y2="6.01" />
-                <line x1="9" y1="10" x2="9" y2="10.01" />
-                <line x1="15" y1="10" x2="15" y2="10.01" />
-                <line x1="9" y1="14" x2="9" y2="14.01" />
-                <line x1="15" y1="14" x2="15" y2="14.01" />
-                <path d="M10 22v-4h4v4" />
-              </svg>
-              <span>Вибране місто</span>
-            </button>
-          </div>
+      {/* SEARCH SCOPE BAR (COMPACT INLINE) */}
+      <div className="search-scope-bar">
+        <div className="scope-inline-selector">
+          <svg
+            className="scope-icon"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="2" y1="12" x2="22" y2="12" />
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+          </svg>
+          <label htmlFor="search-scope-select" className="scope-inline-label">
+            Область пошуку:
+          </label>
+          <select
+            id="search-scope-select"
+            className="scope-compact-select"
+            value={searchScope === 'all-ukraine' ? 'all-ukraine' : (POPULAR_CITIES.includes(selectedCity) ? selectedCity : '__custom__')}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === 'all-ukraine') {
+                onSearchScopeChange('all-ukraine');
+              } else if (val === '__custom__') {
+                onSearchScopeChange('city');
+                onSelectedCityChange('');
+              } else {
+                onSearchScopeChange('city');
+                onSelectedCityChange(val);
+              }
+            }}
+            disabled={isLoading}
+            aria-label="Область пошуку адрес"
+          >
+            <option value="all-ukraine">Вся Україна (міжміський)</option>
+            <optgroup label="Популярні міста">
+              {POPULAR_CITIES.map((c) => (
+                <option key={c} value={c}>
+                  м. {c}
+                </option>
+              ))}
+            </optgroup>
+            <option value="__custom__">Інше місто (ввести вручну)...</option>
+          </select>
         </div>
 
-        {searchScope === 'city' && (
-          <div className="city-scope-picker">
-            <div className="city-scope-controls">
-              <label htmlFor="city-select-dropdown" className="city-scope-label">
-                Місто для пошуку адрес:
-              </label>
-              <div className="city-inputs-row">
-                <select
-                  id="city-select-dropdown"
-                  className="form-select city-select-input"
-                  value={POPULAR_CITIES.includes(selectedCity) ? selectedCity : '__custom__'}
-                  onChange={(e) => {
-                    if (e.target.value === '__custom__') {
-                      onSelectedCityChange('');
-                    } else {
-                      onSelectedCityChange(e.target.value);
-                    }
-                  }}
-                  disabled={isLoading}
-                >
-                  {POPULAR_CITIES.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                  <option value="__custom__">Інше місто (ввести вручну)...</option>
-                </select>
-
-                {isCustomCity && (
-                  <input
-                    type="text"
-                    className="form-input form-input-sm city-text-input"
-                    placeholder="Введіть назву міста (наприклад: Бровари)"
-                    value={selectedCity}
-                    onChange={(e) => onSelectedCityChange(e.target.value)}
-                    disabled={isLoading}
-                    autoFocus
-                  />
-                )}
-              </div>
-            </div>
-
-            <div className="city-quick-pills">
-              <span className="city-quick-hint">Швидкий вибір:</span>
-              {['Житомир', 'Київ', 'Львів', 'Вінниця', 'Дніпро', 'Одеса'].map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  className={`city-pill-btn ${selectedCity === c ? 'active' : ''}`}
-                  onClick={() => onSelectedCityChange(c)}
-                  disabled={isLoading}
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
-          </div>
+        {searchScope === 'city' && isCustomCity && (
+          <input
+            type="text"
+            className="form-input form-input-sm city-inline-custom-input"
+            placeholder="Введіть назву міста (наприклад: Бровари)"
+            value={selectedCity}
+            onChange={(e) => onSelectedCityChange(e.target.value)}
+            disabled={isLoading}
+            autoFocus
+          />
         )}
       </div>
 
@@ -405,8 +315,8 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
               <label className="chain-label" htmlFor="start-address">
                 Звідки (Початок)
               </label>
-              {start.label && (
-                <span className="chain-active-tag">{start.label}</span>
+              {start.label === 'Моє місцезнаходження' && (
+                <span className="chain-active-tag">Моє місцезнаходження</span>
               )}
             </div>
 
@@ -425,7 +335,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
                   setLocationError(null);
                   onStartChange({
                     ...start,
-                    label: start.label || 'Старт',
+                    label: deriveStopLabel(newAddress, 'Старт'),
                     address: newAddress,
                     latitude: suggestion?.latitude,
                     longitude: suggestion?.longitude,
@@ -478,89 +388,22 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
               </button>
             </div>
             {locationError && <p className="form-error-sm">{locationError}</p>}
-
-            {/* Quick Preset Chips for Start */}
-            <div className="point-quick-chips">
-              <span className="chips-hint">Мітка:</span>
-              <button
-                type="button"
-                className={`chip-btn ${start.label === 'Дім' ? 'selected' : ''}`}
-                onClick={() => onStartChange({ ...start, label: 'Дім' })}
-                disabled={isLoading}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                  <polyline points="9 22 9 12 15 12 15 22" />
-                </svg>
-                <span>Дім</span>
-              </button>
-              <button
-                type="button"
-                className={`chip-btn ${start.label === 'Робота' ? 'selected' : ''}`}
-                onClick={() => onStartChange({ ...start, label: 'Робота' })}
-                disabled={isLoading}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
-                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-                </svg>
-                <span>Робота</span>
-              </button>
-              <button
-                type="button"
-                className={`chip-btn ${start.label === 'Моє місцезнаходження' ? 'selected' : ''}`}
-                onClick={() => onStartChange({ ...start, label: 'Моє місцезнаходження' })}
-                disabled={isLoading}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <circle cx="12" cy="12" r="10" />
-                  <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
-                </svg>
-                <span>Моє місце</span>
-              </button>
-            </div>
           </div>
         </div>
 
         {/* CONNECTOR & INTERMEDIATE STOPS */}
         <div className="chain-connector-segment">
           <div className="chain-connector-line" aria-hidden="true" />
-
-          {isDirectTrip ? (
-            <div className="direct-trip-shortcut">
-              <div className="direct-shortcut-info">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="16" x2="12" y2="12" />
-                  <line x1="12" y1="8" x2="12.01" y2="8" />
-                </svg>
-                <span className="direct-shortcut-text">Прямий шлях без зупинок</span>
-              </div>
-              <button
-                type="button"
-                className="btn-inline-add"
-                onClick={handleEnableStopsMode}
-                disabled={isLoading}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                <span>Додати зупинку по дорозі</span>
-              </button>
-            </div>
-          ) : (
-            <div className="stops-chain-wrapper">
-              <StopsSection
-                stops={stops}
-                isLoading={isLoading}
-                onAddStop={onAddStop}
-                onRemoveStop={onRemoveStop}
-                onUpdateStop={onUpdateStop}
-                city={activeCity}
-              />
-            </div>
-          )}
+          <div className="stops-chain-wrapper">
+            <StopsSection
+              stops={stops}
+              isLoading={isLoading}
+              onAddStop={onAddStop}
+              onRemoveStop={onRemoveStop}
+              onUpdateStop={onUpdateStop}
+              city={activeCity}
+            />
+          </div>
         </div>
 
         {/* DESTINATION POINT */}
@@ -573,9 +416,6 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
               <label className="chain-label" htmlFor="destination-address">
                 Куди (Призначення)
               </label>
-              {destination.label && (
-                <span className="chain-active-tag">{destination.label}</span>
-              )}
             </div>
 
             <AddressAutocompleteInput
@@ -591,7 +431,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
               onChange={(newAddress, suggestion) => {
                 onDestinationChange({
                   ...destination,
-                  label: destination.label || 'Фініш',
+                  label: deriveStopLabel(newAddress, 'Фініш'),
                   address: newAddress,
                   latitude: suggestion?.latitude,
                   longitude: suggestion?.longitude,
@@ -599,47 +439,6 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
               }}
               disabled={isLoading}
             />
-
-            {/* Quick Preset Chips for Destination */}
-            <div className="point-quick-chips">
-              <span className="chips-hint">Мітка:</span>
-              <button
-                type="button"
-                className={`chip-btn ${destination.label === 'Офіс' ? 'selected' : ''}`}
-                onClick={() => onDestinationChange({ ...destination, label: 'Офіс' })}
-                disabled={isLoading}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
-                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-                </svg>
-                <span>Офіс</span>
-              </button>
-              <button
-                type="button"
-                className={`chip-btn ${destination.label === 'Лікарня' ? 'selected' : ''}`}
-                onClick={() => onDestinationChange({ ...destination, label: 'Лікарня' })}
-                disabled={isLoading}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                </svg>
-                <span>Лікарня</span>
-              </button>
-              <button
-                type="button"
-                className={`chip-btn ${destination.label === 'ТРЦ' ? 'selected' : ''}`}
-                onClick={() => onDestinationChange({ ...destination, label: 'ТРЦ' })}
-                disabled={isLoading}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <circle cx="9" cy="21" r="1" />
-                  <circle cx="20" cy="21" r="1" />
-                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-                </svg>
-                <span>ТРЦ</span>
-              </button>
-            </div>
           </div>
         </div>
       </div>
@@ -783,7 +582,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
           </div>
 
           <div className="form-group">
-            <label className="form-label-sm" htmlFor="trip-time-hour">
+            <label className="form-label-sm" htmlFor="trip-time">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <circle cx="12" cy="12" r="10" />
                 <polyline points="12 6 12 12 16 14" />
@@ -792,37 +591,15 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
             </label>
             <div className="time-input-container">
               <div className="time-picker-controls">
-                <div className="time-select-pair">
-                  <select
-                    id="trip-time-hour"
-                    className="time-unit-select"
-                    value={currentHour}
-                    onChange={(e) => handleTimeChange(`${e.target.value}:${currentMinute}`)}
-                    disabled={isLoading}
-                    aria-label="Година"
-                  >
-                    {HOURS.map((h) => (
-                      <option key={h} value={h}>
-                        {h}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="time-colon" aria-hidden="true">:</span>
-                  <select
-                    id="trip-time-minute"
-                    className="time-unit-select"
-                    value={currentMinute}
-                    onChange={(e) => handleTimeChange(`${currentHour}:${e.target.value}`)}
-                    disabled={isLoading}
-                    aria-label="Хвилини"
-                  >
-                    {minutesList.map((m) => (
-                      <option key={m} value={m}>
-                        {m}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <input
+                  id="trip-time"
+                  type="time"
+                  className="form-input form-input-sm time-picker-input"
+                  value={timePart}
+                  onChange={(e) => handleTimeChange(e.target.value)}
+                  disabled={isLoading}
+                  required
+                />
 
                 <div className="time-stepper-btns">
                   <button
@@ -876,71 +653,64 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
           </div>
         </div>
 
-        {/* OPTIMIZATION PRIORITY (INTERACTIVE CARDS) */}
-        <div className="trip-optimization-section">
-          <label className="form-label-sm">
-            Пріоритет побудови маршруту
-          </label>
-
-          {isDirectTrip ? (
-            <div className="direct-priority-notice">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="16" x2="12" y2="12" />
-                <line x1="12" y1="8" x2="12.01" y2="8" />
-              </svg>
-              <span>Прямий маршрут: розраховується найкоротший шлях напряму від Старту до Фінішу.</span>
-            </div>
-          ) : (
-            <div className="algorithm-cards-grid" role="radiogroup" aria-label="Пріоритет побудови маршруту">
+        {/* OPTIMIZATION PRIORITY (COMPACT SEGMENTED CONTROL) */}
+        {stops.length >= 2 && (
+          <div className="trip-optimization-group">
+            <label className="form-label-sm">Порядок об'їзду зупинок</label>
+            <div className="algo-segmented-group" role="radiogroup" aria-label="Порядок об'їзду зупинок">
               <button
                 type="button"
                 role="radio"
                 aria-checked={algorithm === 'two-opt'}
-                className={`algo-card ${algorithm === 'two-opt' ? 'selected' : ''}`}
+                className={`algo-segment-btn ${algorithm === 'two-opt' ? 'active' : ''}`}
                 onClick={() => onAlgorithmChange('two-opt')}
                 disabled={isLoading}
+                title="2-Opt: розумна оптимізація послідовності для найшвидшого маршруту"
               >
-                <div className="algo-card-head">
-                  <span className="algo-radio-dot" />
-                  <span className="algo-name">Розумна оптимізація</span>
-                  <span className="algo-recommended-badge">Кращий</span>
-                </div>
-                <p className="algo-card-desc">2-Opt: переставляє зупинки для мінімального часу в дорозі</p>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+                <span>Оптимальний</span>
               </button>
 
               <button
                 type="button"
                 role="radio"
                 aria-checked={algorithm === 'nearest-neighbor'}
-                className={`algo-card ${algorithm === 'nearest-neighbor' ? 'selected' : ''}`}
+                className={`algo-segment-btn ${algorithm === 'nearest-neighbor' ? 'active' : ''}`}
                 onClick={() => onAlgorithmChange('nearest-neighbor')}
                 disabled={isLoading}
+                title="Послідовно прямує до кожної наступної найближчої точки"
               >
-                <div className="algo-card-head">
-                  <span className="algo-radio-dot" />
-                  <span className="algo-name">Найближчі точки</span>
-                </div>
-                <p className="algo-card-desc">Послідовно прямує до найближчого наступного пункту</p>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 14 14" />
+                </svg>
+                <span>Найближчі</span>
               </button>
 
               <button
                 type="button"
                 role="radio"
                 aria-checked={algorithm === 'original'}
-                className={`algo-card ${algorithm === 'original' ? 'selected' : ''}`}
+                className={`algo-segment-btn ${algorithm === 'original' ? 'active' : ''}`}
                 onClick={() => onAlgorithmChange('original')}
                 disabled={isLoading}
+                title="Зберігає вказаний вами порядок зупинок без автоматичної перестановки"
               >
-                <div className="algo-card-head">
-                  <span className="algo-radio-dot" />
-                  <span className="algo-name">Мій порядок</span>
-                </div>
-                <p className="algo-card-desc">Зберігає вказану вами послідовність зупинок без змін</p>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <line x1="8" y1="6" x2="21" y2="6" />
+                  <line x1="8" y1="12" x2="21" y2="12" />
+                  <line x1="8" y1="18" x2="21" y2="18" />
+                  <line x1="3" y1="6" x2="3.01" y2="6" />
+                  <line x1="3" y1="12" x2="3.01" y2="12" />
+                  <line x1="3" y1="18" x2="3.01" y2="18" />
+                </svg>
+                <span>Мій порядок</span>
               </button>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* ACTION BUTTON */}
@@ -967,7 +737,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
             </svg>
             <span>Розраховуємо найкращий маршрут...</span>
           </>
-        ) : isDirectTrip ? (
+        ) : stops.length === 0 ? (
           'Розрахувати прямий маршрут'
         ) : (
           'Оптимізувати та побудувати маршрут'
