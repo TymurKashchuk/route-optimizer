@@ -275,5 +275,58 @@ namespace RouteWise.Tests.Providers
 
             Assert.Contains("empty or invalid geometry", exception.Message);
         }
+
+        [Theory]
+        [InlineData("walking", "v2/matrix/foot-walking")]
+        [InlineData("cycling", "v2/matrix/cycling-regular")]
+        [InlineData("driving", "v2/matrix/driving-car")]
+        public async Task BuildMatrixAsync_WithTravelMode_CallsCorrespondingOrsEndpoint(string travelMode, string expectedEndpoint)
+        {
+            var validJson = """
+            {
+              "durations": [[0, 720, 1080], [660, 0, 600], [1020, 540, 0]],
+              "distances": [[0, 5200, 8400], [5000, 0, 4100], [8000, 4000, 0]]
+            }
+            """;
+
+            var (provider, handler) = CreateProvider(validJson);
+
+            await provider.BuildMatrixAsync(_demoLocations, travelMode);
+
+            Assert.NotNull(handler.LastRequest);
+            Assert.EndsWith(expectedEndpoint, handler.LastRequest!.RequestUri?.ToString());
+        }
+
+        [Theory]
+        [InlineData("walking", "v2/directions/foot-walking/geojson")]
+        [InlineData("cycling", "v2/directions/cycling-regular/geojson")]
+        [InlineData("driving", "v2/directions/driving-car/geojson")]
+        public async Task GetRouteGeometryAsync_WithTravelMode_CallsCorrespondingOrsEndpoint(string travelMode, string expectedEndpoint)
+        {
+            var validGeoJson = """
+            {
+              "type": "FeatureCollection",
+              "features": [
+                {
+                  "type": "Feature",
+                  "geometry": {
+                    "type": "LineString",
+                    "coordinates": [
+                      [28.65867, 50.25465],
+                      [28.67669, 50.26407]
+                    ]
+                  }
+                }
+              ]
+            }
+            """;
+
+            var (provider, handler) = CreateProvider(validGeoJson);
+
+            await provider.GetRouteGeometryAsync(_demoLocations.Take(2).ToList(), travelMode);
+
+            Assert.NotNull(handler.LastRequest);
+            Assert.EndsWith(expectedEndpoint, handler.LastRequest!.RequestUri?.ToString());
+        }
     }
 }

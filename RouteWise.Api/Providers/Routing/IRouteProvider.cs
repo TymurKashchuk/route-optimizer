@@ -8,8 +8,18 @@ namespace RouteWise.Api.Providers.Routing
             List<LocationPoint> locations,
             CancellationToken cancellationToken = default);
 
+        Task<RouteMatrix> BuildMatrixAsync(
+            List<LocationPoint> locations,
+            string travelMode,
+            CancellationToken cancellationToken = default);
+
         Task<RouteGeometry> GetRouteGeometryAsync(
             List<LocationPoint> orderedLocations,
+            CancellationToken cancellationToken = default);
+
+        Task<RouteGeometry> GetRouteGeometryAsync(
+            List<LocationPoint> orderedLocations,
+            string travelMode,
             CancellationToken cancellationToken = default);
     }
 }
