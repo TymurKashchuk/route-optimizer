@@ -76,6 +76,8 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
   onSelectedCityChange,
   planningMode,
   onPlanningModeChange,
+  travelMode = 'driving',
+  onTravelModeChange,
   departureTime,
   onDepartureTimeChange,
   arrivalBy,
@@ -637,6 +639,61 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
       {/* TRIP SCHEDULE & OPTIMIZATION SETTINGS */}
       <div className="trip-settings-panel">
         <h3 className="settings-panel-title">Час та деталі поїздки</h3>
+
+        {/* Travel Mode Selector (Driving, Walking, Cycling) */}
+        <div className="form-group">
+          <label className="form-label-sm">Спосіб пересування</label>
+          <div className="travel-mode-group" role="radiogroup" aria-label="Спосіб пересування">
+            <button
+              type="button"
+              className={`travel-mode-btn ${travelMode === 'driving' ? 'active' : ''}`}
+              onClick={() => onTravelModeChange?.('driving')}
+              disabled={isLoading}
+              role="radio"
+              aria-checked={travelMode === 'driving'}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C2.1 11.2 2 11.6 2 12v4c0 .6.4 1 1 1h2" />
+                <circle cx="7" cy="17" r="2" />
+                <path d="M9 17h6" />
+                <circle cx="17" cy="17" r="2" />
+              </svg>
+              <span>Авто</span>
+            </button>
+            <button
+              type="button"
+              className={`travel-mode-btn ${travelMode === 'walking' ? 'active' : ''}`}
+              onClick={() => onTravelModeChange?.('walking')}
+              disabled={isLoading}
+              role="radio"
+              aria-checked={travelMode === 'walking'}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M13 4a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z" />
+                <path d="m6.5 21.5 3.5-6.5 3 2.5v4" />
+                <path d="m6 11 3.5 1.5 3-3.5 3 2.5 3.5-1.5" />
+                <path d="m9.5 12.5 2 3.5" />
+              </svg>
+              <span>Пішки</span>
+            </button>
+            <button
+              type="button"
+              className={`travel-mode-btn ${travelMode === 'cycling' ? 'active' : ''}`}
+              onClick={() => onTravelModeChange?.('cycling')}
+              disabled={isLoading}
+              role="radio"
+              aria-checked={travelMode === 'cycling'}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="5.5" cy="17.5" r="3.5" />
+                <circle cx="18.5" cy="17.5" r="3.5" />
+                <path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5 2-6.5h3.5" />
+                <path d="M5.5 17.5 9 9l3.5 5.5H18" />
+              </svg>
+              <span>Велосипед</span>
+            </button>
+          </div>
+        </div>
 
         {/* Planning Mode Selector (Depart At vs Arrive By) */}
         <div className="form-group">
