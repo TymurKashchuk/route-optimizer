@@ -682,71 +682,68 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
           </div>
         </div>
 
-        {/* OPTIMIZATION PRIORITY (INTERACTIVE CARDS) */}
-        <div className="trip-optimization-section">
-          <label className="form-label-sm">
-            Пріоритет побудови маршруту
-          </label>
-
-          {stops.length === 0 ? (
-            <div className="direct-priority-notice">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="16" x2="12" y2="12" />
-                <line x1="12" y1="8" x2="12.01" y2="8" />
-              </svg>
-              <span>Прямий маршрут: розраховується найкоротший шлях напряму від Старту до Фінішу.</span>
+        {/* OPTIMIZATION PRIORITY (COMPACT SEGMENTED CONTROL) */}
+        {stops.length >= 2 && (
+          <div className="trip-optimization-group">
+            <div className="form-label-row">
+              <label className="form-label-sm">Порядок об'їзду зупинок</label>
+              <span className="form-label-hint">({stops.length} зупинки)</span>
             </div>
-          ) : (
-            <div className="algorithm-cards-grid" role="radiogroup" aria-label="Пріоритет побудови маршруту">
+            <div className="algo-segmented-group" role="radiogroup" aria-label="Порядок об'їзду зупинок">
               <button
                 type="button"
                 role="radio"
                 aria-checked={algorithm === 'two-opt'}
-                className={`algo-card ${algorithm === 'two-opt' ? 'selected' : ''}`}
+                className={`algo-segment-btn ${algorithm === 'two-opt' ? 'active' : ''}`}
                 onClick={() => onAlgorithmChange('two-opt')}
                 disabled={isLoading}
+                title="2-Opt: розумна оптимізація послідовності для найшвидшого маршруту"
               >
-                <div className="algo-card-head">
-                  <span className="algo-radio-dot" />
-                  <span className="algo-name">Розумна оптимізація</span>
-                  <span className="algo-recommended-badge">Кращий</span>
-                </div>
-                <p className="algo-card-desc">2-Opt: переставляє зупинки для мінімального часу в дорозі</p>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+                <span>Оптимальний</span>
+                <span className="algo-badge-recommended">Кращий</span>
               </button>
 
               <button
                 type="button"
                 role="radio"
                 aria-checked={algorithm === 'nearest-neighbor'}
-                className={`algo-card ${algorithm === 'nearest-neighbor' ? 'selected' : ''}`}
+                className={`algo-segment-btn ${algorithm === 'nearest-neighbor' ? 'active' : ''}`}
                 onClick={() => onAlgorithmChange('nearest-neighbor')}
                 disabled={isLoading}
+                title="Послідовно прямує до кожної наступної найближчої точки"
               >
-                <div className="algo-card-head">
-                  <span className="algo-radio-dot" />
-                  <span className="algo-name">Найближчі точки</span>
-                </div>
-                <p className="algo-card-desc">Послідовно прямує до найближчого наступного пункту</p>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 14 14" />
+                </svg>
+                <span>Найближчі</span>
               </button>
 
               <button
                 type="button"
                 role="radio"
                 aria-checked={algorithm === 'original'}
-                className={`algo-card ${algorithm === 'original' ? 'selected' : ''}`}
+                className={`algo-segment-btn ${algorithm === 'original' ? 'active' : ''}`}
                 onClick={() => onAlgorithmChange('original')}
                 disabled={isLoading}
+                title="Зберігає вказаний вами порядок зупинок без автоматичної перестановки"
               >
-                <div className="algo-card-head">
-                  <span className="algo-radio-dot" />
-                  <span className="algo-name">Мій порядок</span>
-                </div>
-                <p className="algo-card-desc">Зберігає вказану вами послідовність зупинок без змін</p>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <line x1="8" y1="6" x2="21" y2="6" />
+                  <line x1="8" y1="12" x2="21" y2="12" />
+                  <line x1="8" y1="18" x2="21" y2="18" />
+                  <line x1="3" y1="6" x2="3.01" y2="6" />
+                  <line x1="3" y1="12" x2="3.01" y2="12" />
+                  <line x1="3" y1="18" x2="3.01" y2="18" />
+                </svg>
+                <span>Мій порядок</span>
               </button>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* ACTION BUTTON */}
