@@ -52,14 +52,25 @@ const DEFAULT_STOPS: RouteStop[] = [
 // Load saved trip draft once on module evaluation
 const initialDraft = loadTripDraft();
 
+function sanitizeDraftDate(dateTimeStr?: string, defaultHour = '09:00'): string {
+  const todayStr = getTodayDateString();
+  if (!dateTimeStr) return `${todayStr}T${defaultHour}`;
+  const [date, time] = dateTimeStr.split('T');
+  const safeTime = time || defaultHour;
+  if (!date || date < todayStr) {
+    return `${todayStr}T${safeTime}`;
+  }
+  return `${date}T${safeTime}`;
+}
+
 export const App: React.FC = () => {
   // Form State
   const [start, setStart] = useState<AddressInput>(() => initialDraft?.start ?? DEFAULT_START);
   const [destination, setDestination] = useState<AddressInput>(() => initialDraft?.destination ?? DEFAULT_DESTINATION);
   const [planningMode, setPlanningMode] = useState<PlanningMode>(() => initialDraft?.planningMode ?? 'depart-at');
   const [travelMode, setTravelMode] = useState<TravelMode>(() => initialDraft?.travelMode ?? 'driving');
-  const [departureTime, setDepartureTime] = useState<string>(() => initialDraft?.departureTime ?? `${getTodayDateString()}T09:00`);
-  const [arrivalBy, setArrivalBy] = useState<string>(() => initialDraft?.arrivalBy ?? `${getTodayDateString()}T14:00`);
+  const [departureTime, setDepartureTime] = useState<string>(() => sanitizeDraftDate(initialDraft?.departureTime, '09:00'));
+  const [arrivalBy, setArrivalBy] = useState<string>(() => sanitizeDraftDate(initialDraft?.arrivalBy, '14:00'));
   const [algorithm, setAlgorithm] = useState<AlgorithmType>(() => initialDraft?.algorithm ?? 'two-opt');
   const [stops, setStops] = useState<RouteStop[]>(() => initialDraft?.stops ?? DEFAULT_STOPS);
   const [isDirectTrip, setIsDirectTrip] = useState<boolean>(() => initialDraft?.isDirectTrip ?? false);
@@ -69,12 +80,15 @@ export const App: React.FC = () => {
 
   const handlePlanningModeChange = (mode: PlanningMode) => {
     setPlanningMode(mode);
+    const todayStr = getTodayDateString();
     if (mode === 'arrive-by') {
-      const datePart = departureTime.split('T')[0] || getTodayDateString();
+      let datePart = departureTime.split('T')[0] || todayStr;
+      if (datePart < todayStr) datePart = todayStr;
       const timePart = arrivalBy.split('T')[1] || '14:00';
       setArrivalBy(`${datePart}T${timePart}`);
     } else {
-      const datePart = arrivalBy.split('T')[0] || getTodayDateString();
+      let datePart = arrivalBy.split('T')[0] || todayStr;
+      if (datePart < todayStr) datePart = todayStr;
       const timePart = departureTime.split('T')[1] || '09:00';
       setDepartureTime(`${datePart}T${timePart}`);
     }
