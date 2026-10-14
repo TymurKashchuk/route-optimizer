@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import type { RoutePreviewDto } from '../../types/route';
+import type { RoutePreviewDto, TravelMode } from '../../types/route';
 import { buildGoogleMapsDirectionsUrl, copyToClipboard } from '../../utils/googleMaps';
 
 interface RouteMapPreviewProps {
   preview?: RoutePreviewDto;
   isLoading?: boolean;
+  travelMode?: TravelMode;
 }
 
 const iconCache = new Map<string, L.DivIcon>();
@@ -57,7 +58,7 @@ const MapBoundsUpdater: React.FC<{ points: [number, number][] }> = ({ points }) 
   return null;
 };
 
-export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({ preview, isLoading }) => {
+export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({ preview, isLoading, travelMode = 'driving' }) => {
   const [copied, setCopied] = useState(false);
   const timeoutRef = useRef<number | null>(null);
 
@@ -128,7 +129,7 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({ preview, isLoa
   ];
 
   const totalPointsCount = preview.orderedStops.length + 1 + (preview.destinationPoint?.address ? 1 : 0);
-  const googleMapsUrl = buildGoogleMapsDirectionsUrl(preview);
+  const googleMapsUrl = buildGoogleMapsDirectionsUrl(preview, travelMode);
 
   const handleCopy = async () => {
     if (!googleMapsUrl) return;
