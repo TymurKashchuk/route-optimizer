@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { AddressInput, AlgorithmType, PlanningMode, RouteStop, SearchScope } from '../types/route';
+import type { AddressInput, AlgorithmType, PlanningMode, RouteStop, SearchScope, TravelMode } from '../types/route';
 import { AddressAutocompleteInput } from './AddressAutocompleteInput';
 import { StopsSection } from './StopsSection';
 import { reverseGeocode } from '../api/geocodingClient';
@@ -45,6 +45,8 @@ interface RouteFormSectionProps {
   onSelectedCityChange: (city: string) => void;
   planningMode: PlanningMode;
   onPlanningModeChange: (mode: PlanningMode) => void;
+  travelMode?: TravelMode;
+  onTravelModeChange?: (mode: TravelMode) => void;
   departureTime: string;
   onDepartureTimeChange: (time: string) => void;
   arrivalBy: string;

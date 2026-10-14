@@ -1,4 +1,4 @@
-import type { OptimizeRouteRequest, OptimizeRouteResponse, RouteStop } from '../types/route';
+import type { OptimizeRouteRequest, OptimizeRouteResponse, RouteStop, TravelMode } from '../types/route';
 
 interface ValidationRule {
   condition: boolean;
@@ -50,6 +50,10 @@ export function validateRouteRequest(request: OptimizeRouteRequest): string | nu
     },
     { condition: !request.stops, message: 'Список зупинок має бути заданий.' },
     { condition: !!request.stops && request.stops.length > 10, message: 'Максимум 10 зупинок для одного маршруту.' },
+    {
+      condition: Boolean(request.travelMode && !(['driving', 'walking', 'cycling'] as TravelMode[]).includes(request.travelMode)),
+      message: 'Некоректний спосіб пересування (доступні: авто, пішки, велосипед).',
+    },
   ];
 
   const failedGlobalRule = globalRules.find((rule) => rule.condition);
@@ -107,6 +111,7 @@ export async function optimizeRoute(
   const formattedRequest: OptimizeRouteRequest = {
     ...request,
     planningMode: request.planningMode || 'depart-at',
+    travelMode: request.travelMode || 'driving',
     departureTime: !isArriveBy && request.departureTime ? new Date(request.departureTime).toISOString() : undefined,
     arrivalBy: isArriveBy && request.arrivalBy ? new Date(request.arrivalBy).toISOString() : undefined,
   };

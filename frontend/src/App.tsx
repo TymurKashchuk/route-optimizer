@@ -4,7 +4,7 @@ import { Header } from './components/Header';
 import { RouteFormSection } from './components/RouteFormSection';
 import { ResultsSection } from './components/ResultsSection';
 import { Toast } from './components/Toast';
-import type { AddressInput, AlgorithmType, OptimizeRouteResponse, PlanningMode, RouteStop, SearchScope } from './types/route';
+import type { AddressInput, AlgorithmType, OptimizeRouteResponse, PlanningMode, RouteStop, SearchScope, TravelMode } from './types/route';
 import { optimizeRoute } from './api/routeClient';
 import { clearTripDraft, loadTripDraft, saveTripDraft } from './utils/draftStorage';
 import { getTodayDateString } from './utils/dateTime';
@@ -57,6 +57,7 @@ export const App: React.FC = () => {
   const [start, setStart] = useState<AddressInput>(() => initialDraft?.start ?? DEFAULT_START);
   const [destination, setDestination] = useState<AddressInput>(() => initialDraft?.destination ?? DEFAULT_DESTINATION);
   const [planningMode, setPlanningMode] = useState<PlanningMode>(() => initialDraft?.planningMode ?? 'depart-at');
+  const [travelMode, setTravelMode] = useState<TravelMode>(() => initialDraft?.travelMode ?? 'driving');
   const [departureTime, setDepartureTime] = useState<string>(() => initialDraft?.departureTime ?? `${getTodayDateString()}T09:00`);
   const [arrivalBy, setArrivalBy] = useState<string>(() => initialDraft?.arrivalBy ?? `${getTodayDateString()}T14:00`);
   const [algorithm, setAlgorithm] = useState<AlgorithmType>(() => initialDraft?.algorithm ?? 'two-opt');
@@ -137,6 +138,7 @@ export const App: React.FC = () => {
         stops,
         isDirectTrip,
         planningMode,
+        travelMode,
         departureTime,
         arrivalBy,
         algorithm,
@@ -153,6 +155,7 @@ export const App: React.FC = () => {
     stops,
     isDirectTrip,
     planningMode,
+    travelMode,
     departureTime,
     arrivalBy,
     algorithm,
@@ -167,6 +170,7 @@ export const App: React.FC = () => {
     setStops(DEFAULT_STOPS);
     setIsDirectTrip(false);
     setPlanningMode('depart-at');
+    setTravelMode('driving');
     setDepartureTime(`${getTodayDateString()}T09:00`);
     setArrivalBy(`${getTodayDateString()}T14:00`);
     setAlgorithm('two-opt');
@@ -193,6 +197,7 @@ export const App: React.FC = () => {
         {
           algorithm,
           planningMode,
+          travelMode,
           departureTime: planningMode === 'depart-at' ? departureTime : undefined,
           arrivalBy: planningMode === 'arrive-by' ? arrivalBy : undefined,
           start,
@@ -242,6 +247,8 @@ export const App: React.FC = () => {
               onSelectedCityChange={setSelectedCity}
               planningMode={planningMode}
               onPlanningModeChange={handlePlanningModeChange}
+              travelMode={travelMode}
+              onTravelModeChange={setTravelMode}
               departureTime={departureTime}
               onDepartureTimeChange={setDepartureTime}
               arrivalBy={arrivalBy}
