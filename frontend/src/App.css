@@ -367,177 +367,63 @@
 }
 
 
-/* Search Scope Panel */
-.search-scope-panel {
+/* Search Scope Bar (Compact Inline) */
+.search-scope-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.45rem 0.75rem;
   background-color: var(--bg-app);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  padding: 0.85rem 1rem;
   margin-top: 0.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  transition: all 0.2s ease;
+  margin-bottom: 0.25rem;
 }
 
-.search-scope-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.search-scope-title-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-}
-
-.search-scope-badge {
+.scope-inline-selector {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-main);
+  gap: 0.45rem;
+  color: var(--text-muted);
 }
 
-.search-scope-badge svg {
+.scope-icon {
   color: var(--primary);
+  flex-shrink: 0;
 }
 
-.search-scope-hint {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.scope-pills-group {
-  display: inline-flex;
-  background-color: var(--bg-card);
-  padding: 2px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
-  gap: 2px;
-}
-
-.scope-pill-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.35rem 0.75rem;
+.scope-inline-label {
   font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+}
+
+.scope-compact-select {
+  font-size: 0.825rem;
   font-weight: 500;
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
+  color: var(--text-main);
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
+  padding: 0.25rem 0.55rem;
   cursor: pointer;
-  transition: all 0.15s ease;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.scope-pill-btn:hover:not(:disabled) {
-  color: var(--text-main);
+.scope-compact-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
 }
 
-.scope-pill-btn.active {
-  background-color: var(--primary);
-  color: white;
-  font-weight: 600;
-  box-shadow: var(--shadow-sm);
-}
-
-.scope-pill-btn.active svg {
-  color: white;
-}
-
-/* City Scope Picker */
-.city-scope-picker {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  padding-top: 0.75rem;
-  border-top: 1px dashed var(--border-color);
-  animation: fadeInScope 0.2s ease-in-out;
-}
-
-@keyframes fadeInScope {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.city-scope-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.city-scope-label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-main);
-}
-
-.city-inputs-row {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.city-select-input {
-  max-width: 240px;
-  padding: 0.4rem 0.65rem;
-  font-size: 0.85rem;
-  cursor: pointer;
-}
-
-.city-text-input {
+.city-inline-custom-input {
   flex: 1;
-  min-width: 180px;
-}
-
-.city-quick-pills {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  flex-wrap: wrap;
-}
-
-.city-quick-hint {
-  font-size: 0.725rem;
-  color: var(--text-muted);
-  font-weight: 500;
-  margin-right: 0.15rem;
-}
-
-.city-pill-btn {
-  padding: 0.2rem 0.55rem;
-  font-size: 0.75rem;
-  background-color: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.city-pill-btn:hover:not(:disabled) {
-  border-color: var(--primary);
-  color: var(--primary);
-}
-
-.city-pill-btn.active {
-  background-color: var(--primary-light);
-  border-color: var(--primary);
-  color: var(--primary);
-  font-weight: 600;
+  min-width: 160px;
+  max-width: 260px;
+  height: 30px;
+  font-size: 0.825rem;
 }
 
 /* Route Chain Flow (Vertical Trail) */

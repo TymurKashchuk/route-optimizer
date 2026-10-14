@@ -244,121 +244,69 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
         )}
       </div>
 
-      {/* SEARCH SCOPE SELECTOR */}
-      <div className="search-scope-panel">
-        <div className="search-scope-header">
-          <div className="search-scope-title-wrap">
-            <span className="search-scope-badge">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="2" y1="12" x2="22" y2="12" />
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-              </svg>
-              <span>Область пошуку</span>
-            </span>
-            <span className="search-scope-hint">
-              {searchScope === 'all-ukraine'
-                ? 'Пошук по всій Україні (міжміські маршрути)'
-                : `Пошук обмежено містом: ${selectedCity || 'не вказано'}`}
-            </span>
-          </div>
-
-          <div className="scope-pills-group" role="radiogroup" aria-label="Область пошуку адрес">
-            <button
-              type="button"
-              role="radio"
-              aria-checked={searchScope === 'all-ukraine'}
-              className={`scope-pill-btn ${searchScope === 'all-ukraine' ? 'active' : ''}`}
-              onClick={() => onSearchScopeChange('all-ukraine')}
-              disabled={isLoading}
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="2" x2="12" y2="22" />
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-              </svg>
-              <span>Вся Україна</span>
-            </button>
-            <button
-              type="button"
-              role="radio"
-              aria-checked={searchScope === 'city'}
-              className={`scope-pill-btn ${searchScope === 'city' ? 'active' : ''}`}
-              onClick={() => onSearchScopeChange('city')}
-              disabled={isLoading}
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
-                <line x1="9" y1="6" x2="9" y2="6.01" />
-                <line x1="15" y1="6" x2="15" y2="6.01" />
-                <line x1="9" y1="10" x2="9" y2="10.01" />
-                <line x1="15" y1="10" x2="15" y2="10.01" />
-                <line x1="9" y1="14" x2="9" y2="14.01" />
-                <line x1="15" y1="14" x2="15" y2="14.01" />
-                <path d="M10 22v-4h4v4" />
-              </svg>
-              <span>Вибране місто</span>
-            </button>
-          </div>
+      {/* SEARCH SCOPE BAR (COMPACT INLINE) */}
+      <div className="search-scope-bar">
+        <div className="scope-inline-selector">
+          <svg
+            className="scope-icon"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="2" y1="12" x2="22" y2="12" />
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+          </svg>
+          <label htmlFor="search-scope-select" className="scope-inline-label">
+            Область пошуку:
+          </label>
+          <select
+            id="search-scope-select"
+            className="scope-compact-select"
+            value={searchScope === 'all-ukraine' ? 'all-ukraine' : (POPULAR_CITIES.includes(selectedCity) ? selectedCity : '__custom__')}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === 'all-ukraine') {
+                onSearchScopeChange('all-ukraine');
+              } else if (val === '__custom__') {
+                onSearchScopeChange('city');
+                onSelectedCityChange('');
+              } else {
+                onSearchScopeChange('city');
+                onSelectedCityChange(val);
+              }
+            }}
+            disabled={isLoading}
+            aria-label="Область пошуку адрес"
+          >
+            <option value="all-ukraine">Вся Україна (міжміський)</option>
+            <optgroup label="Популярні міста">
+              {POPULAR_CITIES.map((c) => (
+                <option key={c} value={c}>
+                  м. {c}
+                </option>
+              ))}
+            </optgroup>
+            <option value="__custom__">Інше місто (ввести вручну)...</option>
+          </select>
         </div>
 
-        {searchScope === 'city' && (
-          <div className="city-scope-picker">
-            <div className="city-scope-controls">
-              <label htmlFor="city-select-dropdown" className="city-scope-label">
-                Місто для пошуку адрес:
-              </label>
-              <div className="city-inputs-row">
-                <select
-                  id="city-select-dropdown"
-                  className="form-select city-select-input"
-                  value={POPULAR_CITIES.includes(selectedCity) ? selectedCity : '__custom__'}
-                  onChange={(e) => {
-                    if (e.target.value === '__custom__') {
-                      onSelectedCityChange('');
-                    } else {
-                      onSelectedCityChange(e.target.value);
-                    }
-                  }}
-                  disabled={isLoading}
-                >
-                  {POPULAR_CITIES.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                  <option value="__custom__">Інше місто (ввести вручну)...</option>
-                </select>
-
-                {isCustomCity && (
-                  <input
-                    type="text"
-                    className="form-input form-input-sm city-text-input"
-                    placeholder="Введіть назву міста (наприклад: Бровари)"
-                    value={selectedCity}
-                    onChange={(e) => onSelectedCityChange(e.target.value)}
-                    disabled={isLoading}
-                    autoFocus
-                  />
-                )}
-              </div>
-            </div>
-
-            <div className="city-quick-pills">
-              <span className="city-quick-hint">Швидкий вибір:</span>
-              {['Житомир', 'Київ', 'Львів', 'Вінниця', 'Дніпро', 'Одеса'].map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  className={`city-pill-btn ${selectedCity === c ? 'active' : ''}`}
-                  onClick={() => onSelectedCityChange(c)}
-                  disabled={isLoading}
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
-          </div>
+        {searchScope === 'city' && isCustomCity && (
+          <input
+            type="text"
+            className="form-input form-input-sm city-inline-custom-input"
+            placeholder="Введіть назву міста (наприклад: Бровари)"
+            value={selectedCity}
+            onChange={(e) => onSelectedCityChange(e.target.value)}
+            disabled={isLoading}
+            autoFocus
+          />
         )}
       </div>
 
