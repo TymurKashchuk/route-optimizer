@@ -8,6 +8,7 @@ import type { AddressInput, AlgorithmType, OptimizeRouteResponse, PlanningMode, 
 import { optimizeRoute } from './api/routeClient';
 import { clearTripDraft, loadTripDraft, saveTripDraft } from './utils/draftStorage';
 import { getTodayDateString } from './utils/dateTime';
+import { deriveStopLabel } from './utils/address';
 
 function generateId(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -17,37 +18,16 @@ function generateId(): string {
 }
 
 const DEFAULT_START: AddressInput = {
-  label: 'Дім',
-  address: 'майдан Соборний, Житомир',
-  latitude: 50.255318,
-  longitude: 28.659181,
+  label: 'Старт',
+  address: '',
 };
 
 const DEFAULT_DESTINATION: AddressInput = {
-  label: 'Офіс',
-  address: 'вулиця Київська, Житомир',
-  latitude: 50.255577,
-  longitude: 28.659561,
+  label: 'Фініш',
+  address: '',
 };
 
-const DEFAULT_STOPS: RouteStop[] = [
-  {
-    id: 'stop-1',
-    label: 'Аптека',
-    address: 'майдан Перемоги, Житомир',
-    serviceMinutes: 15,
-    latitude: 50.257481,
-    longitude: 28.659194,
-  },
-  {
-    id: 'stop-2',
-    label: 'Супермаркет',
-    address: 'вулиця Покровська, Житомир',
-    serviceMinutes: 20,
-    latitude: 50.26425,
-    longitude: 28.66683,
-  },
-];
+const DEFAULT_STOPS: RouteStop[] = [];
 
 // Load saved trip draft once on module evaluation
 const initialDraft = loadTripDraft();
@@ -73,7 +53,7 @@ export const App: React.FC = () => {
   const [arrivalBy, setArrivalBy] = useState<string>(() => sanitizeDraftDate(initialDraft?.arrivalBy, '14:00'));
   const [algorithm, setAlgorithm] = useState<AlgorithmType>(() => initialDraft?.algorithm ?? 'two-opt');
   const [stops, setStops] = useState<RouteStop[]>(() => initialDraft?.stops ?? DEFAULT_STOPS);
-  const [isDirectTrip, setIsDirectTrip] = useState<boolean>(() => initialDraft?.isDirectTrip ?? false);
+  const isDirectTrip = stops.length === 0;
   const [searchScope, setSearchScope] = useState<SearchScope>(() => initialDraft?.searchScope ?? 'all-ukraine');
   const [selectedCity, setSelectedCity] = useState<string>(() => initialDraft?.selectedCity ?? 'Житомир');
   const [isDraftSaved, setIsDraftSaved] = useState<boolean>(Boolean(initialDraft));
@@ -94,20 +74,6 @@ export const App: React.FC = () => {
     }
   };
 
-  const handleDirectTripChange = (isDirect: boolean) => {
-    setIsDirectTrip(isDirect);
-    if (!isDirect && stops.length === 0) {
-      setStops([
-        {
-          id: `stop-${generateId()}`,
-          label: 'Зупинка 1',
-          address: '',
-          serviceMinutes: 15,
-        },
-      ]);
-    }
-  };
-
   // Request & Execution State
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -116,25 +82,18 @@ export const App: React.FC = () => {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const handleAddStop = () => {
-    if (isDirectTrip) {
-      setIsDirectTrip(false);
-    }
     if (stops.length >= 10) return;
     const newStop: RouteStop = {
       id: `stop-${generateId()}`,
       label: `Зупинка ${stops.length + 1}`,
       address: '',
-      serviceMinutes: 10,
+      serviceMinutes: 15,
     };
     setStops((prev) => [...prev, newStop]);
   };
 
   const handleRemoveStop = (id: string) => {
-    const updated = stops.filter((s) => s.id !== id);
-    setStops(updated);
-    if (updated.length === 0) {
-      setIsDirectTrip(true);
-    }
+    setStops((prev) => prev.filter((s) => s.id !== id));
   };
 
   const handleUpdateStop = (id: string, fields: Partial<RouteStop>) => {
@@ -182,7 +141,6 @@ export const App: React.FC = () => {
     setStart(DEFAULT_START);
     setDestination(DEFAULT_DESTINATION);
     setStops(DEFAULT_STOPS);
-    setIsDirectTrip(false);
     setPlanningMode('depart-at');
     setTravelMode('driving');
     setDepartureTime(`${getTodayDateString()}T09:00`);
@@ -214,9 +172,18 @@ export const App: React.FC = () => {
           travelMode,
           departureTime: planningMode === 'depart-at' ? departureTime : undefined,
           arrivalBy: planningMode === 'arrive-by' ? arrivalBy : undefined,
-          start,
-          destination,
-          stops: isDirectTrip ? [] : stops,
+          start: {
+            ...start,
+            label: start.label?.trim() || deriveStopLabel(start.address, 'Старт'),
+          },
+          destination: {
+            ...destination,
+            label: destination.label?.trim() || deriveStopLabel(destination.address, 'Фініш'),
+          },
+          stops: stops.map((s, idx) => ({
+            ...s,
+            label: s.label?.trim() || deriveStopLabel(s.address, `Зупинка ${idx + 1}`),
+          })),
         },
         controller.signal
       );
@@ -253,8 +220,6 @@ export const App: React.FC = () => {
               onAddStop={handleAddStop}
               onRemoveStop={handleRemoveStop}
               onUpdateStop={handleUpdateStop}
-              isDirectTrip={isDirectTrip}
-              onDirectTripChange={handleDirectTripChange}
               searchScope={searchScope}
               onSearchScopeChange={setSearchScope}
               selectedCity={selectedCity}

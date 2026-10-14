@@ -1,6 +1,7 @@
 import React from 'react';
 import type { RouteStop } from '../types/route';
 import { AddressAutocompleteInput } from './AddressAutocompleteInput';
+import { deriveStopLabel } from '../utils/address';
 
 interface StopsSectionProps {
   stops: RouteStop[];
@@ -57,7 +58,7 @@ export const StopsSection: React.FC<StopsSectionProps> = ({
                       stop.label.startsWith('Зупинка') ||
                       stop.label.startsWith('Stop');
                     const cleanLabel = isDefaultLabel
-                      ? newAddress.split(',')[0]?.trim() || `Зупинка ${index + 1}`
+                      ? deriveStopLabel(newAddress, `Зупинка ${index + 1}`)
                       : stop.label;
                     onUpdateStop(stop.id, {
                       address: newAddress,
@@ -165,8 +166,8 @@ export const StopsSection: React.FC<StopsSectionProps> = ({
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
-          <span>{stops.length === 0 ? 'Додати першу зупинку' : 'Додати зупинку'}</span>
-          <span className="stops-count-hint">({stops.length}/10)</span>
+          <span>{stops.length === 0 ? 'Додати зупинку по дорозі' : 'Додати ще зупинку'}</span>
+          {stops.length > 0 && <span className="stops-count-hint">({stops.length}/10)</span>}
         </button>
       </div>
     </div>

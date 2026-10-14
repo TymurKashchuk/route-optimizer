@@ -366,54 +366,6 @@
   border-bottom: 1px solid var(--border-color);
 }
 
-.trip-mode-tabs {
-  display: inline-flex;
-  background-color: var(--bg-app);
-  padding: 3px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
-  gap: 3px;
-}
-
-.trip-mode-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.4rem 0.85rem;
-  font-size: 0.825rem;
-  font-weight: 500;
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.trip-mode-tab:hover:not(:disabled) {
-  color: var(--text-main);
-}
-
-.trip-mode-tab.active {
-  background-color: var(--bg-card);
-  color: var(--primary);
-  font-weight: 600;
-  box-shadow: var(--shadow-sm);
-}
-
-.tab-count-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 4px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  background-color: var(--primary-light);
-  color: var(--primary);
-  border-radius: 9999px;
-}
 
 /* Search Scope Panel */
 .search-scope-panel {
@@ -675,47 +627,6 @@
   border: 1px solid #bfdbfe;
 }
 
-.point-quick-chips {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  flex-wrap: wrap;
-  margin-top: 0.15rem;
-}
-
-.chips-hint {
-  font-size: 0.7rem;
-  color: var(--text-light);
-  font-weight: 500;
-}
-
-.chip-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.2rem 0.55rem;
-  font-size: 0.725rem;
-  font-weight: 500;
-  color: var(--text-muted);
-  background-color: var(--bg-app);
-  border: 1px solid var(--border-color);
-  border-radius: 9999px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.chip-btn:hover:not(:disabled) {
-  color: var(--text-main);
-  border-color: var(--border-hover);
-  background-color: #f1f5f9;
-}
-
-.chip-btn.selected {
-  color: var(--primary);
-  border-color: var(--primary);
-  background-color: var(--primary-light);
-  font-weight: 600;
-}
 
 .input-with-action {
   display: flex;
@@ -769,48 +680,6 @@
   pointer-events: none;
 }
 
-/* Direct Trip Shortcut banner inside chain */
-.direct-trip-shortcut {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.65rem 0.85rem;
-  background-color: var(--bg-app);
-  border: 1px dashed #bfdbfe;
-  border-radius: var(--radius-md);
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.direct-shortcut-info {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: var(--text-muted);
-}
-
-.direct-shortcut-text {
-  font-size: 0.825rem;
-}
-
-.btn-inline-add {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--primary);
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.2rem 0.5rem;
-  border-radius: var(--radius-sm);
-  transition: background-color 0.15s ease;
-}
-
-.btn-inline-add:hover {
-  background-color: var(--primary-light);
-}
 
 /* Compact Stops Chain */
 .stops-chain-container {

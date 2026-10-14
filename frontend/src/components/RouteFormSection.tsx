@@ -4,6 +4,7 @@ import { AddressAutocompleteInput } from './AddressAutocompleteInput';
 import { StopsSection } from './StopsSection';
 import { reverseGeocode } from '../api/geocodingClient';
 import { adjustTimeString, getCurrentRoundedTimeString, getTodayDateString, getTomorrowDateString } from '../utils/dateTime';
+import { deriveStopLabel } from '../utils/address';
 
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
 const MINUTES = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'];
@@ -40,8 +41,6 @@ interface RouteFormSectionProps {
   onAddStop: () => void;
   onRemoveStop: (id: string) => void;
   onUpdateStop: (id: string, fields: Partial<RouteStop>) => void;
-  isDirectTrip: boolean;
-  onDirectTripChange: (isDirect: boolean) => void;
   searchScope: SearchScope;
   onSearchScopeChange: (scope: SearchScope) => void;
   selectedCity: string;
@@ -71,8 +70,6 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
   onAddStop,
   onRemoveStop,
   onUpdateStop,
-  isDirectTrip,
-  onDirectTripChange,
   searchScope,
   onSearchScopeChange,
   selectedCity,
@@ -183,10 +180,6 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
     );
   };
 
-  const handleEnableStopsMode = () => {
-    onDirectTripChange(false);
-  };
-
   return (
     <section className="card trip-planner-card" aria-labelledby="trip-planner-title">
       <div className="trip-planner-header">
@@ -215,15 +208,15 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
             )}
           </div>
           <p className="section-subtitle">
-            {isDirectTrip
-              ? 'Пряма поїздка від точки старту до фінішу'
-              : `Поїздка із ${stops.length} ${stops.length === 1 ? 'проміжною зупинкою' : 'проміжними зупинками'}`}
+            {stops.length === 0
+              ? 'Прямий маршрут від точки старту до фінішу'
+              : `Маршрут із ${stops.length} ${stops.length === 1 ? 'проміжною зупинкою' : 'проміжними зупинками'}`}
           </p>
         </div>
 
-        {/* Header Actions: Reset Button & Mode Selector Tabs */}
-        <div className="trip-header-actions">
-          {onResetDraft && (
+        {/* Header Actions: Reset Button */}
+        {onResetDraft && (
+          <div className="trip-header-actions">
             <button
               type="button"
               className="btn-reset-draft"
@@ -247,32 +240,8 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
               </svg>
               <span>Скинути</span>
             </button>
-          )}
-
-          <div className="trip-mode-tabs" role="tablist" aria-label="Тип поїздки">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={isDirectTrip}
-              className={`trip-mode-tab ${isDirectTrip ? 'active' : ''}`}
-              onClick={() => onDirectTripChange(true)}
-              disabled={isLoading}
-            >
-              <span>Пряма (А → Б)</span>
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={!isDirectTrip}
-              className={`trip-mode-tab ${!isDirectTrip ? 'active' : ''}`}
-              onClick={() => onDirectTripChange(false)}
-              disabled={isLoading}
-            >
-              <span>Із зупинками</span>
-              {stops.length > 0 && <span className="tab-count-badge">{stops.length}</span>}
-            </button>
           </div>
-        </div>
+        )}
       </div>
 
       {/* SEARCH SCOPE SELECTOR */}
@@ -405,8 +374,8 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
               <label className="chain-label" htmlFor="start-address">
                 Звідки (Початок)
               </label>
-              {start.label && (
-                <span className="chain-active-tag">{start.label}</span>
+              {start.label === 'Моє місцезнаходження' && (
+                <span className="chain-active-tag">Моє місцезнаходження</span>
               )}
             </div>
 
@@ -425,7 +394,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
                   setLocationError(null);
                   onStartChange({
                     ...start,
-                    label: start.label || 'Старт',
+                    label: deriveStopLabel(newAddress, 'Старт'),
                     address: newAddress,
                     latitude: suggestion?.latitude,
                     longitude: suggestion?.longitude,
@@ -478,89 +447,22 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
               </button>
             </div>
             {locationError && <p className="form-error-sm">{locationError}</p>}
-
-            {/* Quick Preset Chips for Start */}
-            <div className="point-quick-chips">
-              <span className="chips-hint">Мітка:</span>
-              <button
-                type="button"
-                className={`chip-btn ${start.label === 'Дім' ? 'selected' : ''}`}
-                onClick={() => onStartChange({ ...start, label: 'Дім' })}
-                disabled={isLoading}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                  <polyline points="9 22 9 12 15 12 15 22" />
-                </svg>
-                <span>Дім</span>
-              </button>
-              <button
-                type="button"
-                className={`chip-btn ${start.label === 'Робота' ? 'selected' : ''}`}
-                onClick={() => onStartChange({ ...start, label: 'Робота' })}
-                disabled={isLoading}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
-                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-                </svg>
-                <span>Робота</span>
-              </button>
-              <button
-                type="button"
-                className={`chip-btn ${start.label === 'Моє місцезнаходження' ? 'selected' : ''}`}
-                onClick={() => onStartChange({ ...start, label: 'Моє місцезнаходження' })}
-                disabled={isLoading}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <circle cx="12" cy="12" r="10" />
-                  <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
-                </svg>
-                <span>Моє місце</span>
-              </button>
-            </div>
           </div>
         </div>
 
         {/* CONNECTOR & INTERMEDIATE STOPS */}
         <div className="chain-connector-segment">
           <div className="chain-connector-line" aria-hidden="true" />
-
-          {isDirectTrip ? (
-            <div className="direct-trip-shortcut">
-              <div className="direct-shortcut-info">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="16" x2="12" y2="12" />
-                  <line x1="12" y1="8" x2="12.01" y2="8" />
-                </svg>
-                <span className="direct-shortcut-text">Прямий шлях без зупинок</span>
-              </div>
-              <button
-                type="button"
-                className="btn-inline-add"
-                onClick={handleEnableStopsMode}
-                disabled={isLoading}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                <span>Додати зупинку по дорозі</span>
-              </button>
-            </div>
-          ) : (
-            <div className="stops-chain-wrapper">
-              <StopsSection
-                stops={stops}
-                isLoading={isLoading}
-                onAddStop={onAddStop}
-                onRemoveStop={onRemoveStop}
-                onUpdateStop={onUpdateStop}
-                city={activeCity}
-              />
-            </div>
-          )}
+          <div className="stops-chain-wrapper">
+            <StopsSection
+              stops={stops}
+              isLoading={isLoading}
+              onAddStop={onAddStop}
+              onRemoveStop={onRemoveStop}
+              onUpdateStop={onUpdateStop}
+              city={activeCity}
+            />
+          </div>
         </div>
 
         {/* DESTINATION POINT */}
@@ -573,9 +475,6 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
               <label className="chain-label" htmlFor="destination-address">
                 Куди (Призначення)
               </label>
-              {destination.label && (
-                <span className="chain-active-tag">{destination.label}</span>
-              )}
             </div>
 
             <AddressAutocompleteInput
@@ -591,7 +490,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
               onChange={(newAddress, suggestion) => {
                 onDestinationChange({
                   ...destination,
-                  label: destination.label || 'Фініш',
+                  label: deriveStopLabel(newAddress, 'Фініш'),
                   address: newAddress,
                   latitude: suggestion?.latitude,
                   longitude: suggestion?.longitude,
@@ -599,47 +498,6 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
               }}
               disabled={isLoading}
             />
-
-            {/* Quick Preset Chips for Destination */}
-            <div className="point-quick-chips">
-              <span className="chips-hint">Мітка:</span>
-              <button
-                type="button"
-                className={`chip-btn ${destination.label === 'Офіс' ? 'selected' : ''}`}
-                onClick={() => onDestinationChange({ ...destination, label: 'Офіс' })}
-                disabled={isLoading}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
-                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-                </svg>
-                <span>Офіс</span>
-              </button>
-              <button
-                type="button"
-                className={`chip-btn ${destination.label === 'Лікарня' ? 'selected' : ''}`}
-                onClick={() => onDestinationChange({ ...destination, label: 'Лікарня' })}
-                disabled={isLoading}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                </svg>
-                <span>Лікарня</span>
-              </button>
-              <button
-                type="button"
-                className={`chip-btn ${destination.label === 'ТРЦ' ? 'selected' : ''}`}
-                onClick={() => onDestinationChange({ ...destination, label: 'ТРЦ' })}
-                disabled={isLoading}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <circle cx="9" cy="21" r="1" />
-                  <circle cx="20" cy="21" r="1" />
-                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-                </svg>
-                <span>ТРЦ</span>
-              </button>
-            </div>
           </div>
         </div>
       </div>
@@ -882,7 +740,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
             Пріоритет побудови маршруту
           </label>
 
-          {isDirectTrip ? (
+          {stops.length === 0 ? (
             <div className="direct-priority-notice">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <circle cx="12" cy="12" r="10" />
@@ -967,7 +825,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
             </svg>
             <span>Розраховуємо найкращий маршрут...</span>
           </>
-        ) : isDirectTrip ? (
+        ) : stops.length === 0 ? (
           'Розрахувати прямий маршрут'
         ) : (
           'Оптимізувати та побудувати маршрут'
