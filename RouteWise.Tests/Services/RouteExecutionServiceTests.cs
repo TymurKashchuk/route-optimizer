@@ -473,5 +473,50 @@ namespace RouteWise.Tests.Services
             Assert.Empty(result.RoutePreview.OrderedStops);
             Assert.NotEmpty(result.RoutePreview.GeometryCoordinates);
         }
+
+        [Fact]
+        public async Task ExecuteAsync_WithDifferentTravelModes_CalculatesDifferentDurations()
+        {
+            var staticRouteProvider = new StaticRouteProvider();
+            var service = new RouteExecutionService(
+                new RouteMatrixService(new StaticGeocodingProvider(), staticRouteProvider),
+                new IRouteOptimizer[] { new TwoOptOptimizer(), new OriginalOrderOptimizer() },
+                new MetricsService(),
+                new TimelineService(),
+                new RouteComparisonService(),
+                new RouteExplanationService(),
+                new RoutePreviewService(staticRouteProvider));
+
+            var departureTime = new DateTime(2026, 10, 6, 9, 0, 0, DateTimeKind.Utc);
+            var baseRequest = new OptimizeRouteRequest
+            {
+                Algorithm = "original",
+                PlanningMode = "depart-at",
+                DepartureTime = departureTime,
+                Start = new AddressInput { Label = "Start", Address = "Zhytomyr Central Square" },
+                Destination = new AddressInput { Label = "End", Address = "Zhytomyr City Hospital" },
+                Stops = new List<RouteStop>
+                {
+                    new RouteStop { Id = "1", Label = "Stop 1", Address = "Zhytomyr Railway Station", ServiceMinutes = 0 }
+                }
+            };
+
+            baseRequest.TravelMode = "driving";
+            var drivingResult = await service.ExecuteAsync(baseRequest);
+
+            baseRequest.TravelMode = "walking";
+            var walkingResult = await service.ExecuteAsync(baseRequest);
+
+            baseRequest.TravelMode = "cycling";
+            var cyclingResult = await service.ExecuteAsync(baseRequest);
+
+            Assert.Equal("driving", drivingResult.TravelMode);
+            Assert.Equal("walking", walkingResult.TravelMode);
+            Assert.Equal("cycling", cyclingResult.TravelMode);
+
+            // Walking should take longer than cycling, and cycling longer than driving
+            Assert.True(walkingResult.Optimized.TotalTravelMinutes > cyclingResult.Optimized.TotalTravelMinutes);
+            Assert.True(cyclingResult.Optimized.TotalTravelMinutes > drivingResult.Optimized.TotalTravelMinutes);
+        }
     }
 }

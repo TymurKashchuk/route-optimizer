@@ -94,7 +94,7 @@ namespace RouteWise.Api.Services
             string travelMode,
             CancellationToken cancellationToken = default)
         {
-            var matrixResult = await _routeMatrixService.BuildMatrixAsync(start, stops, destination, cancellationToken);
+            var matrixResult = await _routeMatrixService.BuildMatrixAsync(start, stops, destination, travelMode, cancellationToken);
 
             var originalOptimizer = _optimizers.First(o =>
                 o.AlgorithmName.Equals("original", StringComparison.OrdinalIgnoreCase));
@@ -166,6 +166,7 @@ namespace RouteWise.Api.Services
                 optimizedResult.OrderedStopIndices,
                 matrixResult.Locations,
                 destination,
+                travelMode,
                 cancellationToken);
 
             return new OptimizeRouteResponse
