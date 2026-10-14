@@ -122,15 +122,21 @@ export async function optimizeRoute(
     travelMode: request.travelMode || 'driving',
     start: {
       ...request.start,
-      label: request.start?.label?.trim() || deriveStopLabel(request.start?.address || '', 'Старт'),
+      label: (request.start?.label && request.start.label.trim().length >= 3)
+        ? request.start.label.trim()
+        : deriveStopLabel(request.start?.address || '', 'Старт'),
     },
     destination: {
       ...request.destination,
-      label: request.destination?.label?.trim() || deriveStopLabel(request.destination?.address || '', 'Фініш'),
+      label: (request.destination?.label && request.destination.label.trim().length >= 3)
+        ? request.destination.label.trim()
+        : deriveStopLabel(request.destination?.address || '', 'Фініш'),
     },
     stops: (request.stops || []).map((s, idx) => ({
       ...s,
-      label: s.label?.trim() || deriveStopLabel(s.address, `Зупинка ${idx + 1}`),
+      label: (s.label && s.label.trim().length >= 3)
+        ? s.label.trim()
+        : deriveStopLabel(s.address, `Зупинка ${idx + 1}`),
     })),
     departureTime: !isArriveBy && request.departureTime ? new Date(request.departureTime).toISOString() : undefined,
     arrivalBy: isArriveBy && request.arrivalBy ? new Date(request.arrivalBy).toISOString() : undefined,

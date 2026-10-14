@@ -56,7 +56,8 @@ export const StopsSection: React.FC<StopsSectionProps> = ({
                     const isDefaultLabel =
                       !stop.label ||
                       stop.label.startsWith('Зупинка') ||
-                      stop.label.startsWith('Stop');
+                      stop.label.startsWith('Stop') ||
+                      stop.label.trim().length < 3;
                     const cleanLabel = isDefaultLabel
                       ? deriveStopLabel(newAddress, `Зупинка ${index + 1}`)
                       : stop.label;

@@ -174,15 +174,21 @@ export const App: React.FC = () => {
           arrivalBy: planningMode === 'arrive-by' ? arrivalBy : undefined,
           start: {
             ...start,
-            label: start.label?.trim() || deriveStopLabel(start.address, 'Старт'),
+            label: (start.label && start.label.trim().length >= 3)
+              ? start.label.trim()
+              : deriveStopLabel(start.address, 'Старт'),
           },
           destination: {
             ...destination,
-            label: destination.label?.trim() || deriveStopLabel(destination.address, 'Фініш'),
+            label: (destination.label && destination.label.trim().length >= 3)
+              ? destination.label.trim()
+              : deriveStopLabel(destination.address, 'Фініш'),
           },
           stops: stops.map((s, idx) => ({
             ...s,
-            label: s.label?.trim() || deriveStopLabel(s.address, `Зупинка ${idx + 1}`),
+            label: (s.label && s.label.trim().length >= 3)
+              ? s.label.trim()
+              : deriveStopLabel(s.address, `Зупинка ${idx + 1}`),
           })),
         },
         controller.signal
