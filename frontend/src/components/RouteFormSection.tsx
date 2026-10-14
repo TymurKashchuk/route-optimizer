@@ -3,7 +3,10 @@ import type { AddressInput, AlgorithmType, PlanningMode, RouteStop, SearchScope,
 import { AddressAutocompleteInput } from './AddressAutocompleteInput';
 import { StopsSection } from './StopsSection';
 import { reverseGeocode } from '../api/geocodingClient';
-import { getTodayDateString, getTomorrowDateString } from '../utils/dateTime';
+import { adjustTimeString, getCurrentRoundedTimeString, getTodayDateString, getTomorrowDateString } from '../utils/dateTime';
+
+const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+const MINUTES = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'];
 
 const POPULAR_CITIES = [
   'Житомир',
@@ -100,12 +103,17 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
   const activeDateTime = isArriveBy ? arrivalBy : departureTime;
   const datePart = activeDateTime.split('T')[0] || getTodayDateString();
   const timePart = activeDateTime.split('T')[1] || (isArriveBy ? '14:00' : '09:00');
+  const [rawHour, rawMinute] = timePart.split(':');
+  const currentHour = rawHour || (isArriveBy ? '14' : '09');
+  const currentMinute = rawMinute || '00';
+  const minutesList = MINUTES.includes(currentMinute) ? MINUTES : [...MINUTES, currentMinute].sort();
 
   const todayStr = getTodayDateString();
   const tomorrowStr = getTomorrowDateString();
 
   const handleDateChange = (newDate: string) => {
-    const combined = `${newDate}T${timePart}`;
+    const safeDate = newDate && newDate < todayStr ? todayStr : newDate;
+    const combined = `${safeDate}T${timePart}`;
     if (isArriveBy) {
       onArrivalByChange(combined);
     } else {
@@ -747,6 +755,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
               <input
                 id="trip-date"
                 type="date"
+                min={todayStr}
                 className="form-input form-input-sm"
                 value={datePart}
                 onChange={(e) => handleDateChange(e.target.value)}
@@ -774,21 +783,96 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
           </div>
 
           <div className="form-group">
-            <label className="form-label-sm" htmlFor="trip-time">
+            <label className="form-label-sm" htmlFor="trip-time-hour">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <circle cx="12" cy="12" r="10" />
                 <polyline points="12 6 12 12 16 14" />
               </svg>
               <span>{isArriveBy ? 'Час прибуття' : 'Час виїзду'}</span>
             </label>
-            <input
-              id="trip-time"
-              type="time"
-              className="form-input form-input-sm time-only-input"
-              value={timePart}
-              onChange={(e) => handleTimeChange(e.target.value)}
-              disabled={isLoading}
-            />
+            <div className="time-input-container">
+              <div className="time-picker-controls">
+                <div className="time-select-pair">
+                  <select
+                    id="trip-time-hour"
+                    className="time-unit-select"
+                    value={currentHour}
+                    onChange={(e) => handleTimeChange(`${e.target.value}:${currentMinute}`)}
+                    disabled={isLoading}
+                    aria-label="Година"
+                  >
+                    {HOURS.map((h) => (
+                      <option key={h} value={h}>
+                        {h}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="time-colon" aria-hidden="true">:</span>
+                  <select
+                    id="trip-time-minute"
+                    className="time-unit-select"
+                    value={currentMinute}
+                    onChange={(e) => handleTimeChange(`${currentHour}:${e.target.value}`)}
+                    disabled={isLoading}
+                    aria-label="Хвилини"
+                  >
+                    {minutesList.map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="time-stepper-btns">
+                  <button
+                    type="button"
+                    className="btn-time-step"
+                    onClick={() => handleTimeChange(adjustTimeString(timePart, -15))}
+                    disabled={isLoading}
+                    title="Зсунути на 15 хв раніше"
+                  >
+                    -15 хв
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-time-step"
+                    onClick={() => handleTimeChange(adjustTimeString(timePart, 15))}
+                    disabled={isLoading}
+                    title="Зсунути на 15 хв пізніше"
+                  >
+                    +15 хв
+                  </button>
+                </div>
+              </div>
+
+              <div className="quick-time-pills">
+                <button
+                  type="button"
+                  className="btn-time-pill"
+                  onClick={() => handleTimeChange(getCurrentRoundedTimeString())}
+                  disabled={isLoading}
+                  title="Встановити поточний час"
+                >
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                  <span>Зараз</span>
+                </button>
+                {['09:00', '12:00', '15:00', '18:00'].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    className={`btn-time-pill ${timePart === preset ? 'active' : ''}`}
+                    onClick={() => handleTimeChange(preset)}
+                    disabled={isLoading}
+                  >
+                    {preset}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
