@@ -6,9 +6,6 @@ import { reverseGeocode } from '../api/geocodingClient';
 import { adjustTimeString, getCurrentRoundedTimeString, getTodayDateString, getTomorrowDateString } from '../utils/dateTime';
 import { deriveStopLabel } from '../utils/address';
 
-const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
-const MINUTES = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'];
-
 const POPULAR_CITIES = [
   'Житомир',
   'Київ',
@@ -100,10 +97,6 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
   const activeDateTime = isArriveBy ? arrivalBy : departureTime;
   const datePart = activeDateTime.split('T')[0] || getTodayDateString();
   const timePart = activeDateTime.split('T')[1] || (isArriveBy ? '14:00' : '09:00');
-  const [rawHour, rawMinute] = timePart.split(':');
-  const currentHour = rawHour || (isArriveBy ? '14' : '09');
-  const currentMinute = rawMinute || '00';
-  const minutesList = MINUTES.includes(currentMinute) ? MINUTES : [...MINUTES, currentMinute].sort();
 
   const todayStr = getTodayDateString();
   const tomorrowStr = getTomorrowDateString();
@@ -589,7 +582,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
           </div>
 
           <div className="form-group">
-            <label className="form-label-sm" htmlFor="trip-time-hour">
+            <label className="form-label-sm" htmlFor="trip-time">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <circle cx="12" cy="12" r="10" />
                 <polyline points="12 6 12 12 16 14" />
@@ -598,37 +591,15 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
             </label>
             <div className="time-input-container">
               <div className="time-picker-controls">
-                <div className="time-select-pair">
-                  <select
-                    id="trip-time-hour"
-                    className="time-unit-select"
-                    value={currentHour}
-                    onChange={(e) => handleTimeChange(`${e.target.value}:${currentMinute}`)}
-                    disabled={isLoading}
-                    aria-label="Година"
-                  >
-                    {HOURS.map((h) => (
-                      <option key={h} value={h}>
-                        {h}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="time-colon" aria-hidden="true">:</span>
-                  <select
-                    id="trip-time-minute"
-                    className="time-unit-select"
-                    value={currentMinute}
-                    onChange={(e) => handleTimeChange(`${currentHour}:${e.target.value}`)}
-                    disabled={isLoading}
-                    aria-label="Хвилини"
-                  >
-                    {minutesList.map((m) => (
-                      <option key={m} value={m}>
-                        {m}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <input
+                  id="trip-time"
+                  type="time"
+                  className="form-input form-input-sm time-picker-input"
+                  value={timePart}
+                  onChange={(e) => handleTimeChange(e.target.value)}
+                  disabled={isLoading}
+                  required
+                />
 
                 <div className="time-stepper-btns">
                   <button
@@ -685,10 +656,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
         {/* OPTIMIZATION PRIORITY (COMPACT SEGMENTED CONTROL) */}
         {stops.length >= 2 && (
           <div className="trip-optimization-group">
-            <div className="form-label-row">
-              <label className="form-label-sm">Порядок об'їзду зупинок</label>
-              <span className="form-label-hint">({stops.length} зупинки)</span>
-            </div>
+            <label className="form-label-sm">Порядок об'їзду зупинок</label>
             <div className="algo-segmented-group" role="radiogroup" aria-label="Порядок об'їзду зупинок">
               <button
                 type="button"
@@ -703,7 +671,6 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
                   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                 </svg>
                 <span>Оптимальний</span>
-                <span className="algo-badge-recommended">Кращий</span>
               </button>
 
               <button
