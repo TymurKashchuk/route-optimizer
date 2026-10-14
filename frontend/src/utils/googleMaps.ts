@@ -1,4 +1,4 @@
-import type { RoutePointDto, RoutePreviewDto } from '../types/route';
+import type { RoutePointDto, RoutePreviewDto, TravelMode } from '../types/route';
 
 /**
  * Formats a route point for Google Maps URL.
@@ -22,11 +22,14 @@ function formatPoint(point: RoutePointDto): string {
  * Builds a universal Google Maps navigation URL from the optimized route preview.
  * 
  * - If waypoints <= 9: uses Google Maps Universal URLs format:
- *   https://www.google.com/maps/dir/?api=1&origin=...&destination=...&waypoints=...
+ *   https://www.google.com/maps/dir/?api=1&origin=...&destination=...&waypoints=...&travelmode=...
  * - If waypoints > 9: uses Google Maps path format which supports 10+ waypoints:
- *   https://www.google.com/maps/dir/point1/point2/.../pointN
+ *   https://www.google.com/maps/dir/point1/point2/.../pointN?travelmode=...
  */
-export function buildGoogleMapsDirectionsUrl(preview?: RoutePreviewDto): string | null {
+export function buildGoogleMapsDirectionsUrl(
+  preview?: RoutePreviewDto,
+  travelMode: TravelMode = 'driving'
+): string | null {
   if (!preview || !preview.startPoint) {
     return null;
   }
@@ -49,11 +52,13 @@ export function buildGoogleMapsDirectionsUrl(preview?: RoutePreviewDto): string 
     return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(originStr)}`;
   }
 
+  const gmapsMode = travelMode === 'walking' ? 'walking' : travelMode === 'cycling' ? 'bicycling' : 'driving';
+
   // Handle long routes (> 9 waypoints) via path format
   if (intermediateStops.length > 9) {
     const allPoints = [originStr, ...intermediateStops.map(formatPoint), destinationStr];
     const encodedSegments = allPoints.map((pt) => encodeURIComponent(pt)).join('/');
-    return `https://www.google.com/maps/dir/${encodedSegments}`;
+    return `https://www.google.com/maps/dir/${encodedSegments}?travelmode=${gmapsMode}`;
   }
 
   // Standard Universal URL format
@@ -61,6 +66,7 @@ export function buildGoogleMapsDirectionsUrl(preview?: RoutePreviewDto): string 
   params.set('api', '1');
   params.set('origin', originStr);
   params.set('destination', destinationStr);
+  params.set('travelmode', gmapsMode);
 
   if (intermediateStops.length > 0) {
     const waypointsVal = intermediateStops.map(formatPoint).join('|');

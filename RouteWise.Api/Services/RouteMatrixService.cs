@@ -22,13 +22,23 @@ namespace RouteWise.Api.Services
             List<RouteStop> stops,
             CancellationToken cancellationToken = default)
         {
-            return BuildMatrixAsync(start, stops, null, cancellationToken);
+            return BuildMatrixAsync(start, stops, null, TravelMode.Default, cancellationToken);
+        }
+
+        public Task<RouteMatrixResult> BuildMatrixAsync(
+            AddressInput start,
+            List<RouteStop> stops,
+            AddressInput? destination,
+            CancellationToken cancellationToken = default)
+        {
+            return BuildMatrixAsync(start, stops, destination, TravelMode.Default, cancellationToken);
         }
 
         public async Task<RouteMatrixResult> BuildMatrixAsync(
             AddressInput start,
             List<RouteStop> stops,
             AddressInput? destination,
+            string travelMode,
             CancellationToken cancellationToken = default)
         {
             var resolveTasks = new List<Task<LocationPoint>>
@@ -49,7 +59,7 @@ namespace RouteWise.Api.Services
             var resolvedLocations = await Task.WhenAll(resolveTasks);
             var locations = resolvedLocations.ToList();
 
-            var matrix = await _routeProvider.BuildMatrixAsync(locations, cancellationToken);
+            var matrix = await _routeProvider.BuildMatrixAsync(locations, travelMode, cancellationToken);
 
             return new RouteMatrixResult
             {

@@ -8,6 +8,22 @@ namespace RouteWise.Api.Providers.Routing
             List<LocationPoint> locations,
             CancellationToken cancellationToken = default)
         {
+            return BuildMatrixAsync(locations, TravelMode.Default, cancellationToken);
+        }
+
+        public Task<RouteMatrix> BuildMatrixAsync(
+            List<LocationPoint> locations,
+            string travelMode,
+            CancellationToken cancellationToken = default)
+        {
+            var normalizedMode = TravelMode.Normalize(travelMode);
+            var timeMultiplier = normalizedMode switch
+            {
+                TravelMode.Walking => 6.0,
+                TravelMode.Cycling => 2.5,
+                _ => 1.0
+            };
+
             var count = locations.Count;
             var baseTimes = new int[,]
             {
@@ -41,13 +57,17 @@ namespace RouteWise.Api.Providers.Routing
                     }
                     else if (i < 4 && j < 4)
                     {
-                        timeRow.Add(baseTimes[i, j]);
+                        var rawTime = baseTimes[i, j];
+                        var scaledTime = (int)Math.Max(1, Math.Round(rawTime * timeMultiplier));
+                        timeRow.Add(scaledTime);
                         distRow.Add(baseDistances[i, j]);
                     }
                     else
                     {
                         var diff = Math.Abs(i - j);
-                        timeRow.Add(diff * 10);
+                        var rawTime = diff * 10;
+                        var scaledTime = (int)Math.Max(1, Math.Round(rawTime * timeMultiplier));
+                        timeRow.Add(scaledTime);
                         distRow.Add(Math.Round(diff * 4.5, 2));
                     }
                 }
@@ -67,6 +87,14 @@ namespace RouteWise.Api.Providers.Routing
 
         public Task<RouteGeometry> GetRouteGeometryAsync(
             List<LocationPoint> orderedLocations,
+            CancellationToken cancellationToken = default)
+        {
+            return GetRouteGeometryAsync(orderedLocations, TravelMode.Default, cancellationToken);
+        }
+
+        public Task<RouteGeometry> GetRouteGeometryAsync(
+            List<LocationPoint> orderedLocations,
+            string travelMode,
             CancellationToken cancellationToken = default)
         {
             var geometry = new RouteGeometry

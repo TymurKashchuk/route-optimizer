@@ -207,5 +207,38 @@ namespace RouteWise.Tests.Validators
             result.ShouldHaveValidationErrorFor(x => x.Start.Longitude)
                 .WithErrorMessage("Start longitude is required when latitude is provided");
         }
+
+        [Theory]
+        [InlineData("driving")]
+        [InlineData("walking")]
+        [InlineData("cycling")]
+        [InlineData("DRIVING")]
+        [InlineData("Walking")]
+        [InlineData(null)]
+        [InlineData("")]
+        public void Validate_ValidTravelModes_PassValidation(string? travelMode)
+        {
+            var request = CreateValidBaseRequest();
+            request.TravelMode = travelMode!;
+
+            var result = _validator.TestValidate(request);
+
+            result.ShouldNotHaveValidationErrorFor(x => x.TravelMode);
+        }
+
+        [Theory]
+        [InlineData("flying")]
+        [InlineData("transit")]
+        [InlineData("boat")]
+        public void Validate_InvalidTravelMode_HasValidationError(string travelMode)
+        {
+            var request = CreateValidBaseRequest();
+            request.TravelMode = travelMode;
+
+            var result = _validator.TestValidate(request);
+
+            result.ShouldHaveValidationErrorFor(x => x.TravelMode)
+                .WithErrorMessage("TravelMode must be either 'driving', 'walking' or 'cycling'");
+        }
     }
 }

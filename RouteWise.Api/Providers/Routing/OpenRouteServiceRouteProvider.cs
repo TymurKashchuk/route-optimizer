@@ -22,8 +22,16 @@ namespace RouteWise.Api.Providers.Routing
             _options = options.Value;
         }
 
+        public Task<RouteMatrix> BuildMatrixAsync(
+            List<LocationPoint> locations,
+            CancellationToken cancellationToken = default)
+        {
+            return BuildMatrixAsync(locations, TravelMode.Default, cancellationToken);
+        }
+
         public async Task<RouteMatrix> BuildMatrixAsync(
             List<LocationPoint> locations,
+            string travelMode,
             CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(_options.ApiKey))
@@ -39,7 +47,9 @@ namespace RouteWise.Api.Providers.Routing
                 Metrics = new List<string> { "duration", "distance" }
             };
 
-            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, "v2/matrix/driving-car")
+            var profile = TravelMode.ToOrsProfile(travelMode);
+
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"v2/matrix/{profile}")
             {
                 Content = JsonContent.Create(requestBody)
             };
@@ -86,8 +96,16 @@ namespace RouteWise.Api.Providers.Routing
             }
         }
 
+        public Task<RouteGeometry> GetRouteGeometryAsync(
+            List<LocationPoint> orderedLocations,
+            CancellationToken cancellationToken = default)
+        {
+            return GetRouteGeometryAsync(orderedLocations, TravelMode.Default, cancellationToken);
+        }
+
         public async Task<RouteGeometry> GetRouteGeometryAsync(
             List<LocationPoint> orderedLocations,
+            string travelMode,
             CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(_options.ApiKey))
@@ -107,7 +125,9 @@ namespace RouteWise.Api.Providers.Routing
                     .ToList()
             };
 
-            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, "v2/directions/driving-car/geojson")
+            var profile = TravelMode.ToOrsProfile(travelMode);
+
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"v2/directions/{profile}/geojson")
             {
                 Content = JsonContent.Create(requestBody)
             };

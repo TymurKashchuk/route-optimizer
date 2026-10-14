@@ -1,4 +1,5 @@
-import type { OptimizeRouteRequest, OptimizeRouteResponse, RouteStop } from '../types/route';
+import type { OptimizeRouteRequest, OptimizeRouteResponse, RouteStop, TravelMode } from '../types/route';
+import { getTodayDateString } from '../utils/dateTime';
 
 interface ValidationRule {
   condition: boolean;
@@ -31,9 +32,14 @@ export function validateRouteRequest(request: OptimizeRouteRequest): string | nu
   const isStartString = request.start?.address?.trim().toLowerCase() === 'string';
   const isDestString = request.destination?.address?.trim().toLowerCase() === 'string';
   const isArriveBy = request.planningMode === 'arrive-by';
+  const targetDateStr = isArriveBy ? request.arrivalBy : request.departureTime;
   const isTimeInvalid = isArriveBy
     ? !request.arrivalBy || isNaN(new Date(request.arrivalBy).getTime())
     : !request.departureTime || isNaN(new Date(request.departureTime).getTime());
+
+  const todayStr = getTodayDateString();
+  const datePart = targetDateStr ? targetDateStr.split('T')[0] : '';
+  const isPastDate = Boolean(datePart && datePart < todayStr);
 
   const globalRules: ValidationRule[] = [
     { condition: !request.start?.label?.trim(), message: 'Вкажіть мітку точки старту.' },
@@ -48,8 +54,16 @@ export function validateRouteRequest(request: OptimizeRouteRequest): string | nu
         ? 'Вкажіть коректний бажаний час прибуття (дедлайн).'
         : 'Вкажіть коректний час виїзду.',
     },
+    {
+      condition: isPastDate,
+      message: 'Дата поїздки не може бути в минулому.',
+    },
     { condition: !request.stops, message: 'Список зупинок має бути заданий.' },
     { condition: !!request.stops && request.stops.length > 10, message: 'Максимум 10 зупинок для одного маршруту.' },
+    {
+      condition: Boolean(request.travelMode && !(['driving', 'walking', 'cycling'] as TravelMode[]).includes(request.travelMode)),
+      message: 'Некоректний спосіб пересування (доступні: авто, пішки, велосипед).',
+    },
   ];
 
   const failedGlobalRule = globalRules.find((rule) => rule.condition);
@@ -107,6 +121,7 @@ export async function optimizeRoute(
   const formattedRequest: OptimizeRouteRequest = {
     ...request,
     planningMode: request.planningMode || 'depart-at',
+    travelMode: request.travelMode || 'driving',
     departureTime: !isArriveBy && request.departureTime ? new Date(request.departureTime).toISOString() : undefined,
     arrivalBy: isArriveBy && request.arrivalBy ? new Date(request.arrivalBy).toISOString() : undefined,
   };

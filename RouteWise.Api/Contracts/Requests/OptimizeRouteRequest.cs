@@ -10,6 +10,8 @@ namespace RouteWise.Api.Contracts.Requests
 
         public string PlanningMode { get; set; } = "depart-at";
 
+        public string TravelMode { get; set; } = Models.TravelMode.Driving;
+
         public DateTime? DepartureTime { get; set; }
 
         public DateTime? ArrivalBy { get; set; }

@@ -20,7 +20,18 @@ namespace RouteWise.Api.Services
             List<LocationPoint> allLocations,
             CancellationToken cancellationToken = default)
         {
-            return BuildAsync(start, orderedStops, orderedStopIndices, allLocations, null, cancellationToken);
+            return BuildAsync(start, orderedStops, orderedStopIndices, allLocations, null, TravelMode.Default, cancellationToken);
+        }
+
+        public Task<RoutePreviewDto> BuildAsync(
+            AddressInput start,
+            List<RouteStop> orderedStops,
+            List<int> orderedStopIndices,
+            List<LocationPoint> allLocations,
+            AddressInput? destination,
+            CancellationToken cancellationToken = default)
+        {
+            return BuildAsync(start, orderedStops, orderedStopIndices, allLocations, destination, TravelMode.Default, cancellationToken);
         }
 
         public async Task<RoutePreviewDto> BuildAsync(
@@ -29,6 +40,7 @@ namespace RouteWise.Api.Services
             List<int> orderedStopIndices,
             List<LocationPoint> allLocations,
             AddressInput? destination,
+            string travelMode,
             CancellationToken cancellationToken = default)
         {
             if (allLocations == null || allLocations.Count == 0)
@@ -86,7 +98,7 @@ namespace RouteWise.Api.Services
                 };
             }
 
-            var routeGeometry = await _routeProvider.GetRouteGeometryAsync(orderedLocations, cancellationToken);
+            var routeGeometry = await _routeProvider.GetRouteGeometryAsync(orderedLocations, travelMode, cancellationToken);
 
             return new RoutePreviewDto
             {

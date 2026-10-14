@@ -4,6 +4,7 @@ import type {
   PlanningMode,
   RouteStop,
   SearchScope,
+  TravelMode,
 } from '../types/route';
 
 const DRAFT_STORAGE_KEY = 'routewise_trip_draft_v1';
@@ -14,6 +15,7 @@ export interface TripDraft {
   stops: RouteStop[];
   isDirectTrip: boolean;
   planningMode: PlanningMode;
+  travelMode?: TravelMode;
   departureTime: string;
   arrivalBy: string;
   algorithm: AlgorithmType;
@@ -38,6 +40,11 @@ export function loadTripDraft(): TripDraft | null {
     if (!parsed.start || typeof parsed.start.address !== 'string') return null;
     if (!parsed.destination || typeof parsed.destination.address !== 'string') return null;
     if (!Array.isArray(parsed.stops)) return null;
+
+    const validModes: TravelMode[] = ['driving', 'walking', 'cycling'];
+    if (!parsed.travelMode || !validModes.includes(parsed.travelMode)) {
+      parsed.travelMode = 'driving';
+    }
 
     return parsed as TripDraft;
   } catch (err) {

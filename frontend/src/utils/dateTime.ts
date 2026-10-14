@@ -61,3 +61,31 @@ export function getServiceDuration(arrivalIso: string, departureIso: string): nu
   if (isNaN(arrival) || isNaN(departure) || departure <= arrival) return 0;
   return Math.round((departure - arrival) / (1000 * 60));
 }
+
+/**
+ * Returns current local time rounded up to the nearest 5-minute interval (HH:MM).
+ */
+export function getCurrentRoundedTimeString(): string {
+  const now = new Date();
+  const minutes = now.getMinutes();
+  const roundedMinutes = Math.ceil(minutes / 5) * 5;
+  now.setMinutes(roundedMinutes, 0, 0);
+  const h = String(now.getHours()).padStart(2, '0');
+  const m = String(now.getMinutes()).padStart(2, '0');
+  return `${h}:${m}`;
+}
+
+/**
+ * Shifts a 24-hour time string (HH:MM) by a specified delta in minutes.
+ * Handles 24-hour wraparound safely (e.g. 23:50 + 15 min = 00:05).
+ */
+export function adjustTimeString(timeStr: string, deltaMinutes: number): string {
+  const parts = (timeStr || '09:00').split(':');
+  const h = parseInt(parts[0], 10) || 0;
+  const m = parseInt(parts[1], 10) || 0;
+  let totalMinutes = h * 60 + m + deltaMinutes;
+  totalMinutes = ((totalMinutes % 1440) + 1440) % 1440;
+  const newH = String(Math.floor(totalMinutes / 60)).padStart(2, '0');
+  const newM = String(totalMinutes % 60).padStart(2, '0');
+  return `${newH}:${newM}`;
+}
