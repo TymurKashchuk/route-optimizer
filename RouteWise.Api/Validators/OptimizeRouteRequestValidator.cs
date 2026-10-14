@@ -1,6 +1,6 @@
 using FluentValidation;
 using RouteWise.Api.Contracts.Requests;
-using RouteWise.Api.Validators;
+using RouteWise.Api.Models;
 
 namespace RouteWise.Api.Validators
 {
@@ -21,6 +21,10 @@ namespace RouteWise.Api.Validators
                            string.Equals(m, "depart-at", StringComparison.OrdinalIgnoreCase) ||
                            string.Equals(m, "arrive-by", StringComparison.OrdinalIgnoreCase))
                 .WithMessage("PlanningMode must be either 'depart-at' or 'arrive-by'");
+
+            RuleFor(x => x.TravelMode)
+                .Must(m => string.IsNullOrEmpty(m) || TravelMode.IsValid(m))
+                .WithMessage("TravelMode must be either 'driving', 'walking' or 'cycling'");
 
             RuleFor(x => x.DepartureTime)
                 .NotNull()

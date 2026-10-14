@@ -1,6 +1,7 @@
 export type PlanningMode = 'depart-at' | 'arrive-by';
 export type AlgorithmType = 'original' | 'nearest-neighbor' | 'two-opt';
 export type SearchScope = 'all-ukraine' | 'city';
+export type TravelMode = 'driving' | 'walking' | 'cycling';
 
 export interface AddressInput {
   label: string;
@@ -21,6 +22,7 @@ export interface RouteStop {
 export interface OptimizeRouteRequest {
   algorithm: AlgorithmType;
   planningMode?: PlanningMode;
+  travelMode?: TravelMode;
   departureTime?: string;
   arrivalBy?: string;
   start: AddressInput;
@@ -70,6 +72,7 @@ export interface RoutePreviewDto {
 export interface OptimizeRouteResponse {
   algorithm: string;
   planningMode?: PlanningMode;
+  travelMode?: TravelMode;
   recommendedDepartureTime?: string;
   original: RouteMetricsDto;
   optimized: RouteMetricsDto;

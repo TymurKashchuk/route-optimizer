@@ -45,6 +45,7 @@ namespace RouteWise.Api.Services
                 request.ArrivalBy,
                 request.Stops,
                 request.Destination,
+                request.TravelMode,
                 cancellationToken);
         }
 
@@ -55,7 +56,7 @@ namespace RouteWise.Api.Services
             List<RouteStop> stops,
             CancellationToken cancellationToken = default)
         {
-            return ExecuteAsync(algorithm, start, "depart-at", departureTime, null, stops, null, cancellationToken);
+            return ExecuteAsync(algorithm, start, "depart-at", departureTime, null, stops, null, TravelMode.Default, cancellationToken);
         }
 
         public Task<OptimizeRouteResponse> ExecuteAsync(
@@ -66,7 +67,20 @@ namespace RouteWise.Api.Services
             AddressInput? destination,
             CancellationToken cancellationToken = default)
         {
-            return ExecuteAsync(algorithm, start, "depart-at", departureTime, null, stops, destination, cancellationToken);
+            return ExecuteAsync(algorithm, start, "depart-at", departureTime, null, stops, destination, TravelMode.Default, cancellationToken);
+        }
+
+        public Task<OptimizeRouteResponse> ExecuteAsync(
+            string algorithm,
+            AddressInput start,
+            string planningMode,
+            DateTime? departureTime,
+            DateTime? arrivalBy,
+            List<RouteStop> stops,
+            AddressInput? destination,
+            CancellationToken cancellationToken = default)
+        {
+            return ExecuteAsync(algorithm, start, planningMode, departureTime, arrivalBy, stops, destination, TravelMode.Default, cancellationToken);
         }
 
         public async Task<OptimizeRouteResponse> ExecuteAsync(
@@ -77,6 +91,7 @@ namespace RouteWise.Api.Services
             DateTime? arrivalBy,
             List<RouteStop> stops,
             AddressInput? destination,
+            string travelMode,
             CancellationToken cancellationToken = default)
         {
             var matrixResult = await _routeMatrixService.BuildMatrixAsync(start, stops, destination, cancellationToken);
@@ -157,6 +172,7 @@ namespace RouteWise.Api.Services
             {
                 Algorithm = optimizedResult.Algorithm,
                 PlanningMode = isArriveBy ? "arrive-by" : "depart-at",
+                TravelMode = TravelMode.Normalize(travelMode),
                 RecommendedDepartureTime = recommendedDepartureTime,
                 Original = new RouteMetricsDto
                 {
