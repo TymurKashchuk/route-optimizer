@@ -262,17 +262,8 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({
           className="leaflet-map-element"
         >
           <TileLayer
-            key={theme}
-            attribution={
-              theme === 'dark'
-                ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-                : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }
-            url={
-              theme === 'dark'
-                ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-                : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-            }
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
           <MapBoundsUpdater
