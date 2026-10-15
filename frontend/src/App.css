@@ -2857,6 +2857,190 @@
   color: #4ade80 !important;
 }
 
+/* ==========================================================================
+   Map Click Waypoint Marker & Action Popup
+   ========================================================================== */
+.map-marker-clicked {
+  position: relative;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.marker-clicked-dot {
+  width: 14px;
+  height: 14px;
+  background-color: var(--primary);
+  border: 2.5px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  z-index: 2;
+}
+
+.marker-pulse-ring {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: rgba(37, 99, 235, 0.35);
+  animation: marker-pulse-expand 1.8s ease-out infinite;
+  z-index: 1;
+}
+
+@keyframes marker-pulse-expand {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+.map-click-popup {
+  min-width: 220px;
+  max-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.map-click-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--primary);
+}
+
+.map-click-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.825rem;
+  color: var(--text-muted);
+  padding: 0.4rem 0;
+}
+
+.map-click-address {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-main);
+  line-height: 1.35;
+  margin: 0;
+  word-break: break-word;
+}
+
+.map-click-error {
+  font-size: 0.75rem;
+  color: var(--danger);
+  margin: 0;
+}
+
+.map-click-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.map-action-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.35rem 0.4rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-action-start {
+  background-color: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #059669;
+}
+
+.btn-action-start:hover {
+  background-color: #d1fae5;
+  border-color: #34d399;
+}
+
+.btn-action-stop {
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+  color: var(--primary);
+}
+
+.btn-action-stop:hover {
+  background-color: #dbeafe;
+  border-color: #60a5fa;
+}
+
+.btn-action-dest {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.btn-action-dest:hover {
+  background-color: #fee2e2;
+  border-color: #f87171;
+}
+
+/* Dark Mode Overrides for Map Click Popup */
+[data-theme='dark'] .map-click-actions {
+  border-top-color: #334155;
+}
+
+[data-theme='dark'] .btn-action-start {
+  background-color: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.35);
+  color: #34d399;
+}
+
+[data-theme='dark'] .btn-action-start:hover {
+  background-color: rgba(16, 185, 129, 0.28);
+  border-color: #34d399;
+}
+
+[data-theme='dark'] .btn-action-stop {
+  background-color: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.35);
+  color: #60a5fa;
+}
+
+[data-theme='dark'] .btn-action-stop:hover {
+  background-color: rgba(59, 130, 246, 0.28);
+  border-color: #60a5fa;
+}
+
+[data-theme='dark'] .btn-action-dest {
+  background-color: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #f87171;
+}
+
+[data-theme='dark'] .btn-action-dest:hover {
+  background-color: rgba(239, 68, 68, 0.28);
+  border-color: #f87171;
+}
+
+
 
 
 
