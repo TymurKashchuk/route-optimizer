@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { RouteStop } from '../types/route';
 import { AddressAutocompleteInput } from './AddressAutocompleteInput';
 import { deriveStopLabel } from '../utils/address';
@@ -9,6 +9,7 @@ interface StopsSectionProps {
   onAddStop: () => void;
   onRemoveStop: (id: string) => void;
   onUpdateStop: (id: string, fields: Partial<RouteStop>) => void;
+  onReorderStops?: (reorderedStops: RouteStop[]) => void;
   city?: string;
 }
 
@@ -18,9 +19,47 @@ export const StopsSection: React.FC<StopsSectionProps> = ({
   onAddStop,
   onRemoveStop,
   onUpdateStop,
+  onReorderStops,
   city,
 }) => {
   const isMaxStopsReached = stops.length >= 10;
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === targetIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+
+    const updated = [...stops];
+    const [moved] = updated.splice(draggedIndex, 1);
+    updated.splice(targetIndex, 0, moved);
+
+    onReorderStops?.(updated);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
 
   return (
     <div className="stops-chain-container">
@@ -32,9 +71,32 @@ export const StopsSection: React.FC<StopsSectionProps> = ({
           return (
             <div
               key={stop.id}
-              className="stop-compact-row"
+              className={`stop-compact-row ${draggedIndex === index ? 'dragging' : ''} ${dragOverIndex === index ? 'drag-over' : ''}`}
               style={{ zIndex: rowZIndex }}
+              draggable={!isLoading && stops.length >= 2}
+              onDragStart={(e) => handleDragStart(e, index)}
+              onDragOver={(e) => handleDragOver(e, index)}
+              onDrop={(e) => handleDrop(e, index)}
+              onDragEnd={handleDragEnd}
             >
+              {/* Drag Handle (if >= 2 stops) */}
+              {stops.length >= 2 && (
+                <div
+                  className="stop-drag-handle"
+                  title="Потягніть, щоб змінити порядок зупинок"
+                  aria-label={`Перетягнути зупинку ${index + 1}`}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <circle cx="9" cy="5" r="1.2" fill="currentColor" />
+                    <circle cx="9" cy="12" r="1.2" fill="currentColor" />
+                    <circle cx="9" cy="19" r="1.2" fill="currentColor" />
+                    <circle cx="15" cy="5" r="1.2" fill="currentColor" />
+                    <circle cx="15" cy="12" r="1.2" fill="currentColor" />
+                    <circle cx="15" cy="19" r="1.2" fill="currentColor" />
+                  </svg>
+                </div>
+              )}
+
               {/* Stop Number Badge */}
               <div className="stop-num-badge" title={`Зупинка №${index + 1}`}>
                 {index + 1}

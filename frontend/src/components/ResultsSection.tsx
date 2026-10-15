@@ -1,5 +1,5 @@
 import React from 'react';
-import type { OptimizeRouteResponse } from '../types/route';
+import type { AddressInput, OptimizeRouteResponse, RouteStop } from '../types/route';
 import { RouteMetricsSummary } from './results/RouteMetricsSummary';
 import { TimelineView } from './results/TimelineView';
 import { RouteMapPreview } from './results/RouteMapPreview';
@@ -9,9 +9,26 @@ import { formatTime } from '../utils/dateTime';
 interface ResultsSectionProps {
   result: OptimizeRouteResponse | null;
   isLoading: boolean;
+  theme?: 'light' | 'dark';
+  start?: AddressInput;
+  destination?: AddressInput;
+  stops?: RouteStop[];
+  onSetStartFromMap?: (address: string, lat: number, lng: number) => void;
+  onAddStopFromMap?: (address: string, lat: number, lng: number) => void;
+  onSetDestinationFromMap?: (address: string, lat: number, lng: number) => void;
 }
 
-export const ResultsSection: React.FC<ResultsSectionProps> = ({ result, isLoading }) => {
+export const ResultsSection: React.FC<ResultsSectionProps> = ({
+  result,
+  isLoading,
+  theme = 'light',
+  start,
+  destination,
+  stops,
+  onSetStartFromMap,
+  onAddStopFromMap,
+  onSetDestinationFromMap,
+}) => {
   const isDirect = result ? result.orderedStops.length === 0 : false;
 
   return (
@@ -103,32 +120,48 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ result, isLoadin
         </div>
       )}
 
-      {/* EMPTY STATE */}
+      {/* EMPTY STATE & INTERACTIVE PRE-ROUTE MAP */}
       {!isLoading && !result && (
-        <div className="empty-state">
-          <div className="empty-state-icon">
-            <svg
-              width="48"
-              height="48"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" />
-              <line x1="9" y1="3" x2="9" y2="18" />
-              <line x1="15" y1="6" x2="15" y2="21" />
-            </svg>
+        <div className="empty-results-wrapper">
+          <div className="empty-state">
+            <div className="empty-state-icon">
+              <svg
+                width="48"
+                height="48"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" />
+                <line x1="9" y1="3" x2="9" y2="18" />
+                <line x1="15" y1="6" x2="15" y2="21" />
+              </svg>
+            </div>
+            <h3 className="empty-state-title">Ваша подорож зʼявиться тут</h3>
+            <p className="empty-state-text">
+              Вкажіть звідки і куди ви прямуєте, за бажанням додайте проміжні зупинки,
+              та натисніть <strong>«Побудувати маршрут»</strong>. Також ви можете клікнути будь-де на мапі нижче, щоб швидко обрати старт, проміжні зупинки або фініш.
+            </p>
           </div>
-          <h3 className="empty-state-title">Ваша подорож зʼявиться тут</h3>
-          <p className="empty-state-text">
-            Вкажіть звідки і куди ви прямуєте, за бажанням додайте проміжні зупинки,
-            та натисніть <strong>«Побудувати маршрут»</strong>. Ми розрахуємо найкращу послідовність,
-            покажемо шлях на мапі та сформуємо покроковий розклад вашого дня.
-          </p>
+
+          <ErrorBoundary
+            fallbackTitle="Не вдалося відобразити інтерактивну мапу"
+            fallbackMessage="Виникла помилка під час рендерингу карти Leaflet."
+          >
+            <RouteMapPreview
+              theme={theme}
+              fallbackStart={start}
+              fallbackDestination={destination}
+              fallbackStops={stops}
+              onSetStart={onSetStartFromMap}
+              onAddStop={onAddStopFromMap}
+              onSetDestination={onSetDestinationFromMap}
+            />
+          </ErrorBoundary>
         </div>
       )}
 
@@ -178,7 +211,14 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ result, isLoadin
             fallbackTitle="Не вдалося відобразити інтерактивну мапу"
             fallbackMessage="Виникла помилка під час рендерингу карти Leaflet. Інші деталі маршруту та покроковий розклад доступні нижче."
           >
-            <RouteMapPreview preview={result.routePreview} travelMode={result.travelMode} />
+            <RouteMapPreview
+              preview={result.routePreview}
+              travelMode={result.travelMode}
+              theme={theme}
+              onSetStart={onSetStartFromMap}
+              onAddStop={onAddStopFromMap}
+              onSetDestination={onSetDestinationFromMap}
+            />
           </ErrorBoundary>
 
           {/* Integrated Step-by-Step Itinerary */}

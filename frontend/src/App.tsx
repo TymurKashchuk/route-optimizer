@@ -43,7 +43,38 @@ function sanitizeDraftDate(dateTimeStr?: string, defaultHour = '09:00'): string 
   return `${date}T${safeTime}`;
 }
 
+export type ThemeMode = 'light' | 'dark';
+
+function getInitialTheme(): ThemeMode {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('routewise_theme');
+    if (saved === 'light' || saved === 'dark') {
+      return saved;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark';
+    }
+  }
+  return 'light';
+}
+
 export const App: React.FC = () => {
+  // Theme State
+  const [theme, setTheme] = useState<ThemeMode>(getInitialTheme);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    try {
+      localStorage.setItem('routewise_theme', theme);
+    } catch {
+      // LocalStorage might be disabled in some environments
+    }
+  }, [theme]);
+
+  const handleToggleTheme = () => {
+    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+  };
+
   // Form State
   const [start, setStart] = useState<AddressInput>(() => initialDraft?.start ?? DEFAULT_START);
   const [destination, setDestination] = useState<AddressInput>(() => initialDraft?.destination ?? DEFAULT_DESTINATION);
@@ -100,6 +131,41 @@ export const App: React.FC = () => {
     setStops((prev) =>
       prev.map((s) => (s.id === id ? { ...s, ...fields } : s))
     );
+  };
+
+  const handleReorderStops = (reorderedStops: RouteStop[]) => {
+    setStops(reorderedStops);
+  };
+
+  const handleSetStartFromMap = (address: string, lat?: number, lng?: number) => {
+    setStart({
+      label: deriveStopLabel(address, 'Старт'),
+      address,
+      latitude: lat,
+      longitude: lng,
+    });
+  };
+
+  const handleSetDestinationFromMap = (address: string, lat?: number, lng?: number) => {
+    setDestination({
+      label: deriveStopLabel(address, 'Фініш'),
+      address,
+      latitude: lat,
+      longitude: lng,
+    });
+  };
+
+  const handleAddStopFromMap = (address: string, lat?: number, lng?: number) => {
+    if (stops.length >= 10) return;
+    const newStop: RouteStop = {
+      id: `stop-${generateId()}`,
+      label: deriveStopLabel(address, `Зупинка ${stops.length + 1}`),
+      address,
+      latitude: lat,
+      longitude: lng,
+      serviceMinutes: 15,
+    };
+    setStops((prev) => [...prev, newStop]);
   };
 
   // Autosave draft on form changes with debounce
@@ -213,7 +279,7 @@ export const App: React.FC = () => {
   return (
     <div className="app-root">
       <Toast message={error} onClose={() => setError(null)} />
-      <Header />
+      <Header theme={theme} onToggleTheme={handleToggleTheme} />
       <main className="main-container">
         <div className="planner-grid">
           <div className="left-column">
@@ -226,6 +292,7 @@ export const App: React.FC = () => {
               onAddStop={handleAddStop}
               onRemoveStop={handleRemoveStop}
               onUpdateStop={handleUpdateStop}
+              onReorderStops={handleReorderStops}
               searchScope={searchScope}
               onSearchScopeChange={setSearchScope}
               selectedCity={selectedCity}
@@ -247,7 +314,17 @@ export const App: React.FC = () => {
             />
           </div>
           <div className="right-column">
-            <ResultsSection result={result} isLoading={isLoading} />
+            <ResultsSection
+              result={result}
+              isLoading={isLoading}
+              theme={theme}
+              start={start}
+              destination={destination}
+              stops={stops}
+              onSetStartFromMap={handleSetStartFromMap}
+              onAddStopFromMap={handleAddStopFromMap}
+              onSetDestinationFromMap={handleSetDestinationFromMap}
+            />
           </div>
         </div>
       </main>

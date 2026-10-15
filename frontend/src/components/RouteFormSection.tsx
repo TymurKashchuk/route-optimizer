@@ -38,6 +38,7 @@ interface RouteFormSectionProps {
   onAddStop: () => void;
   onRemoveStop: (id: string) => void;
   onUpdateStop: (id: string, fields: Partial<RouteStop>) => void;
+  onReorderStops?: (reorderedStops: RouteStop[]) => void;
   searchScope: SearchScope;
   onSearchScopeChange: (scope: SearchScope) => void;
   selectedCity: string;
@@ -67,6 +68,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
   onAddStop,
   onRemoveStop,
   onUpdateStop,
+  onReorderStops,
   searchScope,
   onSearchScopeChange,
   selectedCity,
@@ -401,6 +403,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
               onAddStop={onAddStop}
               onRemoveStop={onRemoveStop}
               onUpdateStop={onUpdateStop}
+              onReorderStops={onReorderStops}
               city={activeCity}
             />
           </div>

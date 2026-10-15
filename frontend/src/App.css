@@ -47,6 +47,12 @@
   color: var(--text-muted);
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
 .header-badge {
   display: inline-flex;
   align-items: center;
@@ -64,6 +70,88 @@
   height: 8px;
   border-radius: 50%;
   background-color: var(--success);
+}
+
+/* Celestial Sun/Moon Theme Toggle Switch */
+.theme-toggle-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  outline: none;
+}
+
+.theme-toggle-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.theme-toggle-track {
+  width: 58px;
+  height: 28px;
+  border-radius: 9999px;
+  background: #e2e8f0;
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 6px;
+  position: relative;
+  transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme='dark'] .theme-toggle-track {
+  background: #1e293b;
+  border-color: #334155;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.theme-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  transition: color 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+}
+
+.sun-icon {
+  color: #f59e0b;
+}
+
+.moon-icon {
+  color: #94a3b8;
+}
+
+[data-theme='dark'] .sun-icon {
+  color: #64748b;
+  opacity: 0.6;
+}
+
+[data-theme='dark'] .moon-icon {
+  color: #93c5fd;
+  opacity: 1;
+}
+
+.theme-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+[data-theme='dark'] .theme-toggle-thumb {
+  transform: translateX(28px);
+  background: #3b82f6;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.55);
 }
 
 .badge-muted {
@@ -598,6 +686,38 @@
   background-color: #ffffff;
 }
 
+.stop-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-light);
+  cursor: grab;
+  padding: 0 0.15rem;
+  transition: color 0.15s ease;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.stop-drag-handle:active {
+  cursor: grabbing;
+}
+
+.stop-drag-handle:hover {
+  color: var(--primary);
+}
+
+.stop-compact-row.dragging {
+  opacity: 0.45;
+  border: 1.5px dashed var(--primary);
+  background-color: var(--bg-app);
+}
+
+.stop-compact-row.drag-over {
+  border-color: var(--primary);
+  background-color: var(--primary-light);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
 .stop-num-badge {
   width: 22px;
   height: 22px;
@@ -699,8 +819,8 @@
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--primary);
-  border-color: #bfdbfe;
-  background-color: #f8fafc;
+  border: 1px solid #bfdbfe;
+  background-color: #eff6ff;
   padding: 0.35rem 0.75rem;
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -708,8 +828,9 @@
 }
 
 .btn-add-compact:hover:not(:disabled) {
-  background-color: var(--primary-light);
+  background-color: #dbeafe;
   border-color: var(--primary);
+  color: var(--primary-hover);
 }
 
 .stops-count-hint {
@@ -1121,13 +1242,16 @@
   padding: 2.5rem 1rem;
   border: 1px dashed var(--border-color);
   border-radius: var(--radius-md);
-  background-color: #fafbfc;
+  background-color: var(--bg-app);
   margin-bottom: 1.5rem;
 }
 
 .empty-state-icon {
   font-size: 2.5rem;
   margin-bottom: 0.75rem;
+  color: var(--text-light);
+  display: flex;
+  justify-content: center;
 }
 
 .empty-state-title {
@@ -2003,8 +2127,8 @@
   top: calc(100% + 4px);
   left: 0;
   right: 0;
-  background-color: #ffffff;
-  border: 1px solid var(--border-hover);
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
   max-height: 240px;
@@ -2288,5 +2412,638 @@
     justify-content: space-between;
   }
 }
+
+/* ==========================================================================
+   Dark Mode Refinements & Contrast Enhancements
+   ========================================================================== */
+[data-theme='dark'] .app-header {
+  background-color: var(--bg-card);
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme='dark'] .card {
+  background-color: var(--bg-card);
+  border-color: var(--border-color);
+}
+
+[data-theme='dark'] input,
+[data-theme='dark'] select {
+  background-color: var(--bg-input);
+  color: var(--text-main);
+  border-color: var(--border-color);
+}
+
+[data-theme='dark'] input::placeholder {
+  color: var(--text-light);
+}
+
+[data-theme='dark'] .stop-compact-row {
+  background-color: var(--bg-input);
+  border-color: var(--border-color);
+}
+
+[data-theme='dark'] .stop-compact-row:focus-within {
+  border-color: var(--primary);
+  background-color: var(--bg-card);
+}
+
+[data-theme='dark'] .stop-address-input:focus {
+  background-color: var(--bg-card) !important;
+}
+
+[data-theme='dark'] .stop-stay-pill {
+  background-color: var(--bg-card);
+  border-color: var(--border-color);
+  color: var(--primary);
+}
+
+[data-theme='dark'] .stop-stay-pill:hover {
+  background-color: var(--primary-light);
+  border-color: var(--primary);
+}
+
+[data-theme='dark'] .toast-card {
+  background-color: var(--bg-card);
+  border-color: var(--border-color);
+}
+
+[data-theme='dark'] .badge-muted {
+  background: var(--bg-input);
+  border-color: var(--border-color);
+  color: var(--text-muted);
+}
+
+[data-theme='dark'] .btn-reset-draft {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+  color: var(--text-muted);
+}
+
+[data-theme='dark'] .btn-reset-draft:hover:not(:disabled) {
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.12);
+}
+
+[data-theme='dark'] .leaflet-popup-content-wrapper,
+[data-theme='dark'] .leaflet-popup-tip {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6) !important;
+}
+
+[data-theme='dark'] .leaflet-popup-content {
+  color: #f8fafc !important;
+}
+
+[data-theme='dark'] .leaflet-popup-content strong {
+  color: #ffffff !important;
+}
+
+[data-theme='dark'] .leaflet-popup-content p {
+  color: #94a3b8 !important;
+}
+
+[data-theme='dark'] .leaflet-container a.leaflet-popup-close-button {
+  color: #94a3b8 !important;
+}
+
+[data-theme='dark'] .leaflet-container a.leaflet-popup-close-button:hover {
+  color: #ffffff !important;
+}
+
+[data-theme='dark'] .recommendation-banner {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.12), rgba(59, 130, 246, 0.12));
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+[data-theme='dark'] .recommendation-banner-icon {
+  background: var(--bg-card);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme='dark'] .recommendation-banner-title {
+  color: var(--text-main);
+}
+
+[data-theme='dark'] .recommendation-banner-subtitle {
+  color: var(--text-muted);
+}
+
+[data-theme='dark'] .metric-card {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+}
+
+[data-theme='dark'] .skeleton-block {
+  background: linear-gradient(90deg, #151e32 25%, #263554 37%, #151e32 63%);
+  background-size: 400% 100%;
+}
+
+[data-theme='dark'] .empty-state {
+  background-color: rgba(255, 255, 255, 0.02) !important;
+  border-color: var(--border-color) !important;
+}
+
+[data-theme='dark'] .empty-state-icon {
+  color: #64748b !important;
+}
+
+[data-theme='dark'] .empty-state-title {
+  color: #f8fafc !important;
+}
+
+[data-theme='dark'] .empty-state-text {
+  color: #94a3b8 !important;
+}
+
+[data-theme='dark'] .empty-state-text strong {
+  color: #f1f5f9 !important;
+}
+
+/* Draft Saved Badge & Chain Tags in Dark Mode */
+[data-theme='dark'] .draft-status-badge {
+  background: rgba(34, 197, 94, 0.14) !important;
+  border: 1px solid rgba(34, 197, 94, 0.35) !important;
+  color: #4ade80 !important;
+}
+
+[data-theme='dark'] .chain-active-tag {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  border-color: rgba(59, 130, 246, 0.35) !important;
+  color: #60a5fa !important;
+}
+
+/* Address Autocomplete Dropdown & Items in Dark Mode */
+[data-theme='dark'] .autocomplete-dropdown {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme='dark'] .autocomplete-item {
+  color: #f8fafc !important;
+}
+
+[data-theme='dark'] .autocomplete-item:hover,
+[data-theme='dark'] .autocomplete-item.active {
+  background-color: rgba(59, 130, 246, 0.22) !important;
+  color: #93c5fd !important;
+}
+
+[data-theme='dark'] .autocomplete-item-primary {
+  color: #f8fafc !important;
+}
+
+[data-theme='dark'] .autocomplete-item-secondary {
+  color: #94a3b8 !important;
+}
+
+[data-theme='dark'] .autocomplete-icon {
+  color: #64748b !important;
+}
+
+[data-theme='dark'] .autocomplete-item:hover .autocomplete-icon,
+[data-theme='dark'] .autocomplete-item.active .autocomplete-icon {
+  color: #60a5fa !important;
+}
+
+[data-theme='dark'] .autocomplete-clear-btn {
+  color: #94a3b8 !important;
+}
+
+[data-theme='dark'] .autocomplete-clear-btn:hover {
+  color: #f8fafc !important;
+  background-color: #334155 !important;
+}
+
+[data-theme='dark'] .autocomplete-spinner {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  border-top-color: var(--primary) !important;
+}
+
+/* Input Fields & Location Action Button in Dark Mode */
+[data-theme='dark'] .form-input,
+[data-theme='dark'] .form-select,
+[data-theme='dark'] input[type="text"],
+[data-theme='dark'] input[type="time"],
+[data-theme='dark'] input[type="date"],
+[data-theme='dark'] input[type="number"],
+[data-theme='dark'] select {
+  background-color: var(--bg-input) !important;
+  color: var(--text-main) !important;
+  border-color: var(--border-color) !important;
+}
+
+[data-theme='dark'] .form-input:focus,
+[data-theme='dark'] .form-select:focus,
+[data-theme='dark'] input[type="text"]:focus,
+[data-theme='dark'] select:focus {
+  background-color: var(--bg-input) !important;
+  color: var(--text-main) !important;
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
+}
+
+[data-theme='dark'] input::placeholder {
+  color: var(--text-light) !important;
+}
+
+[data-theme='dark'] input:-webkit-autofill,
+[data-theme='dark'] input:-webkit-autofill:hover,
+[data-theme='dark'] input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text-main) !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--bg-input) inset !important;
+  box-shadow: 0 0 0 1000px var(--bg-input) inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+[data-theme='dark'] .btn-location-action {
+  background-color: var(--bg-input) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-muted) !important;
+}
+
+[data-theme='dark'] .btn-location-action:hover:not(:disabled) {
+  background-color: rgba(59, 130, 246, 0.22) !important;
+  border-color: #60a5fa !important;
+  color: #93c5fd !important;
+}
+
+/* Leaflet UI Dark Mode Controls & Attributions */
+[data-theme='dark'] .leaflet-bar a {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border-bottom: 1px solid #334155 !important;
+}
+
+[data-theme='dark'] .leaflet-bar a:hover {
+  background-color: #334155 !important;
+  color: #ffffff !important;
+}
+
+[data-theme='dark'] .leaflet-bar a.leaflet-disabled {
+  background-color: #0f172a !important;
+  color: #64748b !important;
+}
+
+[data-theme='dark'] .leaflet-container {
+  background-color: #0b1120 !important;
+}
+
+/* Leaflet Tile Layer Night Inversion (Zero API key, Zero Watermark) */
+[data-theme='dark'] .leaflet-tile-pane {
+  filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
+}
+
+[data-theme='dark'] .leaflet-control-attribution {
+  background-color: rgba(15, 23, 42, 0.8) !important;
+  color: #94a3b8 !important;
+}
+
+[data-theme='dark'] .leaflet-control-attribution a {
+  color: #60a5fa !important;
+}
+
+/* Button States & Hover Contrast in Dark Mode */
+[data-theme='dark'] .btn-add-compact {
+  background-color: rgba(59, 130, 246, 0.12) !important;
+  border-color: rgba(59, 130, 246, 0.35) !important;
+  color: #60a5fa !important;
+}
+
+[data-theme='dark'] .btn-add-compact:hover:not(:disabled) {
+  background-color: rgba(59, 130, 246, 0.28) !important;
+  border-color: #60a5fa !important;
+  color: #93c5fd !important;
+}
+
+[data-theme='dark'] .btn-secondary {
+  background-color: var(--bg-input);
+  color: var(--text-main);
+  border-color: var(--border-color);
+}
+
+[data-theme='dark'] .btn-secondary:not(:disabled):hover {
+  background-color: #1e293b;
+  border-color: var(--border-hover);
+}
+
+[data-theme='dark'] .btn-remove-compact:hover:not(:disabled) {
+  color: #f87171;
+  background-color: rgba(239, 68, 68, 0.18);
+}
+
+/* ==========================================================================
+   Itinerary Timeline Dark Mode Refinements
+   ========================================================================== */
+[data-theme='dark'] .trip-itinerary-card {
+  background-color: rgba(11, 17, 32, 0.6);
+  border-color: var(--border-color);
+}
+
+[data-theme='dark'] .itinerary-node {
+  background-color: #151e32;
+  border-color: #263554;
+}
+
+[data-theme='dark'] .itinerary-node:hover {
+  border-color: #3b4f7a;
+}
+
+[data-theme='dark'] .node-tag-start {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
+  color: #34d399 !important;
+}
+
+[data-theme='dark'] .node-tag-dest {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+  color: #f87171 !important;
+}
+
+[data-theme='dark'] .node-tag-deadline {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  border-color: rgba(59, 130, 246, 0.35) !important;
+  color: #60a5fa !important;
+}
+
+[data-theme='dark'] .time-pill-arr {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  border-color: rgba(59, 130, 246, 0.35) !important;
+  color: #60a5fa !important;
+}
+
+[data-theme='dark'] .time-pill-arr .time-pill-label {
+  color: #94a3b8 !important;
+}
+
+[data-theme='dark'] .time-pill-arr strong {
+  color: #60a5fa !important;
+}
+
+[data-theme='dark'] .time-pill-dep {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme='dark'] .time-pill-dep .time-pill-label {
+  color: #94a3b8 !important;
+}
+
+[data-theme='dark'] .time-pill-dep strong {
+  color: #ffffff !important;
+}
+
+[data-theme='dark'] .transit-info-badge {
+  background-color: #1a253e !important;
+  border-color: #263554 !important;
+  color: #94a3b8 !important;
+}
+
+[data-theme='dark'] .transit-info-badge svg {
+  color: #60a5fa !important;
+}
+
+[data-theme='dark'] .transit-track-line {
+  background: repeating-linear-gradient(
+    to bottom,
+    #334155,
+    #334155 4px,
+    transparent 4px,
+    transparent 8px
+  ) !important;
+}
+
+[data-theme='dark'] .node-stay-hint {
+  color: #94a3b8 !important;
+}
+
+[data-theme='dark'] .node-stay-hint svg {
+  color: #64748b !important;
+}
+
+/* Map Header Action Buttons in Dark Mode (Google Maps & Copy Link) */
+[data-theme='dark'] .map-header-ext-link {
+  background: rgba(59, 130, 246, 0.15) !important;
+  border: 1px solid rgba(59, 130, 246, 0.35) !important;
+  color: #60a5fa !important;
+}
+
+[data-theme='dark'] .map-header-ext-link:hover {
+  background: rgba(59, 130, 246, 0.28) !important;
+  border-color: #60a5fa !important;
+  color: #93c5fd !important;
+}
+
+[data-theme='dark'] .map-header-copy-btn {
+  background: #1e293b !important;
+  border: 1px solid #334155 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme='dark'] .map-header-copy-btn:hover {
+  background: #334155 !important;
+  border-color: #475569 !important;
+  color: #ffffff !important;
+}
+
+[data-theme='dark'] .map-header-copy-btn.copied {
+  background: rgba(34, 197, 94, 0.18) !important;
+  border-color: rgba(34, 197, 94, 0.45) !important;
+  color: #4ade80 !important;
+}
+
+/* ==========================================================================
+   Map Click Waypoint Marker & Action Popup
+   ========================================================================== */
+.map-marker-clicked {
+  position: relative;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.marker-clicked-dot {
+  width: 14px;
+  height: 14px;
+  background-color: var(--primary);
+  border: 2.5px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  z-index: 2;
+}
+
+.marker-pulse-ring {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: rgba(37, 99, 235, 0.35);
+  animation: marker-pulse-expand 1.8s ease-out infinite;
+  z-index: 1;
+}
+
+@keyframes marker-pulse-expand {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+.map-click-popup {
+  min-width: 220px;
+  max-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.map-click-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--primary);
+}
+
+.map-click-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.825rem;
+  color: var(--text-muted);
+  padding: 0.4rem 0;
+}
+
+.map-click-address {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-main);
+  line-height: 1.35;
+  margin: 0;
+  word-break: break-word;
+}
+
+.map-click-error {
+  font-size: 0.75rem;
+  color: var(--danger);
+  margin: 0;
+}
+
+.map-click-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.map-action-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.35rem 0.4rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-action-start {
+  background-color: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #059669;
+}
+
+.btn-action-start:hover {
+  background-color: #d1fae5;
+  border-color: #34d399;
+}
+
+.btn-action-stop {
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+  color: var(--primary);
+}
+
+.btn-action-stop:hover {
+  background-color: #dbeafe;
+  border-color: #60a5fa;
+}
+
+.btn-action-dest {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.btn-action-dest:hover {
+  background-color: #fee2e2;
+  border-color: #f87171;
+}
+
+/* Dark Mode Overrides for Map Click Popup */
+[data-theme='dark'] .map-click-actions {
+  border-top-color: #334155;
+}
+
+[data-theme='dark'] .btn-action-start {
+  background-color: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.35);
+  color: #34d399;
+}
+
+[data-theme='dark'] .btn-action-start:hover {
+  background-color: rgba(16, 185, 129, 0.28);
+  border-color: #34d399;
+}
+
+[data-theme='dark'] .btn-action-stop {
+  background-color: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.35);
+  color: #60a5fa;
+}
+
+[data-theme='dark'] .btn-action-stop:hover {
+  background-color: rgba(59, 130, 246, 0.28);
+  border-color: #60a5fa;
+}
+
+[data-theme='dark'] .btn-action-dest {
+  background-color: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #f87171;
+}
+
+[data-theme='dark'] .btn-action-dest:hover {
+  background-color: rgba(239, 68, 68, 0.28);
+  border-color: #f87171;
+}
+
+
+
+
+
+
 
 
