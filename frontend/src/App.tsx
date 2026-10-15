@@ -102,6 +102,10 @@ export const App: React.FC = () => {
     );
   };
 
+  const handleReorderStops = (reorderedStops: RouteStop[]) => {
+    setStops(reorderedStops);
+  };
+
   // Autosave draft on form changes with debounce
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -226,6 +230,7 @@ export const App: React.FC = () => {
               onAddStop={handleAddStop}
               onRemoveStop={handleRemoveStop}
               onUpdateStop={handleUpdateStop}
+              onReorderStops={handleReorderStops}
               searchScope={searchScope}
               onSearchScopeChange={setSearchScope}
               selectedCity={selectedCity}

@@ -598,6 +598,38 @@
   background-color: #ffffff;
 }
 
+.stop-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-light);
+  cursor: grab;
+  padding: 0 0.15rem;
+  transition: color 0.15s ease;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.stop-drag-handle:active {
+  cursor: grabbing;
+}
+
+.stop-drag-handle:hover {
+  color: var(--primary);
+}
+
+.stop-compact-row.dragging {
+  opacity: 0.45;
+  border: 1.5px dashed var(--primary);
+  background-color: var(--bg-app);
+}
+
+.stop-compact-row.drag-over {
+  border-color: var(--primary);
+  background-color: var(--primary-light);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
 .stop-num-badge {
   width: 22px;
   height: 22px;
