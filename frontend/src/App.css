@@ -2735,6 +2735,130 @@
   background-color: rgba(239, 68, 68, 0.18);
 }
 
+/* ==========================================================================
+   Itinerary Timeline Dark Mode Refinements
+   ========================================================================== */
+[data-theme='dark'] .trip-itinerary-card {
+  background-color: rgba(11, 17, 32, 0.6);
+  border-color: var(--border-color);
+}
+
+[data-theme='dark'] .itinerary-node {
+  background-color: #151e32;
+  border-color: #263554;
+}
+
+[data-theme='dark'] .itinerary-node:hover {
+  border-color: #3b4f7a;
+}
+
+[data-theme='dark'] .node-tag-start {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
+  color: #34d399 !important;
+}
+
+[data-theme='dark'] .node-tag-dest {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+  color: #f87171 !important;
+}
+
+[data-theme='dark'] .node-tag-deadline {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  border-color: rgba(59, 130, 246, 0.35) !important;
+  color: #60a5fa !important;
+}
+
+[data-theme='dark'] .time-pill-arr {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  border-color: rgba(59, 130, 246, 0.35) !important;
+  color: #60a5fa !important;
+}
+
+[data-theme='dark'] .time-pill-arr .time-pill-label {
+  color: #94a3b8 !important;
+}
+
+[data-theme='dark'] .time-pill-arr strong {
+  color: #60a5fa !important;
+}
+
+[data-theme='dark'] .time-pill-dep {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme='dark'] .time-pill-dep .time-pill-label {
+  color: #94a3b8 !important;
+}
+
+[data-theme='dark'] .time-pill-dep strong {
+  color: #ffffff !important;
+}
+
+[data-theme='dark'] .transit-info-badge {
+  background-color: #1a253e !important;
+  border-color: #263554 !important;
+  color: #94a3b8 !important;
+}
+
+[data-theme='dark'] .transit-info-badge svg {
+  color: #60a5fa !important;
+}
+
+[data-theme='dark'] .transit-track-line {
+  background: repeating-linear-gradient(
+    to bottom,
+    #334155,
+    #334155 4px,
+    transparent 4px,
+    transparent 8px
+  ) !important;
+}
+
+[data-theme='dark'] .node-stay-hint {
+  color: #94a3b8 !important;
+}
+
+[data-theme='dark'] .node-stay-hint svg {
+  color: #64748b !important;
+}
+
+/* Map Header Action Buttons in Dark Mode (Google Maps & Copy Link) */
+[data-theme='dark'] .map-header-ext-link {
+  background: rgba(59, 130, 246, 0.15) !important;
+  border: 1px solid rgba(59, 130, 246, 0.35) !important;
+  color: #60a5fa !important;
+}
+
+[data-theme='dark'] .map-header-ext-link:hover {
+  background: rgba(59, 130, 246, 0.28) !important;
+  border-color: #60a5fa !important;
+  color: #93c5fd !important;
+}
+
+[data-theme='dark'] .map-header-copy-btn {
+  background: #1e293b !important;
+  border: 1px solid #334155 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme='dark'] .map-header-copy-btn:hover {
+  background: #334155 !important;
+  border-color: #475569 !important;
+  color: #ffffff !important;
+}
+
+[data-theme='dark'] .map-header-copy-btn.copied {
+  background: rgba(34, 197, 94, 0.18) !important;
+  border-color: rgba(34, 197, 94, 0.45) !important;
+  color: #4ade80 !important;
+}
+
+
+
 
 
 
