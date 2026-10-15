@@ -43,7 +43,38 @@ function sanitizeDraftDate(dateTimeStr?: string, defaultHour = '09:00'): string 
   return `${date}T${safeTime}`;
 }
 
+export type ThemeMode = 'light' | 'dark';
+
+function getInitialTheme(): ThemeMode {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('routewise_theme');
+    if (saved === 'light' || saved === 'dark') {
+      return saved;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark';
+    }
+  }
+  return 'light';
+}
+
 export const App: React.FC = () => {
+  // Theme State
+  const [theme, setTheme] = useState<ThemeMode>(getInitialTheme);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    try {
+      localStorage.setItem('routewise_theme', theme);
+    } catch {
+      // LocalStorage might be disabled in some environments
+    }
+  }, [theme]);
+
+  const handleToggleTheme = () => {
+    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+  };
+
   // Form State
   const [start, setStart] = useState<AddressInput>(() => initialDraft?.start ?? DEFAULT_START);
   const [destination, setDestination] = useState<AddressInput>(() => initialDraft?.destination ?? DEFAULT_DESTINATION);
@@ -217,7 +248,7 @@ export const App: React.FC = () => {
   return (
     <div className="app-root">
       <Toast message={error} onClose={() => setError(null)} />
-      <Header />
+      <Header theme={theme} onToggleTheme={handleToggleTheme} />
       <main className="main-container">
         <div className="planner-grid">
           <div className="left-column">
