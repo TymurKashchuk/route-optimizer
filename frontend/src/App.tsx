@@ -283,7 +283,7 @@ export const App: React.FC = () => {
             />
           </div>
           <div className="right-column">
-            <ResultsSection result={result} isLoading={isLoading} />
+            <ResultsSection result={result} isLoading={isLoading} theme={theme} />
           </div>
         </div>
       </main>

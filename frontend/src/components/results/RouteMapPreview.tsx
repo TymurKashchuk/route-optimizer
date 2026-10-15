@@ -8,6 +8,7 @@ interface RouteMapPreviewProps {
   preview?: RoutePreviewDto;
   isLoading?: boolean;
   travelMode?: TravelMode;
+  theme?: 'light' | 'dark';
 }
 
 const iconCache = new Map<string, L.DivIcon>();
@@ -58,7 +59,12 @@ const MapBoundsUpdater: React.FC<{ points: [number, number][] }> = ({ points }) 
   return null;
 };
 
-export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({ preview, isLoading, travelMode = 'driving' }) => {
+export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({
+  preview,
+  isLoading,
+  travelMode = 'driving',
+  theme = 'light',
+}) => {
   const [copied, setCopied] = useState(false);
   const timeoutRef = useRef<number | null>(null);
 
@@ -256,8 +262,17 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({ preview, isLoa
           className="leaflet-map-element"
         >
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            key={theme}
+            attribution={
+              theme === 'dark'
+                ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }
+            url={
+              theme === 'dark'
+                ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+                : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+            }
           />
 
           <MapBoundsUpdater
@@ -315,9 +330,9 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({ preview, isLoa
             <Polyline
               positions={polylinePositions}
               pathOptions={{
-                color: '#2563eb',
+                color: theme === 'dark' ? '#38bdf8' : '#2563eb',
                 weight: 5,
-                opacity: 0.85,
+                opacity: 0.9,
                 lineCap: 'round',
                 lineJoin: 'round',
               }}

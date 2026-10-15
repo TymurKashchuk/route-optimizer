@@ -9,9 +9,10 @@ import { formatTime } from '../utils/dateTime';
 interface ResultsSectionProps {
   result: OptimizeRouteResponse | null;
   isLoading: boolean;
+  theme?: 'light' | 'dark';
 }
 
-export const ResultsSection: React.FC<ResultsSectionProps> = ({ result, isLoading }) => {
+export const ResultsSection: React.FC<ResultsSectionProps> = ({ result, isLoading, theme = 'light' }) => {
   const isDirect = result ? result.orderedStops.length === 0 : false;
 
   return (
@@ -178,7 +179,11 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({ result, isLoadin
             fallbackTitle="Не вдалося відобразити інтерактивну мапу"
             fallbackMessage="Виникла помилка під час рендерингу карти Leaflet. Інші деталі маршруту та покроковий розклад доступні нижче."
           >
-            <RouteMapPreview preview={result.routePreview} travelMode={result.travelMode} />
+            <RouteMapPreview
+              preview={result.routePreview}
+              travelMode={result.travelMode}
+              theme={theme}
+            />
           </ErrorBoundary>
 
           {/* Integrated Step-by-Step Itinerary */}
