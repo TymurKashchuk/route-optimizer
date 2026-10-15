@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
-import type { RoutePreviewDto, TravelMode } from '../../types/route';
+import type { AddressInput, RoutePreviewDto, RouteStop, TravelMode } from '../../types/route';
 import { buildGoogleMapsDirectionsUrl, copyToClipboard } from '../../utils/googleMaps';
 import { reverseGeocode } from '../../api/geocodingClient';
 
@@ -13,6 +13,9 @@ interface RouteMapPreviewProps {
   onSetStart?: (address: string, lat: number, lng: number) => void;
   onAddStop?: (address: string, lat: number, lng: number) => void;
   onSetDestination?: (address: string, lat: number, lng: number) => void;
+  fallbackStart?: AddressInput;
+  fallbackDestination?: AddressInput;
+  fallbackStops?: RouteStop[];
 }
 
 const iconCache = new Map<string, L.DivIcon>();
@@ -40,11 +43,32 @@ const getNumberedIcon = (label: string | number, type: 'start' | 'stop' | 'desti
   return icon;
 };
 
+const getPointsKey = (pts: [number, number][]): string => {
+  if (pts.length === 0) return '';
+  if (pts.length <= 10) {
+    return pts.map((p) => `${p[0].toFixed(5)},${p[1].toFixed(5)}`).join('|');
+  }
+  const first = pts[0];
+  const mid = pts[Math.floor(pts.length / 2)];
+  const last = pts[pts.length - 1];
+  return `len:${pts.length}|${first[0].toFixed(5)},${first[1].toFixed(5)}|${mid[0].toFixed(5)},${mid[1].toFixed(5)}|${last[0].toFixed(5)},${last[1].toFixed(5)}`;
+};
+
 const MapBoundsUpdater: React.FC<{ points: [number, number][] }> = ({ points }) => {
   const map = useMap();
+  const prevPointsKeyRef = useRef<string>('');
 
   useEffect(() => {
-    if (points.length === 0) return;
+    if (points.length === 0) {
+      prevPointsKeyRef.current = '';
+      return;
+    }
+
+    const currentKey = getPointsKey(points);
+    if (currentKey === prevPointsKeyRef.current) {
+      return;
+    }
+    prevPointsKeyRef.current = currentKey;
 
     if (points.length === 1) {
       map.setView(points[0], 14);
@@ -107,6 +131,9 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({
   onSetStart,
   onAddStop,
   onSetDestination,
+  fallbackStart,
+  fallbackDestination,
+  fallbackStops,
 }) => {
   const [copied, setCopied] = useState(false);
   const timeoutRef = useRef<number | null>(null);
@@ -192,6 +219,32 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({
     return points;
   }, [preview]);
 
+  const preRoutePoints = useMemo<[number, number][]>(() => {
+    const pts: [number, number][] = [];
+    if (fallbackStart?.latitude && fallbackStart?.longitude) {
+      pts.push([fallbackStart.latitude, fallbackStart.longitude]);
+    }
+    fallbackStops?.forEach((s) => {
+      if (s.latitude && s.longitude) {
+        pts.push([s.latitude, s.longitude]);
+      }
+    });
+    if (fallbackDestination?.latitude && fallbackDestination?.longitude) {
+      pts.push([fallbackDestination.latitude, fallbackDestination.longitude]);
+    }
+    return pts;
+  }, [fallbackStart, fallbackStops, fallbackDestination]);
+
+  const preRouteCenter = useMemo<[number, number]>(() => {
+    if (fallbackStart?.latitude && fallbackStart?.longitude) {
+      return [fallbackStart.latitude, fallbackStart.longitude];
+    }
+    if (preRoutePoints.length > 0) {
+      return preRoutePoints[0];
+    }
+    return [50.2547, 28.6587];
+  }, [fallbackStart, preRoutePoints]);
+
   if (isLoading) {
     return (
       <div className="card route-map-card">
@@ -205,8 +258,195 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({
 
   if (!preview || !preview.startPoint) {
     return (
-      <div className="card route-map-card route-map-empty">
-        <p className="empty-state-text">Дані для мапи наразі відсутні.</p>
+      <div className="card route-map-card">
+        <div className="route-map-header">
+          <div className="route-map-title-wrap">
+            <h3 className="section-title">Інтерактивна мапа</h3>
+            <span className="badge-muted">
+              {preRoutePoints.length === 0
+                ? 'Клікніть на мапі для вибору точок'
+                : `Обрано точок: ${preRoutePoints.length}`}
+            </span>
+          </div>
+
+          <div className="route-map-header-right">
+            <div className="map-legend">
+              <span className="legend-item">
+                <span className="legend-badge legend-start">A</span> Старт
+              </span>
+              <span className="legend-item">
+                <span className="legend-badge legend-stop">+</span> Зупинки
+              </span>
+              <span className="legend-item">
+                <span className="legend-badge legend-dest">B</span> Фініш
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="route-map-wrapper">
+          <MapContainer
+            center={preRouteCenter}
+            zoom={13}
+            scrollWheelZoom={true}
+            className="leaflet-map-element"
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+
+            {preRoutePoints.length > 0 && (
+              <MapBoundsUpdater points={preRoutePoints} />
+            )}
+
+            {/* Fallback Start Marker */}
+            {fallbackStart?.latitude && fallbackStart?.longitude && (
+              <Marker
+                position={[fallbackStart.latitude, fallbackStart.longitude]}
+                icon={getNumberedIcon('A', 'start')}
+              >
+                <Popup>
+                  <div className="map-popup-content">
+                    <strong>Старт: {fallbackStart.label || 'Старт'}</strong>
+                    <p>{fallbackStart.address}</p>
+                  </div>
+                </Popup>
+              </Marker>
+            )}
+
+            {/* Fallback Stop Markers */}
+            {fallbackStops?.map((stop, idx) => (
+              stop.latitude && stop.longitude ? (
+                <Marker
+                  key={stop.id}
+                  position={[stop.latitude, stop.longitude]}
+                  icon={getNumberedIcon(idx + 1, 'stop')}
+                >
+                  <Popup>
+                    <div className="map-popup-content">
+                      <strong>Зупинка #{idx + 1}: {stop.label}</strong>
+                      <p>{stop.address}</p>
+                    </div>
+                  </Popup>
+                </Marker>
+              ) : null
+            ))}
+
+            {/* Fallback Destination Marker */}
+            {fallbackDestination?.latitude && fallbackDestination?.longitude && (
+              <Marker
+                position={[fallbackDestination.latitude, fallbackDestination.longitude]}
+                icon={getNumberedIcon('B', 'destination')}
+              >
+                <Popup>
+                  <div className="map-popup-content">
+                    <strong>Фініш: {fallbackDestination.label || 'Фініш'}</strong>
+                    <p>{fallbackDestination.address}</p>
+                  </div>
+                </Popup>
+              </Marker>
+            )}
+
+            {/* Map Click Listener */}
+            <MapClickHandler onMapClick={handleMapClick} />
+
+            {/* Interactive Clicked Waypoint Marker & Action Popup */}
+            {clickedPoint && (
+              <Marker
+                position={[clickedPoint.lat, clickedPoint.lng]}
+                icon={getClickedIcon()}
+              >
+                <Popup
+                  autoPan={true}
+                  eventHandlers={{
+                    remove: () => setClickedPoint(null),
+                  }}
+                >
+                  <div className="map-click-popup">
+                    <div className="map-click-header">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z" />
+                        <circle cx="12" cy="10" r="3" />
+                      </svg>
+                      <span>Обрана точка</span>
+                    </div>
+
+                    {clickedPoint.isLoading ? (
+                      <div className="map-click-loading">
+                        <span className="btn-spinner text-primary" />
+                        <span>Визначаємо адресу...</span>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="map-click-address">{clickedPoint.address}</p>
+                        {clickedPoint.error && (
+                          <p className="map-click-error">{clickedPoint.error}</p>
+                        )}
+
+                        <div className="map-click-actions">
+                          {onSetStart && (
+                            <button
+                              type="button"
+                              className="map-action-btn btn-action-start"
+                              onClick={() => {
+                                onSetStart(clickedPoint.address || `${clickedPoint.lat.toFixed(5)}, ${clickedPoint.lng.toFixed(5)}`, clickedPoint.lat, clickedPoint.lng);
+                                setClickedPoint(null);
+                              }}
+                              title="Встановити як початкову точку подорожі"
+                            >
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <circle cx="12" cy="12" r="10" />
+                                <text x="12" y="16" textAnchor="middle" fontSize="11" fontWeight="bold" fill="currentColor" stroke="none">A</text>
+                              </svg>
+                              <span>Старт</span>
+                            </button>
+                          )}
+
+                          {onAddStop && (
+                            <button
+                              type="button"
+                              className="map-action-btn btn-action-stop"
+                              onClick={() => {
+                                onAddStop(clickedPoint.address || `${clickedPoint.lat.toFixed(5)}, ${clickedPoint.lng.toFixed(5)}`, clickedPoint.lat, clickedPoint.lng);
+                                setClickedPoint(null);
+                              }}
+                              title="Додати як проміжну зупинку"
+                            >
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <line x1="12" y1="5" x2="12" y2="19" />
+                                <line x1="5" y1="12" x2="19" y2="12" />
+                              </svg>
+                              <span>Зупинка</span>
+                            </button>
+                          )}
+
+                          {onSetDestination && (
+                            <button
+                              type="button"
+                              className="map-action-btn btn-action-dest"
+                              onClick={() => {
+                                onSetDestination(clickedPoint.address || `${clickedPoint.lat.toFixed(5)}, ${clickedPoint.lng.toFixed(5)}`, clickedPoint.lat, clickedPoint.lng);
+                                setClickedPoint(null);
+                              }}
+                              title="Встановити як кінцеву точку подорожі"
+                            >
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <circle cx="12" cy="12" r="10" />
+                                <text x="12" y="16" textAnchor="middle" fontSize="11" fontWeight="bold" fill="currentColor" stroke="none">B</text>
+                              </svg>
+                              <span>Фініш</span>
+                            </button>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </Popup>
+              </Marker>
+            )}
+          </MapContainer>
+        </div>
       </div>
     );
   }

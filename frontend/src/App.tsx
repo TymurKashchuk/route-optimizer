@@ -137,6 +137,37 @@ export const App: React.FC = () => {
     setStops(reorderedStops);
   };
 
+  const handleSetStartFromMap = (address: string, lat?: number, lng?: number) => {
+    setStart({
+      label: deriveStopLabel(address, 'Старт'),
+      address,
+      latitude: lat,
+      longitude: lng,
+    });
+  };
+
+  const handleSetDestinationFromMap = (address: string, lat?: number, lng?: number) => {
+    setDestination({
+      label: deriveStopLabel(address, 'Фініш'),
+      address,
+      latitude: lat,
+      longitude: lng,
+    });
+  };
+
+  const handleAddStopFromMap = (address: string, lat?: number, lng?: number) => {
+    if (stops.length >= 10) return;
+    const newStop: RouteStop = {
+      id: `stop-${generateId()}`,
+      label: deriveStopLabel(address, `Зупинка ${stops.length + 1}`),
+      address,
+      latitude: lat,
+      longitude: lng,
+      serviceMinutes: 15,
+    };
+    setStops((prev) => [...prev, newStop]);
+  };
+
   // Autosave draft on form changes with debounce
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -283,7 +314,17 @@ export const App: React.FC = () => {
             />
           </div>
           <div className="right-column">
-            <ResultsSection result={result} isLoading={isLoading} theme={theme} />
+            <ResultsSection
+              result={result}
+              isLoading={isLoading}
+              theme={theme}
+              start={start}
+              destination={destination}
+              stops={stops}
+              onSetStartFromMap={handleSetStartFromMap}
+              onAddStopFromMap={handleAddStopFromMap}
+              onSetDestinationFromMap={handleSetDestinationFromMap}
+            />
           </div>
         </div>
       </main>
