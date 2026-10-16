@@ -202,6 +202,45 @@ export const App: React.FC = () => {
     selectedCity,
   ]);
 
+  const handleTryExample = () => {
+    setStart({
+      label: 'Житомир, майдан Корольова',
+      address: 'Житомир, майдан Корольова',
+      latitude: 50.2547,
+      longitude: 28.6587,
+    });
+    setStops([
+      {
+        id: `stop-${generateId()}`,
+        label: 'Брусилів, АЗС',
+        address: 'Брусилів, АЗС',
+        serviceMinutes: 15,
+        latitude: 50.2882,
+        longitude: 29.5312,
+      },
+      {
+        id: `stop-${generateId()}`,
+        label: 'Фастів, вокзал',
+        address: 'Фастів, вокзал',
+        serviceMinutes: 20,
+        latitude: 50.0789,
+        longitude: 29.9168,
+      },
+    ]);
+    setDestination({
+      label: 'Київ, Хрещатик',
+      address: 'Київ, Хрещатик',
+      latitude: 50.4501,
+      longitude: 30.5234,
+    });
+    setTravelMode('driving');
+    setPlanningMode('depart-at');
+    setDepartureTime(`${getTodayDateString()}T09:00`);
+    setAlgorithm('two-opt');
+    setSearchScope('all-ukraine');
+    setError(null);
+  };
+
   const handleResetDraft = () => {
     clearTripDraft();
     setStart(DEFAULT_START);
@@ -324,6 +363,7 @@ export const App: React.FC = () => {
               onSetStartFromMap={handleSetStartFromMap}
               onAddStopFromMap={handleAddStopFromMap}
               onSetDestinationFromMap={handleSetDestinationFromMap}
+              onTryExample={handleTryExample}
             />
           </div>
         </div>
