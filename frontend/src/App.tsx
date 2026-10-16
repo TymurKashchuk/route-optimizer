@@ -267,7 +267,7 @@ export const App: React.FC = () => {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError('An unexpected error occurred while calculating the route.');
+        setError('Під час розрахунку маршруту сталася неочікувана помилка.');
       }
     } finally {
       if (abortControllerRef.current === controller) {
