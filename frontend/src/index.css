@@ -6,6 +6,7 @@
    ========================================================================== */
 :root {
   color-scheme: light;
+  accent-color: #C9400F;
 
   /* Core palette */
   --bg-app: #EEF1F4;
@@ -69,6 +70,7 @@
 
 [data-theme='dark'] {
   color-scheme: dark;
+  accent-color: #C9400F;
 
   --bg-app: #0B111A;
   --bg-card: #131B27;
