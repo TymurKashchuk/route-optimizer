@@ -16,6 +16,7 @@ interface RouteMapPreviewProps {
   fallbackStart?: AddressInput;
   fallbackDestination?: AddressInput;
   fallbackStops?: RouteStop[];
+  renderHeroOverlay?: React.ReactNode;
 }
 
 const iconCache = new Map<string, L.DivIcon>();
@@ -34,9 +35,9 @@ const getNumberedIcon = (label: string | number, type: 'start' | 'stop' | 'desti
     icon = L.divIcon({
       className: 'custom-map-marker-container',
       html: `<div class="map-marker-badge ${badgeClass}">${label}</div>`,
-      iconSize: [30, 30],
-      iconAnchor: [15, 15],
-      popupAnchor: [0, -15],
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+      popupAnchor: [0, -14],
     });
     iconCache.set(key, icon);
   }
@@ -71,15 +72,15 @@ const MapBoundsUpdater: React.FC<{ points: [number, number][] }> = ({ points }) 
     prevPointsKeyRef.current = currentKey;
 
     if (points.length === 1) {
-      map.setView(points[0], 14);
+      map.setView(points[0], 13);
       return;
     }
 
     const bounds = L.latLngBounds(points);
     if (bounds.isValid()) {
       map.fitBounds(bounds, {
-        padding: [45, 45],
-        maxZoom: 16,
+        padding: [60, 60],
+        maxZoom: 15,
       });
     }
   }, [map, points]);
@@ -93,9 +94,9 @@ const getClickedIcon = (): L.DivIcon => {
     icon = L.divIcon({
       className: 'custom-map-marker-container',
       html: `<div class="map-marker-badge map-marker-clicked"><span class="marker-pulse-ring"></span><span class="marker-clicked-dot"></span></div>`,
-      iconSize: [28, 28],
-      iconAnchor: [14, 14],
-      popupAnchor: [0, -14],
+      iconSize: [26, 26],
+      iconAnchor: [13, 13],
+      popupAnchor: [0, -13],
     });
     iconCache.set('clicked-pin', icon);
   }
@@ -127,13 +128,14 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({
   preview,
   isLoading,
   travelMode = 'driving',
-  theme = 'light',
+  theme: _theme = 'light',
   onSetStart,
   onAddStop,
   onSetDestination,
   fallbackStart,
   fallbackDestination,
   fallbackStops,
+  renderHeroOverlay,
 }) => {
   const [copied, setCopied] = useState(false);
   const timeoutRef = useRef<number | null>(null);
@@ -192,7 +194,6 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({
       return preview.geometryCoordinates.map((coord) => [coord.latitude, coord.longitude]);
     }
 
-    // Fallback: direct lines between start, stops, and destination
     const points: [number, number][] = [
       [preview.startPoint.latitude, preview.startPoint.longitude],
     ];
@@ -235,229 +236,22 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({
     return pts;
   }, [fallbackStart, fallbackStops, fallbackDestination]);
 
-  const preRouteCenter = useMemo<[number, number]>(() => {
+  // Center of Ukraine by default (Cherkasy / Kropyvnytskyi region) or start point
+  const mapCenter = useMemo<[number, number]>(() => {
+    if (preview?.startPoint?.latitude && preview?.startPoint?.longitude) {
+      return [preview.startPoint.latitude, preview.startPoint.longitude];
+    }
     if (fallbackStart?.latitude && fallbackStart?.longitude) {
       return [fallbackStart.latitude, fallbackStart.longitude];
     }
     if (preRoutePoints.length > 0) {
       return preRoutePoints[0];
     }
-    return [50.2547, 28.6587];
-  }, [fallbackStart, preRoutePoints]);
+    // Geographic Center of Ukraine
+    return [48.3794, 31.1656];
+  }, [preview, fallbackStart, preRoutePoints]);
 
-  if (isLoading) {
-    return (
-      <div className="card route-map-card">
-        <div className="map-skeleton">
-          <div className="btn-spinner text-primary" />
-          <p className="skeleton-subtitle">Завантажуємо дорожню карту...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!preview || !preview.startPoint) {
-    return (
-      <div className="card route-map-card">
-        <div className="route-map-header">
-          <div className="route-map-title-wrap">
-            <h3 className="section-title">Інтерактивна мапа</h3>
-            <span className="badge-muted">
-              {preRoutePoints.length === 0
-                ? 'Клікніть на мапі для вибору точок'
-                : `Обрано точок: ${preRoutePoints.length}`}
-            </span>
-          </div>
-
-          <div className="route-map-header-right">
-            <div className="map-legend">
-              <span className="legend-item">
-                <span className="legend-badge legend-start">A</span> Старт
-              </span>
-              <span className="legend-item">
-                <span className="legend-badge legend-stop">+</span> Зупинки
-              </span>
-              <span className="legend-item">
-                <span className="legend-badge legend-dest">B</span> Фініш
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="route-map-wrapper">
-          <MapContainer
-            center={preRouteCenter}
-            zoom={13}
-            scrollWheelZoom={true}
-            className="leaflet-map-element"
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-
-            {preRoutePoints.length > 0 && (
-              <MapBoundsUpdater points={preRoutePoints} />
-            )}
-
-            {/* Fallback Start Marker */}
-            {fallbackStart?.latitude && fallbackStart?.longitude && (
-              <Marker
-                position={[fallbackStart.latitude, fallbackStart.longitude]}
-                icon={getNumberedIcon('A', 'start')}
-              >
-                <Popup>
-                  <div className="map-popup-content">
-                    <strong>Старт: {fallbackStart.label || 'Старт'}</strong>
-                    <p>{fallbackStart.address}</p>
-                  </div>
-                </Popup>
-              </Marker>
-            )}
-
-            {/* Fallback Stop Markers */}
-            {fallbackStops?.map((stop, idx) => (
-              stop.latitude && stop.longitude ? (
-                <Marker
-                  key={stop.id}
-                  position={[stop.latitude, stop.longitude]}
-                  icon={getNumberedIcon(idx + 1, 'stop')}
-                >
-                  <Popup>
-                    <div className="map-popup-content">
-                      <strong>Зупинка #{idx + 1}: {stop.label}</strong>
-                      <p>{stop.address}</p>
-                    </div>
-                  </Popup>
-                </Marker>
-              ) : null
-            ))}
-
-            {/* Fallback Destination Marker */}
-            {fallbackDestination?.latitude && fallbackDestination?.longitude && (
-              <Marker
-                position={[fallbackDestination.latitude, fallbackDestination.longitude]}
-                icon={getNumberedIcon('B', 'destination')}
-              >
-                <Popup>
-                  <div className="map-popup-content">
-                    <strong>Фініш: {fallbackDestination.label || 'Фініш'}</strong>
-                    <p>{fallbackDestination.address}</p>
-                  </div>
-                </Popup>
-              </Marker>
-            )}
-
-            {/* Map Click Listener */}
-            <MapClickHandler onMapClick={handleMapClick} />
-
-            {/* Interactive Clicked Waypoint Marker & Action Popup */}
-            {clickedPoint && (
-              <Marker
-                position={[clickedPoint.lat, clickedPoint.lng]}
-                icon={getClickedIcon()}
-              >
-                <Popup
-                  autoPan={true}
-                  eventHandlers={{
-                    remove: () => setClickedPoint(null),
-                  }}
-                >
-                  <div className="map-click-popup">
-                    <div className="map-click-header">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z" />
-                        <circle cx="12" cy="10" r="3" />
-                      </svg>
-                      <span>Обрана точка</span>
-                    </div>
-
-                    {clickedPoint.isLoading ? (
-                      <div className="map-click-loading">
-                        <span className="btn-spinner text-primary" />
-                        <span>Визначаємо адресу...</span>
-                      </div>
-                    ) : (
-                      <>
-                        <p className="map-click-address">{clickedPoint.address}</p>
-                        {clickedPoint.error && (
-                          <p className="map-click-error">{clickedPoint.error}</p>
-                        )}
-
-                        <div className="map-click-actions">
-                          {onSetStart && (
-                            <button
-                              type="button"
-                              className="map-action-btn btn-action-start"
-                              onClick={() => {
-                                onSetStart(clickedPoint.address || `${clickedPoint.lat.toFixed(5)}, ${clickedPoint.lng.toFixed(5)}`, clickedPoint.lat, clickedPoint.lng);
-                                setClickedPoint(null);
-                              }}
-                              title="Встановити як початкову точку подорожі"
-                            >
-                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                                <circle cx="12" cy="12" r="10" />
-                                <text x="12" y="16" textAnchor="middle" fontSize="11" fontWeight="bold" fill="currentColor" stroke="none">A</text>
-                              </svg>
-                              <span>Старт</span>
-                            </button>
-                          )}
-
-                          {onAddStop && (
-                            <button
-                              type="button"
-                              className="map-action-btn btn-action-stop"
-                              onClick={() => {
-                                onAddStop(clickedPoint.address || `${clickedPoint.lat.toFixed(5)}, ${clickedPoint.lng.toFixed(5)}`, clickedPoint.lat, clickedPoint.lng);
-                                setClickedPoint(null);
-                              }}
-                              title="Додати як проміжну зупинку"
-                            >
-                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                                <line x1="12" y1="5" x2="12" y2="19" />
-                                <line x1="5" y1="12" x2="19" y2="12" />
-                              </svg>
-                              <span>Зупинка</span>
-                            </button>
-                          )}
-
-                          {onSetDestination && (
-                            <button
-                              type="button"
-                              className="map-action-btn btn-action-dest"
-                              onClick={() => {
-                                onSetDestination(clickedPoint.address || `${clickedPoint.lat.toFixed(5)}, ${clickedPoint.lng.toFixed(5)}`, clickedPoint.lat, clickedPoint.lng);
-                                setClickedPoint(null);
-                              }}
-                              title="Встановити як кінцеву точку подорожі"
-                            >
-                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                                <circle cx="12" cy="12" r="10" />
-                                <text x="12" y="16" textAnchor="middle" fontSize="11" fontWeight="bold" fill="currentColor" stroke="none">B</text>
-                              </svg>
-                              <span>Фініш</span>
-                            </button>
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </Popup>
-              </Marker>
-            )}
-          </MapContainer>
-        </div>
-      </div>
-    );
-  }
-
-  const initialCenter: [number, number] = [
-    preview.startPoint.latitude,
-    preview.startPoint.longitude,
-  ];
-
-  const totalPointsCount = preview.orderedStops.length + 1 + (preview.destinationPoint?.address ? 1 : 0);
-  const googleMapsUrl = buildGoogleMapsDirectionsUrl(preview, travelMode);
+  const googleMapsUrl = preview ? buildGoogleMapsDirectionsUrl(preview, travelMode) : null;
 
   const handleCopy = async () => {
     if (!googleMapsUrl) return;
@@ -474,300 +268,276 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({
     }
   };
 
+  const pointsToFit = preview
+    ? polylinePositions.length > 0
+      ? polylinePositions
+      : allKeyPoints
+    : preRoutePoints;
+
+  const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+  const tileAttribution =
+    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+
   return (
-    <div className="card route-map-card">
-      <div className="route-map-header">
-        <div className="route-map-title-wrap">
-          <h3 className="section-title">Мапа маршруту</h3>
-          <span className="badge-muted">
-            {totalPointsCount <= 2 ? 'Пряма лінія (2 точки)' : `${totalPointsCount} точок маршруту`}
-          </span>
+    <div className="map-canvas-container">
+      {/* FLOATING ACTION BUTTONS (GOOGLE MAPS & COPY LINK) */}
+      {preview && googleMapsUrl && (
+        <div className="map-floating-actions">
+          <a
+            href={googleMapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="floating-action-btn"
+            title="Відкрити маршрут у Google Maps"
+          >
+            <span>Відкрити в Google Maps</span>
+            <span className="action-arrow-icon" aria-hidden="true">↗</span>
+          </a>
+
+          <button
+            type="button"
+            className={`floating-action-btn ${copied ? 'copied' : ''}`}
+            onClick={handleCopy}
+            title="Скопіювати посилання на Google Maps"
+            aria-live="polite"
+          >
+            {copied ? 'Скопійовано!' : 'Копіювати посилання'}
+          </button>
         </div>
+      )}
 
-        <div className="route-map-header-right">
-          <div className="map-legend">
-            <span className="legend-item">
-              <span className="legend-badge legend-start">A</span> Старт
-            </span>
-            {preview.orderedStops.length > 0 && (
-              <span className="legend-item">
-                <span className="legend-badge legend-stop">1..N</span> Зупинки
-              </span>
+      {/* FLOATING HERO OVERLAY (WHEN RESULT EXISTS) */}
+      {renderHeroOverlay && (
+        <div className="map-hero-overlay-slot">
+          {renderHeroOverlay}
+        </div>
+      )}
+
+      {/* LEAFLET MAP */}
+      <MapContainer
+        center={mapCenter}
+        zoom={preRoutePoints.length > 0 || preview ? 12 : 6}
+        scrollWheelZoom={true}
+        zoomControl={false}
+        className="leaflet-map-element"
+      >
+        <TileLayer
+          attribution={tileAttribution}
+          url={tileUrl}
+        />
+
+        {pointsToFit.length > 0 && <MapBoundsUpdater points={pointsToFit} />}
+
+        {/* 1. CALCULATED PREVIEW MARKERS & ROUTE */}
+        {preview && (
+          <>
+            {/* Start Marker A */}
+            <Marker
+              position={[preview.startPoint.latitude, preview.startPoint.longitude]}
+              icon={getNumberedIcon('A', 'start')}
+            >
+              <Popup>
+                <div className="map-popup-content">
+                  <strong>Старт: {preview.startPoint.label}</strong>
+                  <p>{preview.startPoint.address}</p>
+                </div>
+              </Popup>
+            </Marker>
+
+            {/* Stops Markers 1..N */}
+            {preview.orderedStops.map((stop) => (
+              <Marker
+                key={stop.id}
+                position={[stop.latitude, stop.longitude]}
+                icon={getNumberedIcon(stop.order, 'stop')}
+              >
+                <Popup>
+                  <div className="map-popup-content">
+                    <strong>Зупинка #{stop.order}: {stop.label}</strong>
+                    <p>{stop.address}</p>
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
+
+            {/* Destination Marker B */}
+            {preview.destinationPoint && preview.destinationPoint.address && (
+              <Marker
+                position={[preview.destinationPoint.latitude, preview.destinationPoint.longitude]}
+                icon={getNumberedIcon('B', 'destination')}
+              >
+                <Popup>
+                  <div className="map-popup-content">
+                    <strong>Фініш: {preview.destinationPoint.label}</strong>
+                    <p>{preview.destinationPoint.address}</p>
+                  </div>
+                </Popup>
+              </Marker>
             )}
-            <span className="legend-item">
-              <span className="legend-badge legend-dest">B</span> Фініш
-            </span>
-          </div>
 
-          <span className="map-header-divider" aria-hidden="true" />
+            {/* Orange Bold Route Polyline from mockup */}
+            {polylinePositions.length > 1 && (
+              <Polyline
+                positions={polylinePositions}
+                pathOptions={{
+                  color: '#C9400F',
+                  weight: 6,
+                  opacity: 0.95,
+                  lineCap: 'round',
+                  lineJoin: 'round',
+                }}
+              />
+            )}
+          </>
+        )}
 
-          {googleMapsUrl && (
-            <div className="map-actions-group">
-              <a
-                href={googleMapsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="map-header-ext-link"
-                title="Відкрити оптимізований маршрут у Google Maps"
+        {/* 2. DRAFT FALLBACK MARKERS (BEFORE CALCULATION) */}
+        {!preview && (
+          <>
+            {fallbackStart?.latitude && fallbackStart?.longitude && (
+              <Marker
+                position={[fallbackStart.latitude, fallbackStart.longitude]}
+                icon={getNumberedIcon('A', 'start')}
               >
-                <svg
-                  width="13"
-                  height="13"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
+                <Popup>
+                  <div className="map-popup-content">
+                    <strong>Старт: {fallbackStart.label || 'Старт'}</strong>
+                    <p>{fallbackStart.address}</p>
+                  </div>
+                </Popup>
+              </Marker>
+            )}
+
+            {fallbackStops?.map((stop, idx) =>
+              stop.latitude && stop.longitude ? (
+                <Marker
+                  key={stop.id}
+                  position={[stop.latitude, stop.longitude]}
+                  icon={getNumberedIcon(idx + 1, 'stop')}
                 >
-                  <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z" />
-                  <circle cx="12" cy="10" r="3" />
-                </svg>
-                <span>Google Maps</span>
-              </a>
+                  <Popup>
+                    <div className="map-popup-content">
+                      <strong>Зупинка #{idx + 1}: {stop.label}</strong>
+                      <p>{stop.address}</p>
+                    </div>
+                  </Popup>
+                </Marker>
+              ) : null
+            )}
 
-              <button
-                type="button"
-                className={`map-header-copy-btn ${copied ? 'copied' : ''}`}
-                onClick={handleCopy}
-                title="Скопіювати посилання на Google Maps"
-                aria-live="polite"
+            {fallbackDestination?.latitude && fallbackDestination?.longitude && (
+              <Marker
+                position={[fallbackDestination.latitude, fallbackDestination.longitude]}
+                icon={getNumberedIcon('B', 'destination')}
               >
-                {copied ? (
-                  <>
-                    <svg
-                      width="13"
-                      height="13"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    <span>Скопійовано!</span>
-                  </>
+                <Popup>
+                  <div className="map-popup-content">
+                    <strong>Фініш: {fallbackDestination.label || 'Фініш'}</strong>
+                    <p>{fallbackDestination.address}</p>
+                  </div>
+                </Popup>
+              </Marker>
+            )}
+          </>
+        )}
+
+        {/* Click-to-add waypoint handler */}
+        <MapClickHandler onMapClick={handleMapClick} />
+
+        {/* Interactive Clicked Waypoint Marker & Action Popup */}
+        {clickedPoint && (
+          <Marker
+            position={[clickedPoint.lat, clickedPoint.lng]}
+            icon={getClickedIcon()}
+          >
+            <Popup
+              autoPan={true}
+              eventHandlers={{
+                remove: () => setClickedPoint(null),
+              }}
+            >
+              <div className="map-click-popup">
+                <div className="map-click-header">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  <span>Обрана точка</span>
+                </div>
+
+                {clickedPoint.isLoading ? (
+                  <div className="map-click-loading">
+                    <span className="btn-spinner text-primary" />
+                    <span>Визначаємо адресу...</span>
+                  </div>
                 ) : (
                   <>
-                    <svg
-                      width="13"
-                      height="13"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                    </svg>
-                    <span>Скопіювати</span>
+                    <p className="map-click-address">{clickedPoint.address}</p>
+                    {clickedPoint.error && (
+                      <p className="map-click-error">{clickedPoint.error}</p>
+                    )}
+
+                    <div className="map-click-actions">
+                      {onSetStart && (
+                        <button
+                          type="button"
+                          className="map-action-btn btn-action-start"
+                          onClick={() => {
+                            onSetStart(clickedPoint.address || `${clickedPoint.lat.toFixed(5)}, ${clickedPoint.lng.toFixed(5)}`, clickedPoint.lat, clickedPoint.lng);
+                            setClickedPoint(null);
+                          }}
+                          title="Встановити як початкову точку подорожі"
+                        >
+                          <span>Старт</span>
+                        </button>
+                      )}
+
+                      {onAddStop && (
+                        <button
+                          type="button"
+                          className="map-action-btn btn-action-stop"
+                          onClick={() => {
+                            onAddStop(clickedPoint.address || `${clickedPoint.lat.toFixed(5)}, ${clickedPoint.lng.toFixed(5)}`, clickedPoint.lat, clickedPoint.lng);
+                            setClickedPoint(null);
+                          }}
+                          title="Додати як проміжну зупинку"
+                        >
+                          <span>Зупинка</span>
+                        </button>
+                      )}
+
+                      {onSetDestination && (
+                        <button
+                          type="button"
+                          className="map-action-btn btn-action-dest"
+                          onClick={() => {
+                            onSetDestination(clickedPoint.address || `${clickedPoint.lat.toFixed(5)}, ${clickedPoint.lng.toFixed(5)}`, clickedPoint.lat, clickedPoint.lng);
+                            setClickedPoint(null);
+                          }}
+                          title="Встановити як кінцеву точку подорожі"
+                        >
+                          <span>Фініш</span>
+                        </button>
+                      )}
+                    </div>
                   </>
                 )}
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="route-map-wrapper">
-        <MapContainer
-          center={initialCenter}
-          zoom={13}
-          scrollWheelZoom={true}
-          className="leaflet-map-element"
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-
-          <MapBoundsUpdater
-            points={polylinePositions.length > 0 ? polylinePositions : allKeyPoints}
-          />
-
-          {/* Start Marker */}
-          <Marker
-            position={[preview.startPoint.latitude, preview.startPoint.longitude]}
-            icon={getNumberedIcon('A', 'start')}
-          >
-            <Popup>
-              <div className="map-popup-content">
-                <strong>Старт: {preview.startPoint.label}</strong>
-                <p>{preview.startPoint.address}</p>
               </div>
             </Popup>
           </Marker>
+        )}
+      </MapContainer>
 
-          {/* Stop Markers in optimized sequence */}
-          {preview.orderedStops.map((stop) => (
-            <Marker
-              key={stop.id}
-              position={[stop.latitude, stop.longitude]}
-              icon={getNumberedIcon(stop.order, 'stop')}
-            >
-              <Popup>
-                <div className="map-popup-content">
-                  <strong>
-                    Зупинка #{stop.order}: {stop.label}
-                  </strong>
-                  <p>{stop.address}</p>
-                </div>
-              </Popup>
-            </Marker>
-          ))}
-
-          {/* Destination Marker */}
-          {preview.destinationPoint && preview.destinationPoint.address && (
-            <Marker
-              position={[preview.destinationPoint.latitude, preview.destinationPoint.longitude]}
-              icon={getNumberedIcon('B', 'destination')}
-            >
-              <Popup>
-                <div className="map-popup-content">
-                  <strong>Фініш: {preview.destinationPoint.label}</strong>
-                  <p>{preview.destinationPoint.address}</p>
-                </div>
-              </Popup>
-            </Marker>
-          )}
-
-          {/* Optimized Route Polyline */}
-          {polylinePositions.length > 1 && (
-            <Polyline
-              positions={polylinePositions}
-              pathOptions={{
-                color: theme === 'dark' ? '#38bdf8' : '#2563eb',
-                weight: 5,
-                opacity: 0.9,
-                lineCap: 'round',
-                lineJoin: 'round',
-              }}
-            />
-          )}
-
-          {/* Map Click Listener */}
-          <MapClickHandler onMapClick={handleMapClick} />
-
-          {/* Interactive Clicked Waypoint Marker & Action Popup */}
-          {clickedPoint && (
-            <Marker
-              position={[clickedPoint.lat, clickedPoint.lng]}
-              icon={getClickedIcon()}
-            >
-              <Popup
-                autoPan={true}
-                eventHandlers={{
-                  remove: () => setClickedPoint(null),
-                }}
-              >
-                <div className="map-click-popup">
-                  <div className="map-click-header">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                      <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z" />
-                      <circle cx="12" cy="10" r="3" />
-                    </svg>
-                    <span>Обрана точка</span>
-                  </div>
-
-                  {clickedPoint.isLoading ? (
-                    <div className="map-click-loading">
-                      <span className="btn-spinner text-primary" />
-                      <span>Визначаємо адресу...</span>
-                    </div>
-                  ) : (
-                    <>
-                      <p className="map-click-address">{clickedPoint.address}</p>
-                      {clickedPoint.error && (
-                        <p className="map-click-error">{clickedPoint.error}</p>
-                      )}
-
-                      <div className="map-click-actions">
-                        {onSetStart && (
-                          <button
-                            type="button"
-                            className="map-action-btn btn-action-start"
-                            onClick={() => {
-                              onSetStart(clickedPoint.address || `${clickedPoint.lat.toFixed(5)}, ${clickedPoint.lng.toFixed(5)}`, clickedPoint.lat, clickedPoint.lng);
-                              setClickedPoint(null);
-                            }}
-                            title="Встановити як початкову точку подорожі"
-                          >
-                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                              <circle cx="12" cy="12" r="10" />
-                              <text x="12" y="16" textAnchor="middle" fontSize="11" fontWeight="bold" fill="currentColor" stroke="none">A</text>
-                            </svg>
-                            <span>Старт</span>
-                          </button>
-                        )}
-
-                        {onAddStop && (
-                          <button
-                            type="button"
-                            className="map-action-btn btn-action-stop"
-                            onClick={() => {
-                              onAddStop(clickedPoint.address || `${clickedPoint.lat.toFixed(5)}, ${clickedPoint.lng.toFixed(5)}`, clickedPoint.lat, clickedPoint.lng);
-                              setClickedPoint(null);
-                            }}
-                            title="Додати як проміжну зупинку"
-                          >
-                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                              <line x1="12" y1="5" x2="12" y2="19" />
-                              <line x1="5" y1="12" x2="19" y2="12" />
-                            </svg>
-                            <span>Зупинка</span>
-                          </button>
-                        )}
-
-                        {onSetDestination && (
-                          <button
-                            type="button"
-                            className="map-action-btn btn-action-dest"
-                            onClick={() => {
-                              onSetDestination(clickedPoint.address || `${clickedPoint.lat.toFixed(5)}, ${clickedPoint.lng.toFixed(5)}`, clickedPoint.lat, clickedPoint.lng);
-                              setClickedPoint(null);
-                            }}
-                            title="Встановити як кінцеву точку подорожі"
-                          >
-                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                              <circle cx="12" cy="12" r="10" />
-                              <text x="12" y="16" textAnchor="middle" fontSize="11" fontWeight="bold" fill="currentColor" stroke="none">B</text>
-                            </svg>
-                            <span>Фініш</span>
-                          </button>
-                        )}
-                      </div>
-                    </>
-                  )}
-                </div>
-              </Popup>
-            </Marker>
-          )}
-        </MapContainer>
-      </div>
-
-      {copied && (
-        <div className="export-toast-snackbar" role="status" aria-live="polite">
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-          <span>Посилання на маршрут скопійовано!</span>
+      {/* LOADING OVERLAY OVER MAP */}
+      {isLoading && (
+        <div className="map-loading-overlay" aria-busy="true">
+          <div className="map-loading-spinner-box">
+            <svg className="btn-spinner" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
+              <path d="M12 2a10 10 0 0 1 10 10" />
+            </svg>
+            <span>Будуємо оптимальний маршрут…</span>
+          </div>
         </div>
       )}
     </div>
