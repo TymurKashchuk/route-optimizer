@@ -1,19 +1,56 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface HeaderProps {
   theme: 'light' | 'dark';
   onToggleTheme: () => void;
 }
 
+type ServerStatus = 'checking' | 'online' | 'offline';
+
 export const Header: React.FC<HeaderProps> = ({ theme, onToggleTheme }) => {
+  const [status, setStatus] = useState<ServerStatus>('checking');
+
+  useEffect(() => {
+    let isCurrent = true;
+    const controller = new AbortController();
+
+    async function checkHealth() {
+      try {
+        const res = await fetch('/api/health', {
+          signal: controller.signal,
+          headers: { Accept: 'application/json' },
+        });
+        if (!isCurrent) return;
+        if (res.ok) {
+          setStatus('online');
+        } else {
+          setStatus('offline');
+        }
+      } catch (err: unknown) {
+        if (!isCurrent) return;
+        if (err instanceof DOMException && err.name === 'AbortError') return;
+        setStatus('offline');
+      }
+    }
+
+    checkHealth();
+    const interval = setInterval(checkHealth, 30000);
+
+    return () => {
+      isCurrent = false;
+      controller.abort();
+      clearInterval(interval);
+    };
+  }, []);
+
   return (
     <header className="app-header">
       <div className="header-container">
         <div className="header-brand">
           <div className="brand-logo" aria-hidden="true">
             <svg
-              width="22"
-              height="22"
+              width="24"
+              height="24"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -21,21 +58,25 @@ export const Header: React.FC<HeaderProps> = ({ theme, onToggleTheme }) => {
               strokeLinecap="round"
               strokeLinejoin="round"
             >
-              <circle cx="6" cy="19" r="3" />
-              <path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15" />
-              <circle cx="18" cy="5" r="3" />
+              <path d="M7 19.5h10a3 3 0 0 0 0-6H7a3 3 0 0 1 0-6h10" />
+              <circle cx="5" cy="19.5" r="2" fill="currentColor" />
+              <circle cx="19" cy="7.5" r="2" fill="var(--accent-bright, #E8501F)" stroke="var(--accent-bright, #E8501F)" />
             </svg>
           </div>
-          <div>
+          <div className="brand-text-wrap">
             <h1 className="brand-title">RouteWise</h1>
-            <p className="brand-subtitle">Персональний планувальник поїздок</p>
+            <p className="brand-subtitle">Планувальник поїздок із зупинками</p>
           </div>
         </div>
 
         <div className="header-actions">
-          <div className="header-badge">
-            <span className="badge-dot" aria-hidden="true" />
-            <span>Планувальник активний</span>
+          <div className={`header-status-badge status-${status}`} role="status">
+            <span className="status-dot" aria-hidden="true" />
+            <span className="status-label">
+              {status === 'checking' && 'Перевіряємо…'}
+              {status === 'online' && 'Сервер працює'}
+              {status === 'offline' && 'Сервер недоступний'}
+            </span>
           </div>
 
           <button
