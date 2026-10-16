@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import type { RouteMetricsDto } from '../../types/route';
-import { formatDuration } from '../../utils/dateTime';
+import type { PlanningMode, RouteMetricsDto } from '../../types/route';
+import { formatDuration, formatTime } from '../../utils/dateTime';
 
 interface RouteMetricsSummaryProps {
   original: RouteMetricsDto;
@@ -8,6 +8,8 @@ interface RouteMetricsSummaryProps {
   savedMinutes: number;
   savedDistanceKm: number;
   improvementPercent: number;
+  planningMode?: PlanningMode;
+  recommendedDepartureTime?: string;
 }
 
 export const RouteMetricsSummary: React.FC<RouteMetricsSummaryProps> = ({
@@ -16,6 +18,8 @@ export const RouteMetricsSummary: React.FC<RouteMetricsSummaryProps> = ({
   savedMinutes,
   savedDistanceKm,
   improvementPercent,
+  planningMode,
+  recommendedDepartureTime,
 }) => {
   const [showComparison, setShowComparison] = useState(false);
   const hasTimeSavings = savedMinutes > 0;
@@ -24,181 +28,83 @@ export const RouteMetricsSummary: React.FC<RouteMetricsSummaryProps> = ({
   const totalTripMinutes = optimized.totalTravelMinutes + optimized.totalServiceMinutes;
 
   return (
-    <div className="trip-summary-section">
-      {/* 3 Main Personal Trip Metric Cards */}
-      <div className="trip-metrics-grid">
-        {/* Total Time */}
-        <div className="trip-metric-card">
-          <div className="trip-metric-header">
-            <span className="trip-metric-label">Загальний час</span>
-            <svg
-              className="trip-metric-icon"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <polyline points="12 6 12 12 16 14" />
-            </svg>
-          </div>
-          <span className="trip-metric-value">{formatDuration(totalTripMinutes)}</span>
-          <span className="trip-metric-subtext">
-            {optimized.totalServiceMinutes > 0
-              ? `${optimized.totalTravelMinutes} хв у русі + ${optimized.totalServiceMinutes} хв зупинки`
-              : `${optimized.totalTravelMinutes} хв без зупинок`}
+    <div className="hero-metrics-card">
+      {/* Mini top caption */}
+      <div className="hero-caption-row">
+        <span className="hero-caption">ЗАГАЛЬНИЙ ЧАС</span>
+        {planningMode === 'arrive-by' && recommendedDepartureTime && (
+          <span className="hero-recommended-dep" title="Рекомендований час початку подорожі">
+            Виїзд о <strong>{formatTime(recommendedDepartureTime)}</strong>
           </span>
-        </div>
-
-        {/* Total Distance */}
-        <div className="trip-metric-card">
-          <div className="trip-metric-header">
-            <span className="trip-metric-label">Відстань</span>
-            <svg
-              className="trip-metric-icon"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <polygon points="3 11 22 2 13 21 11 13 3 11" />
-            </svg>
-          </div>
-          <span className="trip-metric-value">{optimized.totalDistanceKm.toFixed(1)} км</span>
-          <span className="trip-metric-subtext">Довжина всього маршруту</span>
-        </div>
-
-        {/* Savings or Trip Mode Status */}
-        <div className={`trip-metric-card ${hasSavings ? 'trip-metric-card-savings' : ''}`}>
-          <div className="trip-metric-header">
-            <span className="trip-metric-label">
-              {hasSavings ? 'Економія' : 'Маршрут'}
-            </span>
-            <svg
-              className="trip-metric-icon"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              {hasSavings ? (
-                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-              ) : (
-                <polyline points="20 6 9 17 4 12" />
-              )}
-            </svg>
-          </div>
-          <span className="trip-metric-value">
-            {hasSavings
-              ? hasTimeSavings
-                ? `${savedMinutes} хв`
-                : `${savedDistanceKm.toFixed(1)} км`
-              : optimized.totalServiceMinutes > 0
-              ? 'Без змін'
-              : 'Прямий'}
-          </span>
-          <span className="trip-metric-subtext">
-            {hasSavings
-              ? `${hasDistanceSavings ? `${savedDistanceKm.toFixed(1)} км` : ''}${improvementPercent > 0 ? ` (+${improvementPercent.toFixed(1)}%)` : ''}`.trim() || 'Оптимізовано'
-              : optimized.totalServiceMinutes > 0
-              ? 'Початковий порядок'
-              : 'Найшвидший шлях'}
-          </span>
-        </div>
+        )}
       </div>
 
-      {/* Savings Highlight Banner (if stops were reordered for optimization) */}
-      {hasSavings && (
-        <div className="savings-highlight-banner">
-          <div className="savings-banner-content">
-            <div className="savings-banner-icon">
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-              </svg>
-            </div>
-            <div className="savings-banner-text">
-              <strong>Маршрут оптимізовано!</strong> Завдяки кращій послідовності зупинок
-              {hasTimeSavings && hasDistanceSavings ? (
-                <> ви заощадите <strong>{savedMinutes} хв</strong> та <strong>{savedDistanceKm.toFixed(1)} км</strong>.</>
-              ) : hasTimeSavings ? (
-                <> ви заощадите <strong>{savedMinutes} хв</strong>.</>
-              ) : (
-                <> відстань скорочено на <strong>{savedDistanceKm.toFixed(1)} км</strong>.</>
-              )}
-            </div>
+      {/* Main Hero Accent: Total Travel Time */}
+      <div className="hero-time-value tabular-nums">
+        {formatDuration(totalTripMinutes)}
+      </div>
+
+      {/* Subtext with distance, driving and stay times */}
+      <div className="hero-subline tabular-nums">
+        <span>{optimized.totalDistanceKm.toFixed(0)} км</span>
+        <span className="hero-subdot">·</span>
+        <span>{optimized.totalTravelMinutes} хв у русі</span>
+        {optimized.totalServiceMinutes > 0 && (
+          <>
+            <span className="hero-subdot">+</span>
+            <span>{optimized.totalServiceMinutes} хв на зупинках</span>
+          </>
+        )}
+      </div>
+
+      {/* Savings pills & Comparison toggle */}
+      <div className="hero-actions-row">
+        {hasSavings ? (
+          <div className="hero-savings-chips">
+            {hasTimeSavings && (
+              <span className="hero-pill-saving tabular-nums">
+                -{savedMinutes} хв
+              </span>
+            )}
+            {hasDistanceSavings && (
+              <span className="hero-pill-saving tabular-nums">
+                -{savedDistanceKm.toFixed(0)} км
+              </span>
+            )}
+            {improvementPercent > 0 && !hasTimeSavings && !hasDistanceSavings && (
+              <span className="hero-pill-saving tabular-nums">
+                +{improvementPercent.toFixed(1)}%
+              </span>
+            )}
           </div>
+        ) : (
+          <span className="hero-neutral-text">
+            {optimized.totalServiceMinutes > 0 ? 'Без оптимізації' : 'Оптимальний прямий шлях'}
+          </span>
+        )}
+
+        {hasSavings && (
           <button
             type="button"
-            className="btn-toggle-comparison"
+            className="hero-btn-compare"
             onClick={() => setShowComparison(!showComparison)}
+            aria-expanded={showComparison}
           >
-            <span>{showComparison ? 'Сховати порівняння' : 'Порівняти з вихідним'}</span>
-            <svg
-              className={`comparison-arrow-icon ${showComparison ? 'open' : ''}`}
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
+            {showComparison ? 'Сховати' : 'Порівняти з вихідним'}
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Collapsible Comparison Table (Only shown on request) */}
+      {/* Collapsible Comparison Details (Secondary) */}
       {hasSavings && showComparison && (
-        <div className="metrics-comparison-card">
-          <div className="comparison-col">
-            <span className="comparison-title">Початковий порядок</span>
-            <div className="comparison-stats">
-              <div>У русі: <strong>{original.totalTravelMinutes} хв</strong></div>
-              <div>Відстань: <strong>{original.totalDistanceKm.toFixed(1)} км</strong></div>
-              <div>Зупинки: <strong>{original.totalServiceMinutes} хв</strong></div>
-            </div>
+        <div className="hero-compare-expanded">
+          <div className="compare-mini-col">
+            <span className="compare-mini-label">Вихідний:</span>
+            <span className="tabular-nums">{original.totalDistanceKm.toFixed(1)} км · {original.totalTravelMinutes} хв</span>
           </div>
-
-          <div className="comparison-divider" />
-
-          <div className="comparison-col">
-            <span className="comparison-title comparison-title-optimized">
-              Оптимізований порядок
-            </span>
-            <div className="comparison-stats">
-              <div>У русі: <strong>{optimized.totalTravelMinutes} хв</strong></div>
-              <div>Відстань: <strong>{optimized.totalDistanceKm.toFixed(1)} км</strong></div>
-              <div>Зупинки: <strong>{optimized.totalServiceMinutes} хв</strong></div>
-            </div>
+          <div className="compare-mini-col">
+            <span className="compare-mini-label compare-accent">Оптимізований:</span>
+            <span className="tabular-nums">{optimized.totalDistanceKm.toFixed(1)} км · {optimized.totalTravelMinutes} хв</span>
           </div>
         </div>
       )}
