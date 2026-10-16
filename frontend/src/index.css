@@ -1,45 +1,106 @@
+/* ==========================================================================
+   Design tokens
+   New system (--ink, --accent, --line ...) is the source of truth.
+   Legacy names (--primary, --text-main ...) are aliases kept so existing
+   rules keep working while components are migrated phase by phase.
+   ========================================================================== */
 :root {
-  --bg-app: #f8fafc;
-  --bg-card: #ffffff;
-  --bg-input: #ffffff;
-  --border-color: #e2e8f0;
-  --border-hover: #cbd5e1;
-  --text-main: #0f172a;
-  --text-muted: #64748b;
-  --text-light: #94a3b8;
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
-  --primary-light: #eff6ff;
-  --success: #16a34a;
-  --success-bg: #f0fdf4;
-  --danger: #dc2626;
-  --danger-hover: #b91c1c;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  color-scheme: light;
+
+  /* Core palette */
+  --bg-app: #EEF1F4;
+  --bg-card: #FFFFFF;
+  --ink: #0F1B2D;
+  --ink-inverse: #FFFFFF;
+  --muted: #5B6778;
+  --faint: #8A94A3;
+  --line: #DDE3EA;
+  --line-strong: #C6CFD9;
+  --surface-muted: #F5F7F9;
+  --surface-sunken: #E8ECF0;
+  --accent: #C9400F;
+  --accent-hover: #B3380C;
+  --accent-bright: #E8501F;
+  --accent-fg: #C9400F;
+  --accent-soft: #FBEDE6;
+  --accent-line: #F2C9B6;
+  --on-accent: #FFFFFF;
+  --success-fg: #0B6B50;
+  --success-bg: #E3F5EE;
+  --success-dot: #12A37A;
+  --success-line: #B5E3D1;
+  --danger: #B42318;
+  --danger-soft: #FDECEA;
+  --danger-line: #F5C2BC;
+
+  /* Radii */
+  --radius-card: 20px;
+  --radius-field: 10px;
+  --radius-cta: 14px;
+  --radius-chip: 999px;
+
+  /* Elevation */
+  --shadow-soft: 0 1px 2px rgba(15, 27, 45, 0.05), 0 1px 3px rgba(15, 27, 45, 0.04);
+  --shadow-overlay: 0 10px 30px -8px rgba(15, 27, 45, 0.28);
+  --shadow-inset: inset 0 1px 2px rgba(15, 27, 45, 0.08);
+  --shadow-accent: 0 8px 20px -8px rgba(201, 64, 15, 0.55);
+  --focus-ring: 0 0 0 3px rgba(201, 64, 15, 0.22);
+
+  --font-sans: 'Manrope Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Legacy aliases */
+  --bg-input: var(--bg-card);
+  --border-color: var(--line);
+  --border-hover: var(--line-strong);
+  --text-main: var(--ink);
+  --text-muted: var(--muted);
+  --text-light: var(--faint);
+  --primary: var(--accent-fg);
+  --primary-hover: var(--accent-hover);
+  --primary-light: var(--accent-soft);
+  --success: var(--success-fg);
+  --danger-hover: var(--danger);
+  --radius-sm: 8px;
+  --radius-md: var(--radius-field);
+  --radius-lg: var(--radius-card);
+  --shadow-sm: var(--shadow-soft);
+  --shadow-md: var(--shadow-overlay);
 }
 
 [data-theme='dark'] {
-  --bg-app: #0b1120;
-  --bg-card: #151e32;
-  --bg-input: #1a253e;
-  --border-color: #263554;
-  --border-hover: #3b4f7a;
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --text-light: #64748b;
-  --primary: #3b82f6;
-  --primary-hover: #60a5fa;
-  --primary-light: rgba(59, 130, 246, 0.16);
-  --success: #22c55e;
-  --success-bg: rgba(34, 197, 94, 0.16);
-  --danger: #ef4444;
-  --danger-hover: #f87171;
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 4px 14px -1px rgba(0, 0, 0, 0.5), 0 2px 5px -2px rgba(0, 0, 0, 0.35);
+  color-scheme: dark;
+
+  --bg-app: #0B111A;
+  --bg-card: #131B27;
+  --ink: #E8EDF3;
+  --ink-inverse: #0F1B2D;
+  --muted: #9AA6B5;
+  --faint: #6F7C8E;
+  --line: #243142;
+  --line-strong: #34465C;
+  --surface-muted: #0F1621;
+  --surface-sunken: #1B2534;
+  --accent: #C9400F;
+  --accent-hover: #DB4914;
+  --accent-bright: #E8501F;
+  --accent-fg: #F27B4B;
+  --accent-soft: rgba(232, 80, 31, 0.14);
+  --accent-line: rgba(232, 80, 31, 0.4);
+  --success-fg: #4FD1A5;
+  --success-bg: rgba(18, 163, 122, 0.16);
+  --success-dot: #12A37A;
+  --success-line: rgba(18, 163, 122, 0.4);
+  --danger: #F28B82;
+  --danger-soft: rgba(242, 139, 130, 0.14);
+  --danger-line: rgba(242, 139, 130, 0.4);
+
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-overlay: 0 10px 30px -8px rgba(0, 0, 0, 0.65);
+  --shadow-inset: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-accent: 0 8px 20px -8px rgba(232, 80, 31, 0.45);
+  --focus-ring: 0 0 0 3px rgba(242, 123, 75, 0.3);
+
+  --bg-input: var(--surface-muted);
 }
 
 *, *::before, *::after {
@@ -71,4 +132,32 @@ button, input, select {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+/* Keyboard focus: visible ring for every interactive element.
+   Low specificity (:where) so component-level focus styles can refine it. */
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent-fg);
+  outline-offset: 2px;
+}
+
+/* Numbers that change (times, distances, durations) keep a stable width */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Loading spinners are status indicators: keep them, just slower */
+  .btn-spinner,
+  .autocomplete-spinner {
+    animation-duration: 1.6s !important;
+    animation-iteration-count: infinite !important;
+  }
 }
