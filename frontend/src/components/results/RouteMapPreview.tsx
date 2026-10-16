@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, useMapEvents, ZoomControl } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import type { AddressInput, RoutePreviewDto, RouteStop, TravelMode } from '../../types/route';
 import { buildGoogleMapsDirectionsUrl, copyToClipboard } from '../../utils/googleMaps';
@@ -321,8 +321,6 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({
         zoomControl={false}
         className="leaflet-map-element"
       >
-        <ZoomControl position="bottomright" />
-
         <TileLayer
           attribution={tileAttribution}
           url={tileUrl}
