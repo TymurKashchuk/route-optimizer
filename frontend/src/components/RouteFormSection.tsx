@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import type { AddressInput, AlgorithmType, PlanningMode, RouteStop, SearchScope, TravelMode } from '../types/route';
 import { AddressAutocompleteInput } from './AddressAutocompleteInput';
 import { StopsSection } from './StopsSection';
+import { CustomDatePicker } from './CustomDatePicker';
+import { CustomTimePicker } from './CustomTimePicker';
 import { reverseGeocode } from '../api/geocodingClient';
 import { adjustTimeString, getCurrentRoundedTimeString, getTodayDateString } from '../utils/dateTime';
 import { deriveStopLabel } from '../utils/address';
@@ -201,14 +203,8 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
           </button>
         )}
       </div>
-
-      {/* =========================================================================
-          SECTION 1: КУДИ ЇДЕМО
-          ========================================================================= */}
       <div className="form-sub-section">
         <div className="section-step-label">1 · КУДИ ЇДЕМО</div>
-
-        {/* COMPACT SEARCH SCOPE / CITY SELECTION */}
         <div className="scope-inline-row">
           <span className="scope-text-prefix">Регіон:</span>
           <select
@@ -253,10 +249,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
             />
           )}
         </div>
-
-        {/* ROUTE CHAIN: A -> STOPS -> B */}
         <div className="route-chain-stack">
-          {/* START POINT (A) */}
           <div className="chain-row-item chain-row-start" style={{ zIndex: 90 }}>
             <div className="marker-solid-a" aria-hidden="true">
               A
@@ -322,8 +315,6 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
             onReorderStops={onReorderStops}
             city={activeCity}
           />
-
-          {/* DESTINATION POINT (B) */}
           <div className="chain-row-item chain-row-dest" style={{ zIndex: 10 }}>
             <div className="marker-solid-b" aria-hidden="true">
               B
@@ -354,14 +345,8 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
           </div>
         </div>
       </div>
-
-      {/* =========================================================================
-          SECTION 2: КОЛИ
-          ========================================================================= */}
       <div className="form-sub-section">
         <div className="section-step-label">2 · КОЛИ</div>
-
-        {/* Planning Mode Segmented Switch: Виїхати о... / Прибути до... */}
         <div className="mode-toggle-bar" role="radiogroup" aria-label="Режим планування часу">
           <button
             type="button"
@@ -384,20 +369,16 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
             Прибути до...
           </button>
         </div>
-
-        {/* Date and Time Row */}
         <div className="datetime-compact-row">
           <div className="datetime-field-group">
             <label className="datetime-label" htmlFor="trip-date">
               Дата
             </label>
-            <input
+            <CustomDatePicker
               id="trip-date"
-              type="date"
-              min={todayStr}
-              className="clean-field-input"
               value={datePart}
-              onChange={(e) => handleDateChange(e.target.value)}
+              minDate={todayStr}
+              onChange={handleDateChange}
               disabled={isLoading}
             />
           </div>
@@ -407,14 +388,11 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
               {isArriveBy ? 'Час прибуття' : 'Час виїзду'}
             </label>
             <div className="time-input-stepper-wrap">
-              <input
+              <CustomTimePicker
                 id="trip-time"
-                type="time"
-                className="clean-field-input"
                 value={timePart}
-                onChange={(e) => handleTimeChange(e.target.value)}
+                onChange={handleTimeChange}
                 disabled={isLoading}
-                required
               />
               <div className="time-stepper-mini">
                 <button
@@ -441,8 +419,6 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
             </div>
           </div>
         </div>
-
-        {/* Quick Time Presets: Зараз, 09:00, 12:00, 15:00, 18:00 */}
         <div className="quick-presets-row">
           <button
             type="button"
@@ -465,14 +441,8 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
           ))}
         </div>
       </div>
-
-      {/* =========================================================================
-          SECTION 3: ЯК ЇДЕМО
-          ========================================================================= */}
       <div className="form-sub-section">
         <div className="section-step-label">3 · ЯК ЇДЕМО</div>
-
-        {/* 3 Visual Mode Cards */}
         <div className="travel-mode-cards-grid" role="radiogroup" aria-label="Спосіб пересування">
           <button
             type="button"
