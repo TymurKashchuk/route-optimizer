@@ -42,6 +42,19 @@ export function formatTime(isoString: string): string {
 }
 
 /**
+ * Formats an ISO datetime string into a human-readable date line in Ukrainian (e.g. "пт, 16 жовтня").
+ */
+export function formatDayMonthUk(isoString?: string): string {
+  const date = isoString ? new Date(isoString) : new Date();
+  if (isNaN(date.getTime())) return '';
+  return date.toLocaleDateString('uk-UA', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'long',
+  });
+}
+
+/**
  * Formats a duration in minutes into a human-readable string (e.g. "45 хв" or "2 год 15 хв").
  */
 export function formatDuration(minutes: number): string {
