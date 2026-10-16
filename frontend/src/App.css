@@ -1647,7 +1647,7 @@
 }
 
 /* ==========================================================================
-   Schedule Timeline Styles (Mockup-aligned)
+   Schedule Timeline Styles (Mockup-aligned with continuous spine)
    ========================================================================== */
 .schedule-timeline-container {
   display: flex;
@@ -1683,12 +1683,11 @@
   position: relative;
 }
 
-.schedule-node-row {
+.schedule-step-item {
   display: flex;
-  align-items: flex-start;
-  gap: 0.85rem;
+  align-items: stretch;
   position: relative;
-  z-index: 2;
+  gap: 0.85rem;
 }
 
 .schedule-time-col {
@@ -1715,38 +1714,68 @@
   margin-top: 2px;
 }
 
-.schedule-marker-col {
+/* Spine Track: dot on top and continuous stem going all the way down */
+.schedule-spine-col {
   width: 16px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  position: relative;
   flex-shrink: 0;
-  padding-top: 3px;
 }
 
-.timeline-dot-solid {
+.timeline-dot {
   width: 12px;
   height: 12px;
   border-radius: 50%;
+  z-index: 2;
+  position: relative;
+  margin-top: 4px;
+  box-shadow: 0 0 0 2px var(--bg-card);
+  box-sizing: border-box;
+}
+
+.timeline-dot.dot-start {
   background: var(--ink);
-  display: inline-block;
+  border: 2px solid var(--ink);
 }
 
-.timeline-dot-ring {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
+.timeline-dot.dot-stop {
   background: var(--bg-card);
-  border: 2.5px solid var(--ink);
-  display: inline-block;
+  border: 2.5px solid var(--accent);
 }
 
-.schedule-info-col {
+.timeline-dot.dot-dest {
+  background: var(--accent);
+  border: 2px solid var(--accent);
+}
+
+/* Continuous unbroken stem line */
+.timeline-continuous-stem {
+  position: absolute;
+  top: 8px;
+  bottom: -6px;
+  width: 2.5px;
+  background: var(--accent);
+  z-index: 1;
+}
+
+.schedule-body-col {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 1.25rem;
+}
+
+.schedule-step-item.is-last .schedule-body-col {
+  padding-bottom: 0;
+}
+
+.schedule-stop-header {
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
-  min-width: 0;
   padding-top: 1px;
 }
 
@@ -1768,22 +1797,10 @@
   color: var(--muted);
 }
 
-/* Vertical Stem Line & Transit Pill between points */
-.schedule-transit-leg {
-  position: relative;
-  margin-left: calc(58px + 0.85rem + 8px - 1px);
-  padding: 1.25rem 0 1.25rem 1.35rem;
+.schedule-transit-chip-row {
+  margin-top: 0.75rem;
   display: flex;
   align-items: center;
-}
-
-.schedule-stem-line {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: #C9400F;
 }
 
 .schedule-leg-pill {
@@ -2254,21 +2271,14 @@
 }
 
 /* Leaflet controls & attribution (theme-aware via tokens) */
-.leaflet-bottom.leaflet-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.35rem;
-  margin-bottom: 0.5rem;
-  margin-right: 0.5rem;
+/* Completely remove all map zoom buttons (+ / -) for a clean map matching mockup */
+.leaflet-control-zoom {
+  display: none !important;
 }
 
-.leaflet-bottom.leaflet-right .leaflet-control-zoom {
-  margin: 0;
-  box-shadow: var(--shadow-soft);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  overflow: hidden;
+.leaflet-bottom.leaflet-right {
+  margin-bottom: 0.5rem;
+  margin-right: 0.5rem;
 }
 
 .leaflet-bottom.leaflet-right .leaflet-control-attribution {
