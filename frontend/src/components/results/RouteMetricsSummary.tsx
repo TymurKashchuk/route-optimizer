@@ -10,6 +10,7 @@ interface RouteMetricsSummaryProps {
   improvementPercent: number;
   planningMode?: PlanningMode;
   recommendedDepartureTime?: string;
+  isStale?: boolean;
 }
 
 export const RouteMetricsSummary: React.FC<RouteMetricsSummaryProps> = ({
@@ -20,6 +21,7 @@ export const RouteMetricsSummary: React.FC<RouteMetricsSummaryProps> = ({
   improvementPercent,
   planningMode,
   recommendedDepartureTime,
+  isStale,
 }) => {
   const [showComparison, setShowComparison] = useState(false);
   const hasTimeSavings = savedMinutes > 0;
@@ -28,10 +30,15 @@ export const RouteMetricsSummary: React.FC<RouteMetricsSummaryProps> = ({
   const totalTripMinutes = optimized.totalTravelMinutes + optimized.totalServiceMinutes;
 
   return (
-    <div className="hero-metrics-card">
+    <div className={`hero-metrics-card ${isStale ? 'is-stale' : ''}`}>
       {/* Mini top caption */}
       <div className="hero-caption-row">
         <span className="hero-caption">ЗАГАЛЬНИЙ ЧАС</span>
+        {isStale && (
+          <span className="hero-stale-badge" title="Дані форми було змінено після побудови">
+            Потрібно оновити
+          </span>
+        )}
         {planningMode === 'arrive-by' && recommendedDepartureTime && (
           <span className="hero-recommended-dep" title="Рекомендований час початку подорожі">
             Виїзд о <strong>{formatTime(recommendedDepartureTime)}</strong>

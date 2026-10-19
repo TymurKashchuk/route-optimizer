@@ -7,12 +7,14 @@ interface TimelineViewProps {
   planningMode?: PlanningMode;
   explanationSteps?: RouteStepDto[];
   travelMode?: TravelMode;
+  isStale?: boolean;
 }
 
 export const TimelineView: React.FC<TimelineViewProps> = ({
   timeline,
   planningMode,
   explanationSteps = [],
+  isStale,
 }) => {
   if (!timeline || timeline.length === 0) return null;
 
@@ -21,7 +23,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
     : formatDayMonthUk();
 
   return (
-    <div className="schedule-timeline-container">
+    <div className={`schedule-timeline-container ${isStale ? 'is-stale' : ''}`}>
       {/* Header matching mockup: "Розклад поїздки" and "4 пункти · пт, 16 жовтня" */}
       <div className="schedule-header">
         <h3 className="schedule-title">Розклад поїздки</h3>
@@ -30,6 +32,13 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
           {dateSubheader && ` · ${dateSubheader}`}
         </span>
       </div>
+
+      {isStale && (
+        <div className="schedule-stale-notice" role="status">
+          <span className="stale-dot" aria-hidden="true" />
+          <span>Розклад складено для попередніх параметрів. Оновіть розрахунок для актуальних даних.</span>
+        </div>
+      )}
 
       {/* Vertical Timeline sequence */}
       <div className="schedule-items-list">
