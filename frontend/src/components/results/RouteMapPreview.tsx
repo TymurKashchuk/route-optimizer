@@ -17,6 +17,7 @@ interface RouteMapPreviewProps {
   fallbackDestination?: AddressInput;
   fallbackStops?: RouteStop[];
   renderHeroOverlay?: React.ReactNode;
+  isStale?: boolean;
 }
 
 const iconCache = new Map<string, L.DivIcon>();
@@ -136,12 +137,25 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({
   fallbackDestination,
   fallbackStops,
   renderHeroOverlay,
+  isStale,
 }) => {
   const [copied, setCopied] = useState(false);
   const timeoutRef = useRef<number | null>(null);
 
   const [clickedPoint, setClickedPoint] = useState<ClickedLocationState | null>(null);
+  const clickedMarkerRef = useRef<L.Marker | null>(null);
   const reverseAbortRef = useRef<AbortController | null>(null);
+
+  const currentStopsCount = fallbackStops?.length ?? preview?.orderedStops?.length ?? 0;
+  const isMaxStopsReached = currentStopsCount >= 10;
+
+  useEffect(() => {
+    if (clickedPoint && clickedMarkerRef.current) {
+      if (!clickedMarkerRef.current.isPopupOpen()) {
+        clickedMarkerRef.current.openPopup();
+      }
+    }
+  }, [clickedPoint]);
 
   useEffect(() => {
     return () => {
@@ -287,10 +301,10 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({
             href={googleMapsUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="floating-action-btn"
-            title="Відкрити маршрут у Google Maps"
+            className={`floating-action-btn ${isStale ? 'floating-action-stale' : ''}`}
+            title={isStale ? 'Попередній розрахунок у Google Maps (маршрут змінено)' : 'Відкрити маршрут у Google Maps'}
           >
-            <span>Відкрити в Google Maps</span>
+            <span>{isStale ? 'Google Maps (попередній)' : 'Відкрити в Google Maps'}</span>
             <span className="action-arrow-icon" aria-hidden="true">↗</span>
           </a>
 
@@ -447,13 +461,20 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({
         {/* Interactive Clicked Waypoint Marker & Action Popup */}
         {clickedPoint && (
           <Marker
+            ref={(marker) => {
+              clickedMarkerRef.current = marker;
+              if (marker && !marker.isPopupOpen()) {
+                marker.openPopup();
+              }
+            }}
             position={[clickedPoint.lat, clickedPoint.lng]}
             icon={getClickedIcon()}
           >
             <Popup
               autoPan={true}
+              closeOnClick={false}
               eventHandlers={{
-                remove: () => setClickedPoint(null),
+                popupclose: () => setClickedPoint(null),
               }}
             >
               <div className="map-click-popup">
@@ -462,66 +483,73 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({
                     <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z" />
                     <circle cx="12" cy="10" r="3" />
                   </svg>
-                  <span>Обрана точка</span>
+                  <span>Точка на карті</span>
                 </div>
 
-                {clickedPoint.isLoading ? (
-                  <div className="map-click-loading">
-                    <span className="btn-spinner text-primary" />
-                    <span>Визначаємо адресу...</span>
-                  </div>
-                ) : (
-                  <>
-                    <p className="map-click-address">{clickedPoint.address}</p>
-                    {clickedPoint.error && (
-                      <p className="map-click-error">{clickedPoint.error}</p>
-                    )}
-
-                    <div className="map-click-actions">
-                      {onSetStart && (
-                        <button
-                          type="button"
-                          className="map-action-btn btn-action-start"
-                          onClick={() => {
-                            onSetStart(clickedPoint.address || `${clickedPoint.lat.toFixed(5)}, ${clickedPoint.lng.toFixed(5)}`, clickedPoint.lat, clickedPoint.lng);
-                            setClickedPoint(null);
-                          }}
-                          title="Встановити як початкову точку подорожі"
-                        >
-                          <span>Старт</span>
-                        </button>
-                      )}
-
-                      {onAddStop && (
-                        <button
-                          type="button"
-                          className="map-action-btn btn-action-stop"
-                          onClick={() => {
-                            onAddStop(clickedPoint.address || `${clickedPoint.lat.toFixed(5)}, ${clickedPoint.lng.toFixed(5)}`, clickedPoint.lat, clickedPoint.lng);
-                            setClickedPoint(null);
-                          }}
-                          title="Додати як проміжну зупинку"
-                        >
-                          <span>Зупинка</span>
-                        </button>
-                      )}
-
-                      {onSetDestination && (
-                        <button
-                          type="button"
-                          className="map-action-btn btn-action-dest"
-                          onClick={() => {
-                            onSetDestination(clickedPoint.address || `${clickedPoint.lat.toFixed(5)}, ${clickedPoint.lng.toFixed(5)}`, clickedPoint.lat, clickedPoint.lng);
-                            setClickedPoint(null);
-                          }}
-                          title="Встановити як кінцеву точку подорожі"
-                        >
-                          <span>Фініш</span>
-                        </button>
-                      )}
+                <div className="map-click-address-box">
+                  {clickedPoint.isLoading ? (
+                    <div className="map-click-loading">
+                      <span className="btn-spinner text-primary" />
+                      <span>Визначаємо адресу… ({clickedPoint.lat.toFixed(4)}, {clickedPoint.lng.toFixed(4)})</span>
                     </div>
-                  </>
-                )}
+                  ) : (
+                    <p className="map-click-address">{clickedPoint.address}</p>
+                  )}
+                  {clickedPoint.error && (
+                    <p className="map-click-error">{clickedPoint.error}</p>
+                  )}
+                </div>
+
+                <p className="map-click-prompt">Оберіть роль для цієї точки:</p>
+
+                <div className="map-click-actions">
+                  {onSetStart && (
+                    <button
+                      type="button"
+                      className="map-action-btn btn-action-start"
+                      onClick={() => {
+                        const addr = clickedPoint.address || `${clickedPoint.lat.toFixed(5)}, ${clickedPoint.lng.toFixed(5)}`;
+                        onSetStart(addr, clickedPoint.lat, clickedPoint.lng);
+                        setClickedPoint(null);
+                      }}
+                      title="Встановити як початкову точку подорожі (Точка A)"
+                    >
+                      <span>Старт</span>
+                    </button>
+                  )}
+
+                  {onAddStop && (
+                    <button
+                      type="button"
+                      className="map-action-btn btn-action-stop"
+                      disabled={isMaxStopsReached}
+                      onClick={() => {
+                        if (isMaxStopsReached) return;
+                        const addr = clickedPoint.address || `${clickedPoint.lat.toFixed(5)}, ${clickedPoint.lng.toFixed(5)}`;
+                        onAddStop(addr, clickedPoint.lat, clickedPoint.lng);
+                        setClickedPoint(null);
+                      }}
+                      title={isMaxStopsReached ? 'Досягнуто ліміт у 10 зупинок' : 'Додати як проміжну зупинку'}
+                    >
+                      <span>Зупинка{isMaxStopsReached ? ' (макс)' : ''}</span>
+                    </button>
+                  )}
+
+                  {onSetDestination && (
+                    <button
+                      type="button"
+                      className="map-action-btn btn-action-dest"
+                      onClick={() => {
+                        const addr = clickedPoint.address || `${clickedPoint.lat.toFixed(5)}, ${clickedPoint.lng.toFixed(5)}`;
+                        onSetDestination(addr, clickedPoint.lat, clickedPoint.lng);
+                        setClickedPoint(null);
+                      }}
+                      title="Встановити як кінцеву точку подорожі (Точка B)"
+                    >
+                      <span>Фініш</span>
+                    </button>
+                  )}
+                </div>
               </div>
             </Popup>
           </Marker>
