@@ -361,6 +361,22 @@
   box-shadow: var(--shadow-overlay);
 }
 
+.toast-card.toast-info {
+  border-left-color: var(--accent);
+}
+
+.toast-card.toast-info .toast-icon {
+  color: var(--accent);
+}
+
+.toast-card.toast-success {
+  border-left-color: #10b981;
+}
+
+.toast-card.toast-success .toast-icon {
+  color: #10b981;
+}
+
 .toast-icon {
   color: var(--danger);
   display: flex;
@@ -1316,6 +1332,10 @@
   transform: none;
 }
 
+.btn-hero-cta.btn-hero-cta-stale {
+  box-shadow: 0 0 0 3px rgba(232, 80, 31, 0.35), var(--shadow-accent);
+}
+
 .cta-loading-content {
   display: inline-flex;
   align-items: center;
@@ -1548,6 +1568,11 @@
   background: var(--success-bg);
 }
 
+.floating-action-btn.floating-action-stale {
+  border-color: rgba(232, 80, 31, 0.45);
+  color: var(--accent-fg);
+}
+
 .action-arrow-icon {
   font-size: 0.85rem;
   font-weight: 800;
@@ -1568,6 +1593,85 @@
   pointer-events: auto;
 }
 
+.hero-overlay-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.stale-route-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  background: var(--bg-card);
+  border: 1px solid var(--accent);
+  border-left: 3.5px solid var(--accent);
+  border-radius: var(--radius-card);
+  padding: 0.55rem 0.75rem;
+  box-shadow: var(--shadow-overlay);
+  animation: hero-fade-in 0.2s ease-out;
+}
+
+.stale-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.stale-banner-icon {
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+.stale-banner-texts {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.stale-banner-title {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1.2;
+}
+
+.stale-banner-desc {
+  font-size: 0.68rem;
+  color: var(--muted);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn-stale-recalculate {
+  flex-shrink: 0;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-stale-recalculate:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.btn-stale-recalculate:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .hero-metrics-card {
   background: var(--bg-card);
   border: 1px solid var(--line);
@@ -1579,13 +1683,26 @@
   gap: 0.2rem;
   width: 100%;
   max-width: 300px;
-  max-height: 170px;
+  min-height: min-content;
   box-sizing: border-box;
   animation: hero-fade-in 0.25s ease-out;
+  transition: border-color 0.2s ease;
 }
 
-.hero-metrics-card:has(.hero-compare-expanded) {
-  max-height: none;
+.hero-metrics-card.is-stale {
+  border-color: rgba(232, 80, 31, 0.45);
+}
+
+.hero-stale-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(232, 80, 31, 0.12);
+  color: var(--accent);
+  border: 1px solid rgba(232, 80, 31, 0.25);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 @keyframes hero-fade-in {
@@ -1939,6 +2056,28 @@
   font-size: 0.825rem;
   font-weight: 600;
   color: var(--muted);
+}
+
+.schedule-stale-notice {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(232, 80, 31, 0.08);
+  border: 1px solid rgba(232, 80, 31, 0.25);
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-main);
+  line-height: 1.35;
+}
+
+.schedule-stale-notice .stale-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
 }
 
 .schedule-items-list {
@@ -2476,6 +2615,20 @@
   margin: 0;
 }
 
+.map-click-address-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.map-click-prompt {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin: 0.1rem 0 0;
+  line-height: 1.25;
+}
+
 .map-click-actions {
   display: flex;
   align-items: center;
@@ -2499,6 +2652,12 @@
   cursor: pointer;
   transition: all 0.15s ease;
   white-space: nowrap;
+}
+
+.map-action-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .btn-action-start {

@@ -3,7 +3,7 @@ import './App.css';
 import { Header } from './components/Header';
 import { RouteFormSection } from './components/RouteFormSection';
 import { ResultsSection } from './components/ResultsSection';
-import { Toast } from './components/Toast';
+import { Toast, type ToastType } from './components/Toast';
 import type { AddressInput, AlgorithmType, OptimizeRouteResponse, PlanningMode, RouteStop, SearchScope, TravelMode } from './types/route';
 import { optimizeRoute } from './api/routeClient';
 import { clearTripDraft, loadTripDraft, saveTripDraft } from './utils/draftStorage';
@@ -41,6 +41,32 @@ function sanitizeDraftDate(dateTimeStr?: string, defaultHour = '09:00'): string 
     return `${todayStr}T${safeTime}`;
   }
   return `${date}T${safeTime}`;
+}
+
+function getRouteSignature(params: {
+  start: AddressInput;
+  destination: AddressInput;
+  stops: RouteStop[];
+  planningMode: PlanningMode;
+  travelMode: TravelMode;
+  departureTime: string;
+  arrivalBy: string;
+  algorithm: AlgorithmType;
+}): string {
+  return JSON.stringify({
+    s: { a: params.start.address.trim(), lat: params.start.latitude, lng: params.start.longitude },
+    d: { a: params.destination.address.trim(), lat: params.destination.latitude, lng: params.destination.longitude },
+    stops: params.stops.map((s) => ({
+      a: s.address.trim(),
+      lat: s.latitude,
+      lng: s.longitude,
+      m: s.serviceMinutes,
+    })),
+    pm: params.planningMode,
+    tm: params.travelMode,
+    t: params.planningMode === 'arrive-by' ? params.arrivalBy : params.departureTime,
+    alg: params.algorithm,
+  });
 }
 
 export type ThemeMode = 'light' | 'dark';
@@ -107,13 +133,35 @@ export const App: React.FC = () => {
 
   // Request & Execution State
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const [result, setResult] = useState<OptimizeRouteResponse | null>(null);
+  const [lastOptimizedSignature, setLastOptimizedSignature] = useState<string | null>(null);
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  const currentRouteSignature = getRouteSignature({
+    start,
+    destination,
+    stops,
+    planningMode,
+    travelMode,
+    departureTime,
+    arrivalBy,
+    algorithm,
+  });
+
+  const isStale = Boolean(
+    result && lastOptimizedSignature && lastOptimizedSignature !== currentRouteSignature
+  );
+
   const handleAddStop = () => {
-    if (stops.length >= 10) return;
+    if (stops.length >= 10) {
+      setToast({
+        message: 'Досягнуто ліміт: максимум 10 зупинок для одного маршруту.',
+        type: 'error',
+      });
+      return;
+    }
     const newStop: RouteStop = {
       id: `stop-${generateId()}`,
       label: `Зупинка ${stops.length + 1}`,
@@ -138,34 +186,55 @@ export const App: React.FC = () => {
   };
 
   const handleSetStartFromMap = (address: string, lat?: number, lng?: number) => {
+    const label = deriveStopLabel(address, 'Старт');
     setStart({
-      label: deriveStopLabel(address, 'Старт'),
+      label,
       address,
       latitude: lat,
       longitude: lng,
+    });
+    setToast({
+      message: `Початок маршруту встановлено: ${label}`,
+      type: 'info',
     });
   };
 
   const handleSetDestinationFromMap = (address: string, lat?: number, lng?: number) => {
+    const label = deriveStopLabel(address, 'Фініш');
     setDestination({
-      label: deriveStopLabel(address, 'Фініш'),
+      label,
       address,
       latitude: lat,
       longitude: lng,
     });
+    setToast({
+      message: `Фініш маршруту встановлено: ${label}`,
+      type: 'info',
+    });
   };
 
   const handleAddStopFromMap = (address: string, lat?: number, lng?: number) => {
-    if (stops.length >= 10) return;
+    if (stops.length >= 10) {
+      setToast({
+        message: 'Досягнуто ліміт: максимум 10 зупинок для одного маршруту.',
+        type: 'error',
+      });
+      return;
+    }
+    const label = deriveStopLabel(address, `Зупинка ${stops.length + 1}`);
     const newStop: RouteStop = {
       id: `stop-${generateId()}`,
-      label: deriveStopLabel(address, `Зупинка ${stops.length + 1}`),
+      label,
       address,
       latitude: lat,
       longitude: lng,
       serviceMinutes: 15,
     };
     setStops((prev) => [...prev, newStop]);
+    setToast({
+      message: `Додано зупинку: ${label}`,
+      type: 'info',
+    });
   };
 
   // Autosave draft on form changes with debounce
@@ -238,7 +307,7 @@ export const App: React.FC = () => {
     setDepartureTime(`${getTodayDateString()}T09:00`);
     setAlgorithm('two-opt');
     setSearchScope('all-ukraine');
-    setError(null);
+    setToast(null);
   };
 
   const handleResetDraft = () => {
@@ -254,7 +323,8 @@ export const App: React.FC = () => {
     setSearchScope('all-ukraine');
     setSelectedCity('Житомир');
     setResult(null);
-    setError(null);
+    setLastOptimizedSignature(null);
+    setToast(null);
     setIsDraftSaved(false);
   };
 
@@ -267,7 +337,7 @@ export const App: React.FC = () => {
     abortControllerRef.current = controller;
 
     setIsLoading(true);
-    setError(null);
+    setToast(null);
 
     try {
       const data = await optimizeRoute(
@@ -299,14 +369,18 @@ export const App: React.FC = () => {
         controller.signal
       );
       setResult(data);
+      setLastOptimizedSignature(currentRouteSignature);
     } catch (err: unknown) {
       if (err instanceof DOMException && err.name === 'AbortError') {
         return;
       }
       if (err instanceof Error) {
-        setError(err.message);
+        setToast({ message: err.message, type: 'error' });
       } else {
-        setError('Під час розрахунку маршруту сталася неочікувана помилка.');
+        setToast({
+          message: 'Під час розрахунку маршруту сталася неочікувана помилка.',
+          type: 'error',
+        });
       }
     } finally {
       if (abortControllerRef.current === controller) {
@@ -317,7 +391,11 @@ export const App: React.FC = () => {
 
   return (
     <div className="app-root">
-      <Toast message={error} onClose={() => setError(null)} />
+      <Toast
+        message={toast?.message ?? null}
+        type={toast?.type ?? 'error'}
+        onClose={() => setToast(null)}
+      />
       <Header theme={theme} onToggleTheme={handleToggleTheme} />
       <main className="main-container">
         <div className="planner-grid">
@@ -350,6 +428,7 @@ export const App: React.FC = () => {
               onOptimize={handleOptimize}
               isDraftSaved={isDraftSaved}
               onResetDraft={handleResetDraft}
+              isStale={isStale}
             />
           </div>
           <div className="right-column">
@@ -364,6 +443,8 @@ export const App: React.FC = () => {
               onAddStopFromMap={handleAddStopFromMap}
               onSetDestinationFromMap={handleSetDestinationFromMap}
               onTryExample={handleTryExample}
+              isStale={isStale}
+              onOptimize={handleOptimize}
             />
           </div>
         </div>

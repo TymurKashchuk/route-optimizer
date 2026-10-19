@@ -16,6 +16,8 @@ interface ResultsSectionProps {
   onAddStopFromMap?: (address: string, lat: number, lng: number) => void;
   onSetDestinationFromMap?: (address: string, lat: number, lng: number) => void;
   onTryExample?: () => void;
+  isStale?: boolean;
+  onOptimize?: () => void;
 }
 
 export const ResultsSection: React.FC<ResultsSectionProps> = ({
@@ -29,6 +31,8 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({
   onAddStopFromMap,
   onSetDestinationFromMap,
   onTryExample,
+  isStale,
+  onOptimize,
 }) => {
   return (
     <div className="results-column-wrapper">
@@ -49,17 +53,43 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({
             onSetStart={onSetStartFromMap}
             onAddStop={onAddStopFromMap}
             onSetDestination={onSetDestinationFromMap}
+            isStale={isStale}
             renderHeroOverlay={
               result ? (
-                <RouteMetricsSummary
-                  original={result.original}
-                  optimized={result.optimized}
-                  savedMinutes={result.savedMinutes}
-                  savedDistanceKm={result.savedDistanceKm}
-                  improvementPercent={result.improvementPercent}
-                  planningMode={result.planningMode}
-                  recommendedDepartureTime={result.recommendedDepartureTime}
-                />
+                <div className="hero-overlay-stack">
+                  {isStale && (
+                    <div className="stale-route-banner" role="status">
+                      <div className="stale-banner-content">
+                        <span className="stale-banner-icon" aria-hidden="true">⚠️</span>
+                        <div className="stale-banner-texts">
+                          <span className="stale-banner-title">Форму змінено</span>
+                          <span className="stale-banner-desc">Показано попередній маршрут</span>
+                        </div>
+                      </div>
+                      {onOptimize && (
+                        <button
+                          type="button"
+                          className="btn-stale-recalculate"
+                          onClick={onOptimize}
+                          disabled={isLoading}
+                          title="Перерахувати маршрут для актуальних даних"
+                        >
+                          Оновити
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  <RouteMetricsSummary
+                    original={result.original}
+                    optimized={result.optimized}
+                    savedMinutes={result.savedMinutes}
+                    savedDistanceKm={result.savedDistanceKm}
+                    improvementPercent={result.improvementPercent}
+                    planningMode={result.planningMode}
+                    recommendedDepartureTime={result.recommendedDepartureTime}
+                    isStale={isStale}
+                  />
+                </div>
               ) : null
             }
           />
@@ -116,6 +146,7 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({
             planningMode={result.planningMode}
             explanationSteps={result.explanationSteps}
             travelMode={result.travelMode}
+            isStale={isStale}
           />
         </div>
       )}

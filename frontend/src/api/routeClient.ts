@@ -100,7 +100,7 @@ async function parseErrorMessage(response: Response): Promise<string> {
     // Non-JSON responses (e.g. proxy HTML pages on 502/504) fallback to status messages below
   }
 
-  return HTTP_STATUS_MESSAGES[response.status] || `Route optimization failed (HTTP ${response.status}).`;
+  return HTTP_STATUS_MESSAGES[response.status] || `Не вдалося розрахувати маршрут (HTTP ${response.status}).`;
 }
 
 /**

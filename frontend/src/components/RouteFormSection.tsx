@@ -59,6 +59,7 @@ interface RouteFormSectionProps {
   onOptimize: () => void;
   isDraftSaved?: boolean;
   onResetDraft?: () => void;
+  isStale?: boolean;
 }
 
 export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
@@ -89,6 +90,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
   onOptimize,
   isDraftSaved,
   onResetDraft,
+  isStale,
 }) => {
   const isArriveBy = planningMode === 'arrive-by';
   const [isLocating, setIsLocating] = useState<boolean>(false);
@@ -544,7 +546,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
       <div className="planner-cta-wrap">
         <button
           type="button"
-          className="btn-hero-cta"
+          className={`btn-hero-cta ${isStale ? 'btn-hero-cta-stale' : ''}`}
           onClick={onOptimize}
           disabled={isLoading}
         >
@@ -556,6 +558,8 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
               </svg>
               <span>Розраховуємо маршрут…</span>
             </span>
+          ) : isStale ? (
+            'Оновити маршрут'
           ) : (
             'Оптимізувати маршрут'
           )}
