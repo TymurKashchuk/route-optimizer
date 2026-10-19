@@ -28,9 +28,9 @@ export async function searchAddresses(
 
     if (!response.ok) {
       if (response.status === 429) {
-        throw new Error('Search rate limit reached. Please wait a moment.');
+        throw new Error('Перевищено ліміт запитів пошуку. Будь ласка, зачекайте хвилину.');
       }
-      throw new Error(`Address search failed (HTTP ${response.status}).`);
+      throw new Error(`Не вдалося виконати пошук адреси (HTTP ${response.status}).`);
     }
 
     return (await response.json()) as AddressSuggestionDto[];
@@ -61,12 +61,12 @@ export async function reverseGeocode(
 
   if (!response.ok) {
     if (response.status === 404) {
-      throw new Error('No address found for current coordinates.');
+      throw new Error('Адресу за цими координатами не знайдено.');
     }
     if (response.status === 429) {
-      throw new Error('Geocoding rate limit reached. Please wait a moment.');
+      throw new Error('Перевищено ліміт запитів геокодування. Будь ласка, зачекайте хвилину.');
     }
-    throw new Error(`Reverse geocoding failed (HTTP ${response.status}).`);
+    throw new Error(`Не вдалося визначити адресу за координатами (HTTP ${response.status}).`);
   }
 
   return (await response.json()) as AddressSuggestionDto;
