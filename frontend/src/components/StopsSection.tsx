@@ -11,6 +11,7 @@ interface StopsSectionProps {
   onUpdateStop: (id: string, fields: Partial<RouteStop>) => void;
   onReorderStops?: (reorderedStops: RouteStop[]) => void;
   city?: string;
+  onEnterPress?: () => void;
 }
 
 export const StopsSection: React.FC<StopsSectionProps> = ({
@@ -21,6 +22,7 @@ export const StopsSection: React.FC<StopsSectionProps> = ({
   onUpdateStop,
   onReorderStops,
   city,
+  onEnterPress,
 }) => {
   const isMaxStopsReached = stops.length >= 10;
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -100,6 +102,8 @@ export const StopsSection: React.FC<StopsSectionProps> = ({
                       }
                       value={stop.address}
                       city={city}
+                      hasCoordinates={Boolean(stop.latitude && stop.longitude)}
+                      onEnterPress={onEnterPress}
                       onChange={(newAddress, suggestion) => {
                         const isDefaultLabel =
                           !stop.label ||

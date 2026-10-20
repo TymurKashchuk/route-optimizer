@@ -40,6 +40,8 @@ export function validateRouteRequest(request: OptimizeRouteRequest): string | nu
   const todayStr = getTodayDateString();
   const datePart = targetDateStr ? targetDateStr.split('T')[0] : '';
   const isPastDate = Boolean(datePart && datePart < todayStr);
+  const targetTimestamp = targetDateStr ? new Date(targetDateStr).getTime() : NaN;
+  const isPastDateTime = !isNaN(targetTimestamp) && targetTimestamp < Date.now() - 2 * 60 * 1000;
 
   const globalRules: ValidationRule[] = [
     { condition: !request.start?.address?.trim(), message: 'Вкажіть адресу початку маршруту (Точка А).' },
@@ -55,6 +57,12 @@ export function validateRouteRequest(request: OptimizeRouteRequest): string | nu
     {
       condition: isPastDate,
       message: 'Дата поїздки не може бути в минулому.',
+    },
+    {
+      condition: !isPastDate && isPastDateTime,
+      message: isArriveBy
+        ? 'Бажаний час прибуття вже минув. Оберіть час у майбутньому.'
+        : 'Час виїзду не може бути в минулому. Оберіть час у майбутньому.',
     },
     { condition: !request.stops, message: 'Список зупинок має бути заданий.' },
     { condition: !!request.stops && request.stops.length > 10, message: 'Максимум 10 зупинок для одного маршруту.' },
