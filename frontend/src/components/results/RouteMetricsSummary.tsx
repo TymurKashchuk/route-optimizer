@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { PlanningMode, RouteMetricsDto } from '../../types/route';
-import { formatDuration, formatTime } from '../../utils/dateTime';
+import { formatDuration, formatTime, isTimestampInPast } from '../../utils/dateTime';
 
 interface RouteMetricsSummaryProps {
   original: RouteMetricsDto;
@@ -28,6 +28,8 @@ export const RouteMetricsSummary: React.FC<RouteMetricsSummaryProps> = ({
   const hasDistanceSavings = savedDistanceKm > 0;
   const hasSavings = hasTimeSavings || hasDistanceSavings;
   const totalTripMinutes = optimized.totalTravelMinutes + optimized.totalServiceMinutes;
+  const isDepartureInPast =
+    planningMode === 'arrive-by' && isTimestampInPast(recommendedDepartureTime);
 
   return (
     <div className={`hero-metrics-card ${isStale ? 'is-stale' : ''}`}>
@@ -40,8 +42,17 @@ export const RouteMetricsSummary: React.FC<RouteMetricsSummaryProps> = ({
           </span>
         )}
         {planningMode === 'arrive-by' && recommendedDepartureTime && (
-          <span className="hero-recommended-dep" title="Рекомендований час початку подорожі">
-            Виїзд о <strong>{formatTime(recommendedDepartureTime)}</strong>
+          <span
+            className={`hero-recommended-dep ${isDepartureInPast ? 'is-late' : ''}`}
+            title={
+              isDepartureInPast
+                ? 'Рекомендований час виїзду вже минув для вчасного прибуття'
+                : 'Рекомендований час початку подорожі'
+            }
+          >
+            {isDepartureInPast ? '⚠️ Виїзд був потрібен о ' : 'Виїзд о '}
+            <strong>{formatTime(recommendedDepartureTime)}</strong>
+            {isDepartureInPast && ' (минув)'}
           </span>
         )}
       </div>

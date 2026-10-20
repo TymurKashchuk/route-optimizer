@@ -102,3 +102,30 @@ export function adjustTimeString(timeStr: string, deltaMinutes: number): string 
   const newM = String(totalMinutes % 60).padStart(2, '0');
   return `${newH}:${newM}`;
 }
+
+/**
+ * Checks whether an ISO datetime string represents a point in time in the past.
+ */
+export function isTimestampInPast(isoString?: string): boolean {
+  if (!isoString) return false;
+  const time = new Date(isoString).getTime();
+  return !isNaN(time) && time < Date.now();
+}
+
+/**
+ * Checks whether a selected date (YYYY-MM-DD) and time (HH:MM) is in the past,
+ * with an optional grace window in minutes (default 2 mins).
+ */
+export function isDateTimeInPast(dateStr: string, timeStr: string, graceMinutes = 2): boolean {
+  const today = getTodayDateString();
+  if (dateStr < today) return true;
+  if (dateStr > today) return false;
+  const parts = (timeStr || '').split(':');
+  const h = parseInt(parts[0], 10);
+  const m = parseInt(parts[1], 10);
+  if (isNaN(h) || isNaN(m)) return false;
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const selectedMinutes = h * 60 + m;
+  return selectedMinutes < currentMinutes - graceMinutes;
+}

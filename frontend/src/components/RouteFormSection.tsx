@@ -5,7 +5,7 @@ import { StopsSection } from './StopsSection';
 import { CustomDatePicker } from './CustomDatePicker';
 import { CustomTimePicker } from './CustomTimePicker';
 import { reverseGeocode } from '../api/geocodingClient';
-import { adjustTimeString, getCurrentRoundedTimeString, getTodayDateString } from '../utils/dateTime';
+import { adjustTimeString, getCurrentRoundedTimeString, getTodayDateString, isDateTimeInPast } from '../utils/dateTime';
 import { deriveStopLabel } from '../utils/address';
 
 const POPULAR_CITIES = [
@@ -95,7 +95,10 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
   const isArriveBy = planningMode === 'arrive-by';
   const [isLocating, setIsLocating] = useState<boolean>(false);
   const [locationError, setLocationError] = useState<string | null>(null);
-  const isCustomCity = !POPULAR_CITIES.includes(selectedCity);
+  const [isCustomScope, setIsCustomScope] = useState<boolean>(() => {
+    return searchScope === 'city' && !POPULAR_CITIES.includes(selectedCity);
+  });
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
 
   const activeCity = searchScope === 'city' ? selectedCity.trim() : undefined;
 
@@ -123,6 +126,13 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
     } else {
       onDepartureTimeChange(combined);
     }
+  };
+
+  const isSelectedTimeInPast = isDateTimeInPast(datePart, timePart);
+
+  const handleCtaClick = () => {
+    setHasAttemptedSubmit(true);
+    onOptimize();
   };
 
   const handleUseCurrentLocation = () => {
@@ -212,15 +222,20 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
           <select
             id="search-scope-select"
             className="scope-select-input"
-            value={searchScope === 'all-ukraine' ? 'all-ukraine' : (POPULAR_CITIES.includes(selectedCity) ? selectedCity : '__custom__')}
+            value={searchScope === 'all-ukraine' ? 'all-ukraine' : isCustomScope ? '__custom__' : selectedCity}
             onChange={(e) => {
               const val = e.target.value;
               if (val === 'all-ukraine') {
+                setIsCustomScope(false);
                 onSearchScopeChange('all-ukraine');
               } else if (val === '__custom__') {
+                setIsCustomScope(true);
                 onSearchScopeChange('city');
-                onSelectedCityChange('');
+                if (POPULAR_CITIES.includes(selectedCity)) {
+                  onSelectedCityChange('');
+                }
               } else {
+                setIsCustomScope(false);
                 onSearchScopeChange('city');
                 onSelectedCityChange(val);
               }
@@ -239,7 +254,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
             <option value="__custom__">Інше місто…</option>
           </select>
 
-          {searchScope === 'city' && isCustomCity && (
+          {searchScope === 'city' && isCustomScope && (
             <input
               type="text"
               className="scope-custom-input"
@@ -267,6 +282,8 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
                 }
                 value={start.address}
                 city={activeCity}
+                hasCoordinates={Boolean(start.latitude && start.longitude)}
+                onEnterPress={handleCtaClick}
                 onChange={(newAddress, suggestion) => {
                   setLocationError(null);
                   onStartChange({
@@ -304,6 +321,9 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
                 )}
               </button>
             </div>
+            {hasAttemptedSubmit && !start.address.trim() && (
+              <p className="form-error-sm">Вкажіть адресу початку маршруту (Точка А).</p>
+            )}
           </div>
           {locationError && <p className="form-error-sm">{locationError}</p>}
 
@@ -316,6 +336,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
             onUpdateStop={onUpdateStop}
             onReorderStops={onReorderStops}
             city={activeCity}
+            onEnterPress={handleCtaClick}
           />
           <div className="chain-row-item chain-row-dest" style={{ zIndex: 10 }}>
             <div className="marker-solid-b" aria-hidden="true">
@@ -332,6 +353,8 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
                 }
                 value={destination.address}
                 city={activeCity}
+                hasCoordinates={Boolean(destination.latitude && destination.longitude)}
+                onEnterPress={handleCtaClick}
                 onChange={(newAddress, suggestion) => {
                   onDestinationChange({
                     ...destination,
@@ -344,6 +367,9 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
                 disabled={isLoading}
               />
             </div>
+            {hasAttemptedSubmit && !destination.address.trim() && (
+              <p className="form-error-sm">Вкажіть адресу призначення (Точка B).</p>
+            )}
           </div>
         </div>
       </div>
@@ -442,6 +468,11 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
             </button>
           ))}
         </div>
+        {isSelectedTimeInPast && (
+          <p className="form-warning-sm">
+            ⚠️ {isArriveBy ? 'Обраний час прибуття вже минув' : 'Обраний час виїзду вже минув'}
+          </p>
+        )}
       </div>
       <div className="form-sub-section">
         <div className="section-step-label">3 · ЯК ЇДЕМО</div>
@@ -547,7 +578,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
         <button
           type="button"
           className={`btn-hero-cta ${isStale ? 'btn-hero-cta-stale' : ''}`}
-          onClick={onOptimize}
+          onClick={handleCtaClick}
           disabled={isLoading}
         >
           {isLoading ? (

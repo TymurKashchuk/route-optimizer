@@ -1,6 +1,6 @@
 import React from 'react';
 import type { PlanningMode, RouteStepDto, TimelineItemDto, TravelMode } from '../../types/route';
-import { formatDayMonthUk, formatTime, getServiceDuration } from '../../utils/dateTime';
+import { formatDayMonthUk, formatTime, getServiceDuration, isTimestampInPast } from '../../utils/dateTime';
 
 interface TimelineViewProps {
   timeline: TimelineItemDto[];
@@ -22,6 +22,9 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
     ? formatDayMonthUk(timeline[0].departureTime)
     : formatDayMonthUk();
 
+  const isDepartureInPast =
+    planningMode === 'arrive-by' && isTimestampInPast(timeline[0]?.departureTime);
+
   return (
     <div className={`schedule-timeline-container ${isStale ? 'is-stale' : ''}`}>
       {/* Header matching mockup: "Розклад поїздки" and "4 пункти · пт, 16 жовтня" */}
@@ -32,6 +35,15 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
           {dateSubheader && ` · ${dateSubheader}`}
         </span>
       </div>
+
+      {isDepartureInPast && (
+        <div className="schedule-late-alert" role="alert">
+          <span className="late-icon" aria-hidden="true">⚠️</span>
+          <span>
+            Розрахований час виїзду ({formatTime(timeline[0].departureTime)}) уже минув. Щоб прибути вчасно, потрібно було вирушити раніше або скоригувати час прибуття.
+          </span>
+        </div>
+      )}
 
       {isStale && (
         <div className="schedule-stale-notice" role="status">
