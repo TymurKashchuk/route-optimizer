@@ -73,6 +73,10 @@ export type ThemeMode = 'light' | 'dark';
 
 function getInitialTheme(): ThemeMode {
   if (typeof window !== 'undefined') {
+    const attr = document.documentElement.getAttribute('data-theme') as ThemeMode | null;
+    if (attr === 'light' || attr === 'dark') {
+      return attr;
+    }
     const saved = localStorage.getItem('routewise_theme');
     if (saved === 'light' || saved === 'dark') {
       return saved;
@@ -90,6 +94,10 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+      metaThemeColor.setAttribute('content', theme === 'dark' ? '#0F172A' : '#EEF1F4');
+    }
     try {
       localStorage.setItem('routewise_theme', theme);
     } catch {
@@ -444,7 +452,6 @@ export const App: React.FC = () => {
               onSetDestinationFromMap={handleSetDestinationFromMap}
               onTryExample={handleTryExample}
               isStale={isStale}
-              onOptimize={handleOptimize}
             />
           </div>
         </div>

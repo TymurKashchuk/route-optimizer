@@ -304,7 +304,8 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({
             className={`floating-action-btn ${isStale ? 'floating-action-stale' : ''}`}
             title={isStale ? 'Попередній розрахунок у Google Maps (маршрут змінено)' : 'Відкрити маршрут у Google Maps'}
           >
-            <span>{isStale ? 'Google Maps (попередній)' : 'Відкрити в Google Maps'}</span>
+            <span className="btn-label-full">{isStale ? 'Google Maps (попередній)' : 'Відкрити в Google Maps'}</span>
+            <span className="btn-label-short">Google Maps</span>
             <span className="action-arrow-icon" aria-hidden="true">↗</span>
           </a>
 
@@ -315,7 +316,8 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({
             title="Скопіювати посилання на Google Maps"
             aria-live="polite"
           >
-            {copied ? 'Скопійовано!' : 'Копіювати посилання'}
+            <span className="btn-label-full">{copied ? 'Скопійовано!' : 'Копіювати посилання'}</span>
+            <span className="btn-label-short">{copied ? 'Скопійовано!' : 'Поділитися'}</span>
           </button>
         </div>
       )}
