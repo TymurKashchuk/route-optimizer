@@ -206,6 +206,10 @@
   position: sticky;
   top: 1rem;
   z-index: 50;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
 }
 
 .right-column {
@@ -214,7 +218,7 @@
   gap: 1.5rem;
 }
 
-/* Responsive breakpoint */
+/* Responsive breakpoint for main planner grid */
 @media (max-width: 920px) {
   .planner-grid {
     grid-template-columns: 1fr;
@@ -224,47 +228,10 @@
     padding: 1rem;
   }
 
-  /* On screens < 920px: Hero card flows UNDER the map instead of floating over it */
-  .map-canvas-container {
-    height: auto;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .leaflet-map-element {
-    height: 380px;
-    order: 1;
-  }
-
-  .map-hero-overlay-slot {
-    order: 2;
+  .left-column {
     position: static;
-    width: 100%;
-    max-width: 100%;
-    padding: 1.15rem 1.25rem;
-    border-top: 1px solid var(--line);
-    background: var(--bg-card);
-    pointer-events: auto;
-  }
-
-  .hero-metrics-card {
-    box-shadow: none;
-    border: none;
-    padding: 0;
-    width: 100%;
-    max-width: 100%;
     max-height: none;
-    border-radius: 0;
-    animation: none;
-  }
-
-  .hero-metrics-card .hero-time-value {
-    font-size: 2.15rem;
-  }
-
-  .map-floating-actions {
-    top: 0.75rem;
-    right: 0.75rem;
+    overflow-y: visible;
   }
 }
 
@@ -276,21 +243,6 @@
 
   .header-badge {
     align-self: flex-start;
-  }
-
-  .leaflet-map-element {
-    height: 320px;
-  }
-
-  .map-floating-actions {
-    top: 0.5rem;
-    right: 0.5rem;
-    gap: 0.35rem;
-  }
-
-  .floating-action-btn {
-    padding: 0.35rem 0.55rem;
-    font-size: 0.725rem;
   }
 }
 
@@ -632,9 +584,17 @@
 
 .chain-input-box {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.chain-input-row {
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
 .chain-input-box .form-input-clean {
@@ -1133,6 +1093,11 @@
   font-weight: 800;
 }
 
+.time-unit-btn.step-5:not(.selected) {
+  font-weight: 800;
+  color: var(--accent-fg);
+}
+
 .time-picker-footer {
   margin-top: 0.5rem;
   padding-top: 0.4rem;
@@ -1592,6 +1557,23 @@
   font-weight: 800;
 }
 
+.btn-label-full {
+  display: inline;
+}
+
+.btn-label-short {
+  display: none;
+}
+
+@media (max-width: 1200px) {
+  .btn-label-full {
+    display: none;
+  }
+  .btn-label-short {
+    display: inline;
+  }
+}
+
 /* Floating Hero Card in Top Left of Map (Mockup: compact ~300px, max-height ~170px) */
 .map-hero-overlay-slot {
   position: absolute;
@@ -1605,85 +1587,6 @@
 
 .map-hero-overlay-slot > * {
   pointer-events: auto;
-}
-
-.hero-overlay-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  width: 100%;
-}
-
-.stale-route-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.6rem;
-  background: var(--bg-card);
-  border: 1px solid var(--accent);
-  border-left: 3.5px solid var(--accent);
-  border-radius: var(--radius-card);
-  padding: 0.55rem 0.75rem;
-  box-shadow: var(--shadow-overlay);
-  animation: hero-fade-in 0.2s ease-out;
-}
-
-.stale-banner-content {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  min-width: 0;
-}
-
-.stale-banner-icon {
-  font-size: 0.95rem;
-  flex-shrink: 0;
-}
-
-.stale-banner-texts {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.stale-banner-title {
-  font-size: 0.76rem;
-  font-weight: 700;
-  color: var(--accent);
-  line-height: 1.2;
-}
-
-.stale-banner-desc {
-  font-size: 0.68rem;
-  color: var(--muted);
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.btn-stale-recalculate {
-  flex-shrink: 0;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 0.35rem 0.65rem;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all 0.15s ease;
-  white-space: nowrap;
-}
-
-.btn-stale-recalculate:hover:not(:disabled) {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
-
-.btn-stale-recalculate:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 
 .hero-metrics-card {
@@ -1868,6 +1771,68 @@
 
 .compare-accent {
   color: var(--accent-fg);
+}
+
+/* Responsive Map & Hero Card: flows under the map on screens <= 1100px to prevent overlap */
+@media (max-width: 1100px) {
+  .map-canvas-container {
+    height: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .leaflet-map-element {
+    height: 380px;
+    order: 1;
+  }
+
+  .map-hero-overlay-slot {
+    order: 2;
+    position: static;
+    width: 100%;
+    max-width: 100%;
+    padding: 1.15rem 1.25rem;
+    border-top: 1px solid var(--line);
+    background: var(--bg-card);
+    pointer-events: auto;
+  }
+
+  .hero-metrics-card {
+    box-shadow: none;
+    border: none;
+    padding: 0;
+    width: 100%;
+    max-width: 100%;
+    max-height: none;
+    border-radius: 0;
+    animation: none;
+  }
+
+  .hero-metrics-card .hero-time-value {
+    font-size: 2.15rem;
+  }
+
+  .map-floating-actions {
+    top: 0.75rem;
+    right: 0.75rem;
+  }
+}
+
+@media (max-width: 540px) {
+  .leaflet-map-element {
+    height: 320px;
+  }
+
+  .map-floating-actions {
+    top: 0.5rem;
+    right: 0.5rem;
+    gap: 0.35rem;
+  }
+
+  .floating-action-btn {
+    padding: 0.35rem 0.55rem;
+    font-size: 0.725rem;
+  }
 }
 
 /* Map Loading Overlay */
@@ -2885,7 +2850,7 @@
   color: var(--accent-fg);
 }
 
-/* Dark tiles styling */
+/* Dark tiles styling: CSS filter for OpenStreetMap */
 [data-theme='dark'] .leaflet-tile-pane {
   filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
 }
