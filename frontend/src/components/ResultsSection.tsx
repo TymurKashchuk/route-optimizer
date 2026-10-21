@@ -17,7 +17,6 @@ interface ResultsSectionProps {
   onSetDestinationFromMap?: (address: string, lat: number, lng: number) => void;
   onTryExample?: () => void;
   isStale?: boolean;
-  onOptimize?: () => void;
 }
 
 export const ResultsSection: React.FC<ResultsSectionProps> = ({
@@ -32,7 +31,6 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({
   onSetDestinationFromMap,
   onTryExample,
   isStale,
-  onOptimize,
 }) => {
   return (
     <div className="results-column-wrapper">
@@ -56,40 +54,16 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({
             isStale={isStale}
             renderHeroOverlay={
               result ? (
-                <div className="hero-overlay-stack">
-                  {isStale && (
-                    <div className="stale-route-banner" role="status">
-                      <div className="stale-banner-content">
-                        <span className="stale-banner-icon" aria-hidden="true">⚠️</span>
-                        <div className="stale-banner-texts">
-                          <span className="stale-banner-title">Форму змінено</span>
-                          <span className="stale-banner-desc">Показано попередній маршрут</span>
-                        </div>
-                      </div>
-                      {onOptimize && (
-                        <button
-                          type="button"
-                          className="btn-stale-recalculate"
-                          onClick={onOptimize}
-                          disabled={isLoading}
-                          title="Перерахувати маршрут для актуальних даних"
-                        >
-                          Оновити
-                        </button>
-                      )}
-                    </div>
-                  )}
-                  <RouteMetricsSummary
-                    original={result.original}
-                    optimized={result.optimized}
-                    savedMinutes={result.savedMinutes}
-                    savedDistanceKm={result.savedDistanceKm}
-                    improvementPercent={result.improvementPercent}
-                    planningMode={result.planningMode}
-                    recommendedDepartureTime={result.recommendedDepartureTime}
-                    isStale={isStale}
-                  />
-                </div>
+                <RouteMetricsSummary
+                  original={result.original}
+                  optimized={result.optimized}
+                  savedMinutes={result.savedMinutes}
+                  savedDistanceKm={result.savedDistanceKm}
+                  improvementPercent={result.improvementPercent}
+                  planningMode={result.planningMode}
+                  recommendedDepartureTime={result.recommendedDepartureTime}
+                  isStale={isStale}
+                />
               ) : null
             }
           />
