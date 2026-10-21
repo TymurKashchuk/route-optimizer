@@ -111,6 +111,11 @@ interface MapClickHandlerProps {
 const MapClickHandler: React.FC<MapClickHandlerProps> = ({ onMapClick }) => {
   useMapEvents({
     click(e) {
+      const rawTarget = e.originalEvent?.target as Node | null;
+      const targetElement = rawTarget instanceof Element ? rawTarget : rawTarget?.parentElement;
+      if (targetElement?.closest('.leaflet-popup, .leaflet-control, .map-click-popup, .leaflet-marker-icon')) {
+        return;
+      }
       onMapClick(e.latlng.lat, e.latlng.lng);
     },
   });
@@ -463,29 +468,36 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({
         {/* Interactive Clicked Waypoint Marker & Action Popup */}
         {clickedPoint && (
           <Marker
-            ref={(marker) => {
-              clickedMarkerRef.current = marker;
-              if (marker && !marker.isPopupOpen()) {
-                marker.openPopup();
-              }
-            }}
+            ref={clickedMarkerRef}
             position={[clickedPoint.lat, clickedPoint.lng]}
             icon={getClickedIcon()}
           >
             <Popup
               autoPan={true}
-              closeOnClick={true}
-              eventHandlers={{
-                popupclose: () => setClickedPoint(null),
-              }}
+              closeOnClick={false}
+              closeButton={false}
             >
               <div className="map-click-popup">
                 <div className="map-click-header">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z" />
-                    <circle cx="12" cy="10" r="3" />
-                  </svg>
-                  <span>Точка на карті</span>
+                  <div className="map-click-header-title">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
+                    <span>Точка на карті</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-popup-close"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setClickedPoint(null);
+                    }}
+                    title="Закрити та видалити мітку"
+                    aria-label="Закрити та видалити мітку"
+                  >
+                    ✕
+                  </button>
                 </div>
 
                 <div className="map-click-address-box">
@@ -509,7 +521,8 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({
                     <button
                       type="button"
                       className="map-action-btn btn-action-start"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         const addr = clickedPoint.address || `${clickedPoint.lat.toFixed(5)}, ${clickedPoint.lng.toFixed(5)}`;
                         onSetStart(addr, clickedPoint.lat, clickedPoint.lng);
                         setClickedPoint(null);
@@ -525,7 +538,8 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({
                       type="button"
                       className="map-action-btn btn-action-stop"
                       disabled={isMaxStopsReached}
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         if (isMaxStopsReached) return;
                         const addr = clickedPoint.address || `${clickedPoint.lat.toFixed(5)}, ${clickedPoint.lng.toFixed(5)}`;
                         onAddStop(addr, clickedPoint.lat, clickedPoint.lng);
@@ -541,7 +555,8 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({
                     <button
                       type="button"
                       className="map-action-btn btn-action-dest"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         const addr = clickedPoint.address || `${clickedPoint.lat.toFixed(5)}, ${clickedPoint.lng.toFixed(5)}`;
                         onSetDestination(addr, clickedPoint.lat, clickedPoint.lng);
                         setClickedPoint(null);
