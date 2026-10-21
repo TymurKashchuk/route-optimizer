@@ -105,7 +105,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
   // Parse Date and Time parts
   const activeDateTime = isArriveBy ? arrivalBy : departureTime;
   const datePart = activeDateTime.split('T')[0] || getTodayDateString();
-  const timePart = activeDateTime.split('T')[1] || (isArriveBy ? '14:00' : '09:00');
+  const timePart = activeDateTime.split('T')[1] || (isArriveBy ? '14:00' : getCurrentRoundedTimeString());
 
   const todayStr = getTodayDateString();
 
