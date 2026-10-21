@@ -474,18 +474,29 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({
           >
             <Popup
               autoPan={true}
-              closeOnClick={false}
+              closeOnClick={true}
               eventHandlers={{
                 popupclose: () => setClickedPoint(null),
               }}
             >
               <div className="map-click-popup">
                 <div className="map-click-header">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z" />
-                    <circle cx="12" cy="10" r="3" />
-                  </svg>
-                  <span>Точка на карті</span>
+                  <div className="map-click-header-title">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
+                    <span>Точка на карті</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-close-click-popup"
+                    onClick={() => setClickedPoint(null)}
+                    title="Закрити та видалити мітку"
+                    aria-label="Закрити та видалити мітку"
+                  >
+                    ✕
+                  </button>
                 </div>
 
                 <div className="map-click-address-box">
@@ -551,6 +562,15 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({
                       <span>Фініш</span>
                     </button>
                   )}
+
+                  <button
+                    type="button"
+                    className="map-action-btn btn-action-cancel"
+                    onClick={() => setClickedPoint(null)}
+                    title="Видалити цю мітку з карти"
+                  >
+                    <span>Скасувати</span>
+                  </button>
                 </div>
               </div>
             </Popup>

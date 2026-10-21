@@ -2805,6 +2805,47 @@
   border-color: var(--accent-fg);
 }
 
+.btn-action-cancel {
+  background-color: transparent;
+  border-color: var(--line);
+  color: var(--muted);
+}
+
+.btn-action-cancel:hover {
+  background-color: var(--surface-muted);
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+
+.map-click-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.map-click-header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.btn-close-click-popup {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0.1rem 0.35rem;
+  font-size: 0.85rem;
+  line-height: 1;
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+}
+
+.btn-close-click-popup:hover {
+  color: var(--ink);
+  background-color: var(--surface-muted);
+}
+
 /* Leaflet controls & attribution (theme-aware via tokens) */
 /* Completely remove all map zoom buttons (+ / -) for a clean map matching mockup */
 .leaflet-control-zoom {
