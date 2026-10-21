@@ -50,7 +50,7 @@ export const RouteMetricsSummary: React.FC<RouteMetricsSummaryProps> = ({
                 : 'Рекомендований час початку подорожі'
             }
           >
-            {isDepartureInPast ? '⚠️ Виїзд був потрібен о ' : 'Виїзд о '}
+            {isDepartureInPast ? 'Виїзд був потрібен о ' : 'Виїзд о '}
             <strong>{formatTime(recommendedDepartureTime)}</strong>
             {isDepartureInPast && ' (минув)'}
           </span>

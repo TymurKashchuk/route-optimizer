@@ -7,7 +7,7 @@ import { Toast, type ToastType } from './components/Toast';
 import type { AddressInput, AlgorithmType, OptimizeRouteResponse, PlanningMode, RouteStop, SearchScope, TravelMode } from './types/route';
 import { optimizeRoute } from './api/routeClient';
 import { clearTripDraft, loadTripDraft, saveTripDraft } from './utils/draftStorage';
-import { getTodayDateString } from './utils/dateTime';
+import { getCurrentRoundedTimeString, getTodayDateString } from './utils/dateTime';
 import { deriveStopLabel } from './utils/address';
 
 function generateId(): string {
@@ -32,11 +32,12 @@ const DEFAULT_STOPS: RouteStop[] = [];
 // Load saved trip draft once on module evaluation
 const initialDraft = loadTripDraft();
 
-function sanitizeDraftDate(dateTimeStr?: string, defaultHour = '09:00'): string {
+function sanitizeDraftDate(dateTimeStr?: string, defaultHour?: string): string {
   const todayStr = getTodayDateString();
-  if (!dateTimeStr) return `${todayStr}T${defaultHour}`;
+  const fallbackHour = defaultHour || getCurrentRoundedTimeString();
+  if (!dateTimeStr) return `${todayStr}T${fallbackHour}`;
   const [date, time] = dateTimeStr.split('T');
-  const safeTime = time || defaultHour;
+  const safeTime = time || fallbackHour;
   if (!date || date < todayStr) {
     return `${todayStr}T${safeTime}`;
   }
@@ -73,6 +74,10 @@ export type ThemeMode = 'light' | 'dark';
 
 function getInitialTheme(): ThemeMode {
   if (typeof window !== 'undefined') {
+    const attr = document.documentElement.getAttribute('data-theme') as ThemeMode | null;
+    if (attr === 'light' || attr === 'dark') {
+      return attr;
+    }
     const saved = localStorage.getItem('routewise_theme');
     if (saved === 'light' || saved === 'dark') {
       return saved;
@@ -90,6 +95,10 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+      metaThemeColor.setAttribute('content', theme === 'dark' ? '#0F172A' : '#EEF1F4');
+    }
     try {
       localStorage.setItem('routewise_theme', theme);
     } catch {
@@ -106,7 +115,7 @@ export const App: React.FC = () => {
   const [destination, setDestination] = useState<AddressInput>(() => initialDraft?.destination ?? DEFAULT_DESTINATION);
   const [planningMode, setPlanningMode] = useState<PlanningMode>(() => initialDraft?.planningMode ?? 'depart-at');
   const [travelMode, setTravelMode] = useState<TravelMode>(() => initialDraft?.travelMode ?? 'driving');
-  const [departureTime, setDepartureTime] = useState<string>(() => sanitizeDraftDate(initialDraft?.departureTime, '09:00'));
+  const [departureTime, setDepartureTime] = useState<string>(() => sanitizeDraftDate(initialDraft?.departureTime));
   const [arrivalBy, setArrivalBy] = useState<string>(() => sanitizeDraftDate(initialDraft?.arrivalBy, '14:00'));
   const [algorithm, setAlgorithm] = useState<AlgorithmType>(() => initialDraft?.algorithm ?? 'two-opt');
   const [stops, setStops] = useState<RouteStop[]>(() => initialDraft?.stops ?? DEFAULT_STOPS);
@@ -317,7 +326,7 @@ export const App: React.FC = () => {
     setStops(DEFAULT_STOPS);
     setPlanningMode('depart-at');
     setTravelMode('driving');
-    setDepartureTime(`${getTodayDateString()}T09:00`);
+    setDepartureTime(`${getTodayDateString()}T${getCurrentRoundedTimeString()}`);
     setArrivalBy(`${getTodayDateString()}T14:00`);
     setAlgorithm('two-opt');
     setSearchScope('all-ukraine');
@@ -444,7 +453,6 @@ export const App: React.FC = () => {
               onSetDestinationFromMap={handleSetDestinationFromMap}
               onTryExample={handleTryExample}
               isStale={isStale}
-              onOptimize={handleOptimize}
             />
           </div>
         </div>

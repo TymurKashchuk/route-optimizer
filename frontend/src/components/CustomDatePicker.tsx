@@ -64,11 +64,19 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
         setActiveView(null);
       }
     };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+        setActiveView(null);
+      }
+    };
     if (isOpen) {
       document.addEventListener('mousedown', handleOutsideClick);
+      document.addEventListener('keydown', handleKeyDown);
     }
     return () => {
       document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen]);
 

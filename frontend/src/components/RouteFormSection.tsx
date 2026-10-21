@@ -105,7 +105,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
   // Parse Date and Time parts
   const activeDateTime = isArriveBy ? arrivalBy : departureTime;
   const datePart = activeDateTime.split('T')[0] || getTodayDateString();
-  const timePart = activeDateTime.split('T')[1] || (isArriveBy ? '14:00' : '09:00');
+  const timePart = activeDateTime.split('T')[1] || (isArriveBy ? '14:00' : getCurrentRoundedTimeString());
 
   const todayStr = getTodayDateString();
 
@@ -272,58 +272,60 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
               A
             </div>
             <div className="chain-input-box">
-              <AddressAutocompleteInput
-                id="start-address"
-                className="form-input form-input-clean"
-                placeholder={
-                  activeCity
-                    ? `Адреса старту (${activeCity})`
-                    : 'Звідки: адреса або точка старту'
-                }
-                value={start.address}
-                city={activeCity}
-                hasCoordinates={Boolean(start.latitude && start.longitude)}
-                onEnterPress={handleCtaClick}
-                onChange={(newAddress, suggestion) => {
-                  setLocationError(null);
-                  onStartChange({
-                    ...start,
-                    label: deriveStopLabel(newAddress, 'Старт'),
-                    address: newAddress,
-                    latitude: suggestion?.latitude,
-                    longitude: suggestion?.longitude,
-                  });
-                }}
-                disabled={isLoading || isLocating}
-              />
-              <button
-                type="button"
-                className="btn-gps-action"
-                onClick={handleUseCurrentLocation}
-                disabled={isLoading || isLocating}
-                title="Визначити моє поточне місцезнаходження за GPS"
-                aria-label="Використати моє поточне місцезнаходження"
-              >
-                {isLocating ? (
-                  <svg className="btn-spinner" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
-                    <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
-                    <path d="M12 2a10 10 0 0 1 10 10" />
-                  </svg>
-                ) : (
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <circle cx="12" cy="12" r="7" />
-                    <line x1="12" y1="2" x2="12" y2="5" />
-                    <line x1="12" y1="19" x2="12" y2="22" />
-                    <line x1="2" y1="12" x2="5" y2="12" />
-                    <line x1="19" y1="12" x2="22" y2="12" />
-                    <circle cx="12" cy="12" r="2" fill="currentColor" />
-                  </svg>
-                )}
-              </button>
+              <div className="chain-input-row">
+                <AddressAutocompleteInput
+                  id="start-address"
+                  className="form-input form-input-clean"
+                  placeholder={
+                    activeCity
+                      ? `Адреса старту (${activeCity})`
+                      : 'Звідки: адреса або точка старту'
+                  }
+                  value={start.address}
+                  city={activeCity}
+                  hasCoordinates={Boolean(start.latitude && start.longitude)}
+                  onEnterPress={handleCtaClick}
+                  onChange={(newAddress, suggestion) => {
+                    setLocationError(null);
+                    onStartChange({
+                      ...start,
+                      label: deriveStopLabel(newAddress, 'Старт'),
+                      address: newAddress,
+                      latitude: suggestion?.latitude,
+                      longitude: suggestion?.longitude,
+                    });
+                  }}
+                  disabled={isLoading || isLocating}
+                />
+                <button
+                  type="button"
+                  className="btn-gps-action"
+                  onClick={handleUseCurrentLocation}
+                  disabled={isLoading || isLocating}
+                  title="Визначити моє поточне місцезнаходження за GPS"
+                  aria-label="Використати моє поточне місцезнаходження"
+                >
+                  {isLocating ? (
+                    <svg className="btn-spinner" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+                      <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
+                      <path d="M12 2a10 10 0 0 1 10 10" />
+                    </svg>
+                  ) : (
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <circle cx="12" cy="12" r="7" />
+                      <line x1="12" y1="2" x2="12" y2="5" />
+                      <line x1="12" y1="19" x2="12" y2="22" />
+                      <line x1="2" y1="12" x2="5" y2="12" />
+                      <line x1="19" y1="12" x2="22" y2="12" />
+                      <circle cx="12" cy="12" r="2" fill="currentColor" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+              {hasAttemptedSubmit && !start.address.trim() && (
+                <p className="form-error-sm">Вкажіть адресу початку маршруту (Точка А).</p>
+              )}
             </div>
-            {hasAttemptedSubmit && !start.address.trim() && (
-              <p className="form-error-sm">Вкажіть адресу початку маршруту (Точка А).</p>
-            )}
           </div>
           {locationError && <p className="form-error-sm">{locationError}</p>}
 
@@ -343,33 +345,35 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
               B
             </div>
             <div className="chain-input-box">
-              <AddressAutocompleteInput
-                id="destination-address"
-                className="form-input form-input-clean"
-                placeholder={
-                  activeCity
-                    ? `Адреса фінішу (${activeCity})`
-                    : 'Куди: адреса або заклад фінішу'
-                }
-                value={destination.address}
-                city={activeCity}
-                hasCoordinates={Boolean(destination.latitude && destination.longitude)}
-                onEnterPress={handleCtaClick}
-                onChange={(newAddress, suggestion) => {
-                  onDestinationChange({
-                    ...destination,
-                    label: deriveStopLabel(newAddress, 'Фініш'),
-                    address: newAddress,
-                    latitude: suggestion?.latitude,
-                    longitude: suggestion?.longitude,
-                  });
-                }}
-                disabled={isLoading}
-              />
+              <div className="chain-input-row">
+                <AddressAutocompleteInput
+                  id="destination-address"
+                  className="form-input form-input-clean"
+                  placeholder={
+                    activeCity
+                      ? `Адреса фінішу (${activeCity})`
+                      : 'Куди: адреса або заклад фінішу'
+                  }
+                  value={destination.address}
+                  city={activeCity}
+                  hasCoordinates={Boolean(destination.latitude && destination.longitude)}
+                  onEnterPress={handleCtaClick}
+                  onChange={(newAddress, suggestion) => {
+                    onDestinationChange({
+                      ...destination,
+                      label: deriveStopLabel(newAddress, 'Фініш'),
+                      address: newAddress,
+                      latitude: suggestion?.latitude,
+                      longitude: suggestion?.longitude,
+                    });
+                  }}
+                  disabled={isLoading}
+                />
+              </div>
+              {hasAttemptedSubmit && !destination.address.trim() && (
+                <p className="form-error-sm">Вкажіть адресу призначення (Точка B).</p>
+              )}
             </div>
-            {hasAttemptedSubmit && !destination.address.trim() && (
-              <p className="form-error-sm">Вкажіть адресу призначення (Точка B).</p>
-            )}
           </div>
         </div>
       </div>
@@ -470,7 +474,12 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
         </div>
         {isSelectedTimeInPast && (
           <p className="form-warning-sm">
-            ⚠️ {isArriveBy ? 'Обраний час прибуття вже минув' : 'Обраний час виїзду вже минув'}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <span>{isArriveBy ? 'Обраний час прибуття вже минув' : 'Обраний час виїзду вже минув'}</span>
           </p>
         )}
       </div>
