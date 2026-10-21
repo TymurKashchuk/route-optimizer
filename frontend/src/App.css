@@ -2805,45 +2805,96 @@
   border-color: var(--accent-fg);
 }
 
-.btn-action-cancel {
-  background-color: transparent;
-  border-color: var(--line);
-  color: var(--muted);
+/* Leaflet Popup Theme Support (Light & Dark) */
+.leaflet-popup-content-wrapper {
+  background-color: var(--bg-card);
+  color: var(--text-main);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-overlay);
+  border: 1px solid var(--border-color);
+  padding: 0;
 }
 
-.btn-action-cancel:hover {
-  background-color: var(--surface-muted);
-  color: var(--ink);
-  border-color: var(--line-strong);
+.leaflet-popup-content {
+  margin: 0.85rem 1rem;
+  line-height: 1.4;
+  color: var(--text-main);
 }
 
-.map-click-header {
+.leaflet-popup-tip {
+  background-color: var(--bg-card);
+}
+
+.leaflet-container a.leaflet-popup-close-button {
+  color: var(--text-muted);
+  top: 8px;
+  right: 8px;
+  padding: 2px;
+  width: 22px;
+  height: 22px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-}
-
-.map-click-header-title {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.btn-close-click-popup {
-  background: transparent;
-  border: none;
-  color: var(--muted);
-  cursor: pointer;
-  padding: 0.1rem 0.35rem;
-  font-size: 0.85rem;
-  line-height: 1;
+  justify-content: center;
   border-radius: var(--radius-sm);
   transition: all 0.15s ease;
 }
 
-.btn-close-click-popup:hover {
-  color: var(--ink);
+.leaflet-container a.leaflet-popup-close-button:hover {
+  color: var(--text-main);
   background-color: var(--surface-muted);
+}
+
+/* Dark mode specific popup styling */
+[data-theme='dark'] .leaflet-popup-content-wrapper {
+  background-color: var(--bg-card);
+  color: var(--text-main);
+  border-color: var(--line);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme='dark'] .leaflet-popup-tip {
+  background-color: var(--bg-card);
+}
+
+[data-theme='dark'] .map-click-address {
+  color: var(--text-main);
+}
+
+[data-theme='dark'] .map-click-prompt {
+  color: var(--text-muted);
+}
+
+[data-theme='dark'] .btn-action-start {
+  background-color: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+[data-theme='dark'] .btn-action-start:hover {
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+[data-theme='dark'] .btn-action-stop {
+  background-color: var(--surface-muted);
+  border-color: var(--line);
+  color: var(--text-main);
+}
+
+[data-theme='dark'] .btn-action-stop:hover {
+  background-color: var(--border-color);
+  border-color: var(--text-muted);
+}
+
+[data-theme='dark'] .btn-action-dest {
+  background-color: rgba(232, 80, 31, 0.2);
+  border-color: rgba(232, 80, 31, 0.45);
+  color: var(--accent-fg);
+}
+
+[data-theme='dark'] .btn-action-dest:hover {
+  background-color: rgba(232, 80, 31, 0.3);
+  border-color: var(--accent-fg);
 }
 
 /* Leaflet controls & attribution (theme-aware via tokens) */
