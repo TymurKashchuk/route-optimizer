@@ -33,11 +33,18 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
         setIsOpen(false);
       }
     };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
     if (isOpen) {
       document.addEventListener('mousedown', handleOutsideClick);
+      document.addEventListener('keydown', handleKeyDown);
     }
     return () => {
       document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen]);
 
@@ -119,11 +126,12 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
               <div className="time-scroll-list" ref={minutesListRef}>
                 {MINUTES.map((m) => {
                   const isSelected = m === currentMinute;
+                  const isStep5 = parseInt(m, 10) % 5 === 0;
                   return (
                     <button
                       key={m}
                       type="button"
-                      className={`time-unit-btn ${isSelected ? 'selected' : ''}`}
+                      className={`time-unit-btn ${isSelected ? 'selected' : ''} ${isStep5 ? 'step-5' : ''}`}
                       onClick={() => handleSelectMinute(m)}
                     >
                       {m}
