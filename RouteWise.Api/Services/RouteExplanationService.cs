@@ -22,7 +22,7 @@ namespace RouteWise.Api.Services
                 var stop = orderedStops[i];
                 var nextMatrixIndex = orderedStopIndices[i] + 1;
 
-                var travelMinutes = matrix.TravelTimesMinutes[currentMatrixIndex][nextMatrixIndex];
+                var travelMinutes = matrix.GetTravelTimeMinutes(currentMatrixIndex, nextMatrixIndex);
 
                 steps.Add(new RouteStepDto
                 {
@@ -38,7 +38,7 @@ namespace RouteWise.Api.Services
             if (destination != null)
             {
                 var destIndex = destinationMatrixIndex ?? (orderedStops.Count + 1);
-                var travelMinutes = matrix.TravelTimesMinutes[currentMatrixIndex][destIndex];
+                var travelMinutes = matrix.GetTravelTimeMinutes(currentMatrixIndex, destIndex);
 
                 steps.Add(new RouteStepDto
                 {

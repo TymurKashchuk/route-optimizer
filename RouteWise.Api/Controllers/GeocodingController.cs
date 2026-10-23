@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using RouteWise.Api.Contracts.Responses;
 using RouteWise.Api.Exceptions;
 using RouteWise.Api.Services;
@@ -7,6 +8,7 @@ namespace RouteWise.Api.Controllers
 {
     [ApiController]
     [Route("api/geocoding")]
+    [EnableRateLimiting("GeocodingPolicy")]
     public class GeocodingController : ControllerBase
     {
         private readonly GeocodingSearchService _geocodingSearchService;

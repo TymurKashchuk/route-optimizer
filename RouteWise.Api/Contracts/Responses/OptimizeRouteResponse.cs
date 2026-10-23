@@ -8,7 +8,7 @@ namespace RouteWise.Api.Contracts.Responses
 
         public string TravelMode { get; set; } = Models.TravelMode.Driving;
 
-        public DateTime? RecommendedDepartureTime { get; set; }
+        public DateTimeOffset? RecommendedDepartureTime { get; set; }
 
         public RouteMetricsDto Original { get; set; } = new();
 

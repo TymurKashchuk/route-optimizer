@@ -1,13 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using RouteWise.Api.Contracts.Requests;
 using RouteWise.Api.Contracts.Responses;
-using RouteWise.Api.Exceptions;
 using RouteWise.Api.Services;
 
 namespace RouteWise.Api.Controllers
 {
     [ApiController]
     [Route("api/routes")]
+    [EnableRateLimiting("RouteOptimizationPolicy")]
     public class RouteOptimizationController : ControllerBase
     {
         private readonly RouteExecutionService _routeExecutionService;
@@ -22,20 +23,8 @@ namespace RouteWise.Api.Controllers
             OptimizeRouteRequest request,
             CancellationToken cancellationToken)
         {
-            try
-            {
-                var response = await _routeExecutionService.ExecuteAsync(request, cancellationToken);
-
-                return Ok(response);
-            }
-            catch (OpenRouteServiceException ex)
-            {
-                return ApiExceptionMapper.ToActionResult(ex);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return ApiExceptionMapper.ToActionResult(ex);
-            }
+            var response = await _routeExecutionService.ExecuteAsync(request, cancellationToken);
+            return Ok(response);
         }
     }
 }

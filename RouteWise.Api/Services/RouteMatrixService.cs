@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Caching.Memory;
 using RouteWise.Api.Models;
 using RouteWise.Api.Providers.Geocoding;
 using RouteWise.Api.Providers.Routing;
@@ -8,13 +9,17 @@ namespace RouteWise.Api.Services
     {
         private readonly IGeocodingProvider _geocodingProvider;
         private readonly IRouteProvider _routeProvider;
+        private readonly IMemoryCache? _cache;
+        private static readonly TimeSpan GeocodingCacheDuration = TimeSpan.FromHours(24);
 
         public RouteMatrixService(
             IGeocodingProvider geocodingProvider,
-            IRouteProvider routeProvider)
+            IRouteProvider routeProvider,
+            IMemoryCache? cache = null)
         {
             _geocodingProvider = geocodingProvider;
             _routeProvider = routeProvider;
+            _cache = cache;
         }
 
         public Task<RouteMatrixResult> BuildMatrixAsync(
@@ -41,22 +46,47 @@ namespace RouteWise.Api.Services
             string travelMode,
             CancellationToken cancellationToken = default)
         {
-            var resolveTasks = new List<Task<LocationPoint>>
+            var pointsToResolve = new List<(string Address, double? Latitude, double? Longitude)>
             {
-                ResolveLocationAsync(start.Address, start.Latitude, start.Longitude, cancellationToken)
+                (start.Address, start.Latitude, start.Longitude)
             };
 
             foreach (var stop in stops)
             {
-                resolveTasks.Add(ResolveLocationAsync(stop.Address, stop.Latitude, stop.Longitude, cancellationToken));
+                pointsToResolve.Add((stop.Address, stop.Latitude, stop.Longitude));
             }
 
             if (destination != null)
             {
-                resolveTasks.Add(ResolveLocationAsync(destination.Address, destination.Latitude, destination.Longitude, cancellationToken));
+                pointsToResolve.Add((destination.Address, destination.Latitude, destination.Longitude));
             }
 
-            var resolvedLocations = await Task.WhenAll(resolveTasks);
+            var inFlightResolutions = new Dictionary<string, Task<LocationPoint>>(StringComparer.OrdinalIgnoreCase);
+            var resolutionTasks = new List<Task<LocationPoint>>();
+
+            foreach (var point in pointsToResolve)
+            {
+                if (point.Latitude.HasValue && point.Longitude.HasValue)
+                {
+                    resolutionTasks.Add(Task.FromResult(new LocationPoint
+                    {
+                        Latitude = point.Latitude.Value,
+                        Longitude = point.Longitude.Value
+                    }));
+                    continue;
+                }
+
+                var normalizedAddress = point.Address.Trim();
+                if (!inFlightResolutions.TryGetValue(normalizedAddress, out var task))
+                {
+                    task = ResolveFromCacheOrProviderAsync(normalizedAddress, cancellationToken);
+                    inFlightResolutions[normalizedAddress] = task;
+                }
+
+                resolutionTasks.Add(task);
+            }
+
+            var resolvedLocations = await Task.WhenAll(resolutionTasks);
             var locations = resolvedLocations.ToList();
 
             var matrix = await _routeProvider.BuildMatrixAsync(locations, travelMode, cancellationToken);
@@ -68,22 +98,25 @@ namespace RouteWise.Api.Services
             };
         }
 
-        private Task<LocationPoint> ResolveLocationAsync(
+        private async Task<LocationPoint> ResolveFromCacheOrProviderAsync(
             string address,
-            double? latitude,
-            double? longitude,
             CancellationToken cancellationToken)
         {
-            if (latitude.HasValue && longitude.HasValue)
+            var cacheKey = $"geocode_{address.ToLowerInvariant()}";
+
+            if (_cache != null && _cache.TryGetValue(cacheKey, out LocationPoint? cachedPoint) && cachedPoint != null)
             {
-                return Task.FromResult(new LocationPoint
-                {
-                    Latitude = latitude.Value,
-                    Longitude = longitude.Value
-                });
+                return cachedPoint;
             }
 
-            return _geocodingProvider.GeocodeAsync(address, cancellationToken);
+            var resolved = await _geocodingProvider.GeocodeAsync(address, cancellationToken);
+
+            if (_cache != null)
+            {
+                _cache.Set(cacheKey, resolved, GeocodingCacheDuration);
+            }
+
+            return resolved;
         }
     }
 }

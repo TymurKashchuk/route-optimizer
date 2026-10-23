@@ -8,6 +8,8 @@ using RouteWise.Api.Validators;
 using RouteWise.Api.Options;
 using Microsoft.Extensions.Options;
 using System.Reflection;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 using RouteWise.Api.Middleware;
 
 namespace RouteWise.Api
@@ -50,6 +52,35 @@ namespace RouteWise.Api
                 });
             });
 
+            builder.Services.AddRateLimiter(options =>
+            {
+                options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+                options.AddPolicy("RouteOptimizationPolicy", httpContext =>
+                {
+                    var clientIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "anonymous";
+                    return RateLimitPartition.GetFixedWindowLimiter(clientIp, _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 10,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = 0
+                    });
+                });
+
+                options.AddPolicy("GeocodingPolicy", httpContext =>
+                {
+                    var clientIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "anonymous";
+                    return RateLimitPartition.GetFixedWindowLimiter(clientIp, _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 40,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = 0
+                    });
+                });
+            });
+
             builder.Services.AddScoped<RouteMatrixService>();
 
             builder.Services.AddScoped<IRouteOptimizer, OriginalOrderOptimizer>();
@@ -58,9 +89,10 @@ namespace RouteWise.Api
             builder.Services.AddScoped<IRouteOptimizer>(sp => new TwoOptOptimizer(sp.GetRequiredService<NearestNeighborOptimizer>()));
 
             builder.Services.AddMemoryCache();
-            builder.Services.AddScoped<GeocodingSearchService>();
 
+            builder.Services.AddScoped<GeocodingSearchService>();
             builder.Services.AddScoped<StaticGeocodingProvider>();
+            builder.Services.AddScoped<StaticRouteProvider>();
             builder.Services.AddScoped<IGeocodingProvider>(sp =>
             {
                 var options = sp.GetRequiredService<IOptions<OpenRouteServiceOptions>>().Value;
@@ -68,7 +100,6 @@ namespace RouteWise.Api
                     ? sp.GetRequiredService<OpenRouteServiceGeocodingProvider>()
                     : sp.GetRequiredService<StaticGeocodingProvider>();
             });
-            builder.Services.AddScoped<StaticRouteProvider>();
             builder.Services.AddScoped<IRouteProvider>(sp =>
             {
                 var options = sp.GetRequiredService<IOptions<OpenRouteServiceOptions>>().Value;
@@ -79,11 +110,9 @@ namespace RouteWise.Api
 
             builder.Services.AddScoped<MetricsService>();
             builder.Services.AddScoped<TimelineService>();
-
             builder.Services.AddScoped<RouteComparisonService>();
-            builder.Services.AddScoped<RouteExecutionService>();
-
             builder.Services.AddScoped<RouteExplanationService>();
+            builder.Services.AddScoped<RouteExecutionService>();
             builder.Services.AddScoped<RoutePreviewService>();
 
             builder.Services.Configure<OpenRouteServiceOptions>(
@@ -109,13 +138,14 @@ namespace RouteWise.Api
             app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
+            if (app.Environment.IsDevelopment() || builder.Configuration.GetValue<bool>("EnableSwagger", false))
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
 
             app.UseCors();
+            app.UseRateLimiter();
 
             if (!app.Environment.IsDevelopment())
             {
@@ -124,9 +154,7 @@ namespace RouteWise.Api
 
             app.UseAuthorization();
 
-
             app.MapControllers();
-
 
             app.Run();
         }

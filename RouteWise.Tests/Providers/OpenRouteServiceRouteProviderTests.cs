@@ -104,6 +104,13 @@ namespace RouteWise.Tests.Providers
             Assert.Equal(12, matrix.TravelTimesMinutes[0][1]);
             Assert.Equal(18, matrix.TravelTimesMinutes[0][2]);
 
+            Assert.Equal(0, matrix.TravelTimesSeconds[0][0]);
+            Assert.Equal(720, matrix.TravelTimesSeconds[0][1]);
+            Assert.Equal(1080, matrix.TravelTimesSeconds[0][2]);
+
+            Assert.Equal(720, matrix.GetTravelTimeSeconds(0, 1));
+            Assert.Equal(12, matrix.GetTravelTimeMinutes(0, 1));
+
             Assert.Equal(0.0, matrix.DistancesKm[0][0]);
             Assert.Equal(5.2, matrix.DistancesKm[0][1]);
             Assert.Equal(8.4, matrix.DistancesKm[0][2]);

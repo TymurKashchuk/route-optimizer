@@ -61,11 +61,16 @@ namespace RouteWise.Tests.Services
 
             var departureTime = new DateTime(2026, 7, 31, 9, 0, 0);
 
-            var result = await service.ExecuteAsync(
-                "nearest-neighbor",
-                start,
-                departureTime,
-                stops);
+            var request = new OptimizeRouteRequest
+            {
+                Algorithm = "nearest-neighbor",
+                Start = start,
+                DepartureTime = departureTime,
+                Stops = stops,
+                Destination = null!
+            };
+
+            var result = await service.ExecuteAsync(request);
 
             Assert.Equal("nearest-neighbor", result.Algorithm);
             Assert.Equal(2, result.OrderedStops.Count);
@@ -123,8 +128,17 @@ namespace RouteWise.Tests.Services
 
             var departureTime = new DateTime(2026, 7, 31, 9, 0, 0);
 
+            var request = new OptimizeRouteRequest
+            {
+                Algorithm = "does-not-exist",
+                Start = start,
+                DepartureTime = departureTime,
+                Stops = stops,
+                Destination = null!
+            };
+
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                service.ExecuteAsync("does-not-exist", start, departureTime, stops));
+                service.ExecuteAsync(request));
         }
 
         [Fact]
@@ -230,11 +244,16 @@ namespace RouteWise.Tests.Services
 
             var departureTime = new DateTime(2026, 7, 31, 9, 0, 0);
 
-            var result = await service.ExecuteAsync(
-                "nearest-neighbor",
-                start,
-                departureTime,
-                stops);
+            var request = new OptimizeRouteRequest
+            {
+                Algorithm = "nearest-neighbor",
+                Start = start,
+                DepartureTime = departureTime,
+                Stops = stops,
+                Destination = null!
+            };
+
+            var result = await service.ExecuteAsync(request);
 
             Assert.Equal("nearest-neighbor", result.Algorithm);
             Assert.Equal(2, result.OrderedStops.Count);
@@ -303,12 +322,16 @@ namespace RouteWise.Tests.Services
 
             var departureTime = new DateTime(2026, 7, 31, 9, 0, 0);
 
-            var result = await service.ExecuteAsync(
-                "two-opt",
-                start,
-                departureTime,
-                stops,
-                destination);
+            var request = new OptimizeRouteRequest
+            {
+                Algorithm = "two-opt",
+                Start = start,
+                DepartureTime = departureTime,
+                Stops = stops,
+                Destination = destination
+            };
+
+            var result = await service.ExecuteAsync(request);
 
             Assert.Equal("two-opt", result.Algorithm);
             // Only intermediate stops are in OrderedStops
@@ -385,7 +408,7 @@ namespace RouteWise.Tests.Services
                 Address = "Zhytomyr City Hospital"
             };
 
-            var arrivalDeadline = new DateTime(2026, 7, 31, 14, 0, 0);
+            var arrivalDeadline = new DateTimeOffset(2026, 7, 31, 14, 0, 0, TimeSpan.Zero);
 
             var request = new OptimizeRouteRequest
             {

@@ -194,6 +194,47 @@ namespace RouteWise.Tests.Services
             Assert.Equal("Point D", spyGeocodingProvider.RequestedAddresses[3]);
         }
 
+        [Fact]
+        public async Task BuildMatrix_WithDuplicateAddressesInSameRequest_CallsGeocodingProviderOnlyOncePerUniqueAddress()
+        {
+            var spyGeocodingProvider = new SpyGeocodingProvider();
+            var routeProvider = new StaticRouteProvider();
+            var service = new RouteMatrixService(spyGeocodingProvider, routeProvider);
+
+            var start = new AddressInput { Label = "Start", Address = "Point A" };
+            var stops = new List<RouteStop>
+            {
+                new RouteStop { Id = "1", Label = "Stop 1", Address = "Point B" },
+                new RouteStop { Id = "2", Label = "Stop 2", Address = "Point A" }
+            };
+            var destination = new AddressInput { Label = "Dest", Address = "Point A" };
+
+            var result = await service.BuildMatrixAsync(start, stops, destination);
+
+            Assert.Equal(2, spyGeocodingProvider.GeocodeCallCount);
+            Assert.Equal(4, result.Locations.Count);
+            Assert.Equal(result.Locations[0].Latitude, result.Locations[2].Latitude);
+            Assert.Equal(result.Locations[0].Latitude, result.Locations[3].Latitude);
+        }
+
+        [Fact]
+        public async Task BuildMatrix_WhenAddressCached_DoesNotCallGeocodingProvider()
+        {
+            var spyGeocodingProvider = new SpyGeocodingProvider();
+            var routeProvider = new StaticRouteProvider();
+            var cache = new Microsoft.Extensions.Caching.Memory.MemoryCache(new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions());
+            var service = new RouteMatrixService(spyGeocodingProvider, routeProvider, cache);
+
+            var start = new AddressInput { Label = "Start", Address = "Repeated Address" };
+            var stops = new List<RouteStop>();
+
+            await service.BuildMatrixAsync(start, stops);
+            Assert.Equal(1, spyGeocodingProvider.GeocodeCallCount);
+
+            await service.BuildMatrixAsync(start, stops);
+            Assert.Equal(1, spyGeocodingProvider.GeocodeCallCount);
+        }
+
         private class SpyGeocodingProvider : IGeocodingProvider
         {
             public int GeocodeCallCount { get; private set; }

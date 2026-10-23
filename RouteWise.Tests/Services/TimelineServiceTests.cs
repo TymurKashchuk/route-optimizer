@@ -21,7 +21,7 @@ namespace RouteWise.Tests.Services
                 Address = "Zhytomyr Central Square"
             };
 
-            var departureTime = new DateTime(2026, 7, 31, 9, 0, 0);
+            var departureTime = new DateTimeOffset(2026, 7, 31, 9, 0, 0, TimeSpan.Zero);
 
             var orderedStops = new List<RouteStop>
             {
@@ -67,20 +67,20 @@ namespace RouteWise.Tests.Services
                 item =>
                 {
                     Assert.Equal("Office", item.Label);
-                    Assert.Equal(new DateTime(2026, 7, 31, 9, 0, 0), item.ArrivalTime);
-                    Assert.Equal(new DateTime(2026, 7, 31, 9, 0, 0), item.DepartureTime);
+                    Assert.Equal(new DateTimeOffset(2026, 7, 31, 9, 0, 0, TimeSpan.Zero), item.ArrivalTime);
+                    Assert.Equal(new DateTimeOffset(2026, 7, 31, 9, 0, 0, TimeSpan.Zero), item.DepartureTime);
                 },
                 item =>
                 {
                     Assert.Equal("Client B", item.Label);
-                    Assert.Equal(new DateTime(2026, 7, 31, 9, 8, 0), item.ArrivalTime);
-                    Assert.Equal(new DateTime(2026, 7, 31, 9, 23, 0), item.DepartureTime);
+                    Assert.Equal(new DateTimeOffset(2026, 7, 31, 9, 8, 0, TimeSpan.Zero), item.ArrivalTime);
+                    Assert.Equal(new DateTimeOffset(2026, 7, 31, 9, 23, 0, TimeSpan.Zero), item.DepartureTime);
                 },
                 item =>
                 {
                     Assert.Equal("Client A", item.Label);
-                    Assert.Equal(new DateTime(2026, 7, 31, 9, 32, 0), item.ArrivalTime);
-                    Assert.Equal(new DateTime(2026, 7, 31, 9, 52, 0), item.DepartureTime);
+                    Assert.Equal(new DateTimeOffset(2026, 7, 31, 9, 32, 0, TimeSpan.Zero), item.ArrivalTime);
+                    Assert.Equal(new DateTimeOffset(2026, 7, 31, 9, 52, 0, TimeSpan.Zero), item.DepartureTime);
                 });
         }
 
@@ -95,7 +95,7 @@ namespace RouteWise.Tests.Services
                 Address = "Zhytomyr Central Square"
             };
 
-            var departureTime = new DateTime(2026, 7, 31, 9, 0, 0);
+            var departureTime = new DateTimeOffset(2026, 7, 31, 9, 0, 0, TimeSpan.Zero);
 
             var orderedStops = new List<RouteStop>
             {
@@ -151,27 +151,27 @@ namespace RouteWise.Tests.Services
                 item =>
                 {
                     Assert.Equal("Office", item.Label);
-                    Assert.Equal(new DateTime(2026, 7, 31, 9, 0, 0), item.ArrivalTime);
-                    Assert.Equal(new DateTime(2026, 7, 31, 9, 0, 0), item.DepartureTime);
+                    Assert.Equal(new DateTimeOffset(2026, 7, 31, 9, 0, 0, TimeSpan.Zero), item.ArrivalTime);
+                    Assert.Equal(new DateTimeOffset(2026, 7, 31, 9, 0, 0, TimeSpan.Zero), item.DepartureTime);
                 },
                 item =>
                 {
                     Assert.Equal("Client B", item.Label);
-                    Assert.Equal(new DateTime(2026, 7, 31, 9, 8, 0), item.ArrivalTime);
-                    Assert.Equal(new DateTime(2026, 7, 31, 9, 23, 0), item.DepartureTime);
+                    Assert.Equal(new DateTimeOffset(2026, 7, 31, 9, 8, 0, TimeSpan.Zero), item.ArrivalTime);
+                    Assert.Equal(new DateTimeOffset(2026, 7, 31, 9, 23, 0, TimeSpan.Zero), item.DepartureTime);
                 },
                 item =>
                 {
                     Assert.Equal("Client A", item.Label);
-                    Assert.Equal(new DateTime(2026, 7, 31, 9, 32, 0), item.ArrivalTime);
-                    Assert.Equal(new DateTime(2026, 7, 31, 9, 52, 0), item.DepartureTime);
+                    Assert.Equal(new DateTimeOffset(2026, 7, 31, 9, 32, 0, TimeSpan.Zero), item.ArrivalTime);
+                    Assert.Equal(new DateTimeOffset(2026, 7, 31, 9, 52, 0, TimeSpan.Zero), item.DepartureTime);
                 },
                 item =>
                 {
                     Assert.Equal("Garage", item.Label);
                     // From Client A (index 1 in matrix) to Garage (index 3) is 14 minutes
-                    Assert.Equal(new DateTime(2026, 7, 31, 10, 6, 0), item.ArrivalTime);
-                    Assert.Equal(new DateTime(2026, 7, 31, 10, 6, 0), item.DepartureTime);
+                    Assert.Equal(new DateTimeOffset(2026, 7, 31, 10, 6, 0, TimeSpan.Zero), item.ArrivalTime);
+                    Assert.Equal(new DateTimeOffset(2026, 7, 31, 10, 6, 0, TimeSpan.Zero), item.DepartureTime);
                 });
         }
     }

@@ -6,7 +6,7 @@ namespace RouteWise.Api.Services
     {
         public List<TimelineItem> Build(
             AddressInput start,
-            DateTime departureTime,
+            DateTimeOffset departureTime,
             List<RouteStop> orderedStops,
             List<int> orderedStopIndices,
             RouteMatrix matrix,
@@ -31,7 +31,7 @@ namespace RouteWise.Api.Services
                 var stop = orderedStops[i];
                 var nextMatrixIndex = orderedStopIndices[i] + 1;
 
-                var travelMinutes = matrix.TravelTimesMinutes[currentMatrixIndex][nextMatrixIndex];
+                var travelMinutes = matrix.GetTravelTimeMinutes(currentMatrixIndex, nextMatrixIndex);
                 currentTime = currentTime.AddMinutes(travelMinutes);
 
                 var arrivalTime = currentTime;
@@ -51,7 +51,7 @@ namespace RouteWise.Api.Services
             if (destination != null)
             {
                 var destIndex = destinationMatrixIndex ?? (orderedStops.Count + 1);
-                var travelMinutes = matrix.TravelTimesMinutes[currentMatrixIndex][destIndex];
+                var travelMinutes = matrix.GetTravelTimeMinutes(currentMatrixIndex, destIndex);
                 currentTime = currentTime.AddMinutes(travelMinutes);
 
                 timeline.Add(new TimelineItem
