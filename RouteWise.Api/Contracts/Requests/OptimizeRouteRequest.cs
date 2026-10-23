@@ -12,9 +12,9 @@ namespace RouteWise.Api.Contracts.Requests
 
         public string TravelMode { get; set; } = Models.TravelMode.Driving;
 
-        public DateTime? DepartureTime { get; set; }
+        public DateTimeOffset? DepartureTime { get; set; }
 
-        public DateTime? ArrivalBy { get; set; }
+        public DateTimeOffset? ArrivalBy { get; set; }
 
         [Required]
         public AddressInput Start { get; set; } = new();

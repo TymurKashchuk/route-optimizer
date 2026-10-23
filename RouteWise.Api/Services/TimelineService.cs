@@ -6,7 +6,7 @@ namespace RouteWise.Api.Services
     {
         public List<TimelineItem> Build(
             AddressInput start,
-            DateTime departureTime,
+            DateTimeOffset departureTime,
             List<RouteStop> orderedStops,
             List<int> orderedStopIndices,
             RouteMatrix matrix,

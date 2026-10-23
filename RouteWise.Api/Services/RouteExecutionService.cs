@@ -83,8 +83,8 @@ namespace RouteWise.Api.Services
             var isArriveBy = string.Equals(planningMode, "arrive-by", StringComparison.OrdinalIgnoreCase);
             var totalTripMinutes = optimizedMetrics.TotalTravelMinutes + optimizedMetrics.TotalServiceMinutes;
 
-            DateTime effectiveDepartureTime;
-            DateTime? recommendedDepartureTime = null;
+            DateTimeOffset effectiveDepartureTime;
+            DateTimeOffset? recommendedDepartureTime = null;
 
             if (isArriveBy && arrivalBy.HasValue)
             {
@@ -93,7 +93,7 @@ namespace RouteWise.Api.Services
             }
             else
             {
-                effectiveDepartureTime = departureTime ?? DateTime.UtcNow;
+                effectiveDepartureTime = departureTime ?? DateTimeOffset.UtcNow;
                 recommendedDepartureTime = effectiveDepartureTime;
             }
 

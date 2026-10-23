@@ -16,7 +16,7 @@ namespace RouteWise.Tests.Validators
             {
                 Algorithm = "two-opt",
                 PlanningMode = "depart-at",
-                DepartureTime = DateTime.UtcNow,
+                DepartureTime = DateTimeOffset.UtcNow,
                 Start = new AddressInput { Label = "Start", Address = "Kyiv" },
                 Destination = new AddressInput { Label = "End", Address = "Lviv" },
                 Stops = new List<RouteStop>
@@ -37,7 +37,7 @@ namespace RouteWise.Tests.Validators
         {
             var request = CreateValidBaseRequest();
             request.PlanningMode = "depart-at";
-            request.DepartureTime = DateTime.UtcNow;
+            request.DepartureTime = DateTimeOffset.UtcNow;
             request.ArrivalBy = null;
 
             var result = _validator.TestValidate(request);
@@ -66,7 +66,7 @@ namespace RouteWise.Tests.Validators
             var request = CreateValidBaseRequest();
             request.PlanningMode = "arrive-by";
             request.DepartureTime = null;
-            request.ArrivalBy = DateTime.UtcNow.AddHours(2);
+            request.ArrivalBy = DateTimeOffset.UtcNow.AddHours(2);
 
             var result = _validator.TestValidate(request);
 
@@ -81,7 +81,7 @@ namespace RouteWise.Tests.Validators
             var request = CreateValidBaseRequest();
             request.PlanningMode = "arrive-by";
             request.ArrivalBy = null;
-            request.DepartureTime = DateTime.UtcNow;
+            request.DepartureTime = DateTimeOffset.UtcNow;
 
             var result = _validator.TestValidate(request);
 

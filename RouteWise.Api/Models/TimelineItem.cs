@@ -1,9 +1,9 @@
-﻿namespace RouteWise.Api.Models
+namespace RouteWise.Api.Models
 {
     public class TimelineItem
     {
         public string Label { get; set; } = string.Empty;
-        public DateTime ArrivalTime { get; set; }
-        public DateTime DepartureTime { get; set; }
+        public DateTimeOffset ArrivalTime { get; set; }
+        public DateTimeOffset DepartureTime { get; set; }
     }
 }

@@ -408,7 +408,7 @@ namespace RouteWise.Tests.Services
                 Address = "Zhytomyr City Hospital"
             };
 
-            var arrivalDeadline = new DateTime(2026, 7, 31, 14, 0, 0);
+            var arrivalDeadline = new DateTimeOffset(2026, 7, 31, 14, 0, 0, TimeSpan.Zero);
 
             var request = new OptimizeRouteRequest
             {
