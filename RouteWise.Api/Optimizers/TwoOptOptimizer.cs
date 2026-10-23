@@ -102,13 +102,13 @@ namespace RouteWise.Api.Optimizers
             for (int k = 0; k < routeIndices.Count; k++)
             {
                 var nextMatrixIndex = routeIndices[k] + 1;
-                total += matrix.TravelTimesMinutes[currentMatrixIndex][nextMatrixIndex];
+                total += matrix.GetTravelTimeSeconds(currentMatrixIndex, nextMatrixIndex);
                 currentMatrixIndex = nextMatrixIndex;
             }
 
             if (destinationMatrixIndex.HasValue && routeIndices.Count > 0)
             {
-                total += matrix.TravelTimesMinutes[currentMatrixIndex][destinationMatrixIndex.Value];
+                total += matrix.GetTravelTimeSeconds(currentMatrixIndex, destinationMatrixIndex.Value);
             }
 
             return total;

@@ -10,7 +10,7 @@ namespace RouteWise.Api.Services
             RouteMatrix matrix,
             int? destinationMatrixIndex = null)
         { 
-            var totalTravelMinutes = 0;
+            var totalTravelSeconds = 0;
             var totalDistanceKm = 0.0;
             var totalServiceMinutes = orderedStops.Sum(stop => stop.ServiceMinutes);
 
@@ -20,7 +20,7 @@ namespace RouteWise.Api.Services
             {
                 var nextMatrixIndex = orderedStopIndices[i] + 1;
 
-                totalTravelMinutes += matrix.TravelTimesMinutes[currentMatrixIndex][nextMatrixIndex];
+                totalTravelSeconds += matrix.GetTravelTimeSeconds(currentMatrixIndex, nextMatrixIndex);
                 totalDistanceKm += matrix.DistancesKm[currentMatrixIndex][nextMatrixIndex];
 
                 currentMatrixIndex = nextMatrixIndex;
@@ -28,9 +28,11 @@ namespace RouteWise.Api.Services
 
             if (destinationMatrixIndex.HasValue)
             {
-                totalTravelMinutes += matrix.TravelTimesMinutes[currentMatrixIndex][destinationMatrixIndex.Value];
+                totalTravelSeconds += matrix.GetTravelTimeSeconds(currentMatrixIndex, destinationMatrixIndex.Value);
                 totalDistanceKm += matrix.DistancesKm[currentMatrixIndex][destinationMatrixIndex.Value];
             }
+
+            var totalTravelMinutes = (int)Math.Round(totalTravelSeconds / 60.0);
 
             return new RouteMetrics
             {

@@ -27,7 +27,7 @@ namespace RouteWise.Api.Optimizers
                     }
 
                     var candidateMatrixIndex = stopIndex + 1;
-                    var travelTime = matrix.TravelTimesMinutes[currentMatrixIndex][candidateMatrixIndex];
+                    var travelTime = matrix.GetTravelTimeSeconds(currentMatrixIndex, candidateMatrixIndex);
 
                     if (travelTime < bestTravelTime)
                     {
