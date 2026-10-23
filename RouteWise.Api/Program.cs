@@ -138,7 +138,7 @@ namespace RouteWise.Api
             app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
+            if (app.Environment.IsDevelopment() || builder.Configuration.GetValue<bool>("EnableSwagger", false))
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();

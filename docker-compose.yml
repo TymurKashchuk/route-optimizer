@@ -5,7 +5,8 @@ services:
       dockerfile: RouteWise.Api/Dockerfile
     container_name: routewise-backend
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Production}
+      - EnableSwagger=${ENABLE_SWAGGER:-false}
       - ASPNETCORE_HTTP_PORTS=8080
       - OpenRouteService__ApiKey=${OPENROUTE_SERVICE_API_KEY:-}
     ports:
