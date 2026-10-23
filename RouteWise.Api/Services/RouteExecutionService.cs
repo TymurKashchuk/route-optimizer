@@ -33,67 +33,21 @@ namespace RouteWise.Api.Services
             _routePreviewService = routePreviewService;
         }
 
-        public Task<OptimizeRouteResponse> ExecuteAsync(
+        public async Task<OptimizeRouteResponse> ExecuteAsync(
             OptimizeRouteRequest request,
             CancellationToken cancellationToken = default)
         {
-            return ExecuteAsync(
-                request.Algorithm,
-                request.Start,
-                request.PlanningMode,
-                request.DepartureTime,
-                request.ArrivalBy,
-                request.Stops,
-                request.Destination,
-                request.TravelMode,
-                cancellationToken);
-        }
+            var algorithm = request.Algorithm;
+            var start = request.Start;
+            var planningMode = request.PlanningMode;
+            var departureTime = request.DepartureTime;
+            var arrivalBy = request.ArrivalBy;
+            var stops = request.Stops;
+            var destination = (request.Destination != null && (!string.IsNullOrWhiteSpace(request.Destination.Address) || request.Destination.Latitude.HasValue))
+                ? request.Destination
+                : null;
+            var travelMode = request.TravelMode;
 
-        public Task<OptimizeRouteResponse> ExecuteAsync(
-            string algorithm,
-            AddressInput start,
-            DateTime departureTime,
-            List<RouteStop> stops,
-            CancellationToken cancellationToken = default)
-        {
-            return ExecuteAsync(algorithm, start, "depart-at", departureTime, null, stops, null, TravelMode.Default, cancellationToken);
-        }
-
-        public Task<OptimizeRouteResponse> ExecuteAsync(
-            string algorithm,
-            AddressInput start,
-            DateTime departureTime,
-            List<RouteStop> stops,
-            AddressInput? destination,
-            CancellationToken cancellationToken = default)
-        {
-            return ExecuteAsync(algorithm, start, "depart-at", departureTime, null, stops, destination, TravelMode.Default, cancellationToken);
-        }
-
-        public Task<OptimizeRouteResponse> ExecuteAsync(
-            string algorithm,
-            AddressInput start,
-            string planningMode,
-            DateTime? departureTime,
-            DateTime? arrivalBy,
-            List<RouteStop> stops,
-            AddressInput? destination,
-            CancellationToken cancellationToken = default)
-        {
-            return ExecuteAsync(algorithm, start, planningMode, departureTime, arrivalBy, stops, destination, TravelMode.Default, cancellationToken);
-        }
-
-        public async Task<OptimizeRouteResponse> ExecuteAsync(
-            string algorithm,
-            AddressInput start,
-            string planningMode,
-            DateTime? departureTime,
-            DateTime? arrivalBy,
-            List<RouteStop> stops,
-            AddressInput? destination,
-            string travelMode,
-            CancellationToken cancellationToken = default)
-        {
             var matrixResult = await _routeMatrixService.BuildMatrixAsync(start, stops, destination, travelMode, cancellationToken);
 
             var originalOptimizer = _optimizers.First(o =>
