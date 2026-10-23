@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using RouteWise.Api.Contracts.Requests;
 using RouteWise.Api.Contracts.Responses;
 using RouteWise.Api.Services;
@@ -7,6 +8,7 @@ namespace RouteWise.Api.Controllers
 {
     [ApiController]
     [Route("api/routes")]
+    [EnableRateLimiting("RouteOptimizationPolicy")]
     public class RouteOptimizationController : ControllerBase
     {
         private readonly RouteExecutionService _routeExecutionService;
