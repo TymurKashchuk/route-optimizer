@@ -35,6 +35,8 @@ namespace RouteWise.Tests.Providers
             // Distance between Point A and Point B is ~1.65 km
             Assert.InRange(matrix.DistancesKm[0][1], 1.6, 1.7);
             Assert.True(matrix.TravelTimesMinutes[0][1] >= 1);
+            Assert.True(matrix.TravelTimesSeconds[0][1] >= 60);
+            Assert.Equal(matrix.TravelTimesSeconds[0][1], matrix.GetTravelTimeSeconds(0, 1));
         }
 
         [Fact]
@@ -54,6 +56,8 @@ namespace RouteWise.Tests.Providers
             // Travel times: Walking > Cycling > Driving
             Assert.True(walkingMatrix.TravelTimesMinutes[0][1] > cyclingMatrix.TravelTimesMinutes[0][1]);
             Assert.True(cyclingMatrix.TravelTimesMinutes[0][1] > drivingMatrix.TravelTimesMinutes[0][1]);
+            Assert.True(walkingMatrix.TravelTimesSeconds[0][1] > cyclingMatrix.TravelTimesSeconds[0][1]);
+            Assert.True(cyclingMatrix.TravelTimesSeconds[0][1] > drivingMatrix.TravelTimesSeconds[0][1]);
         }
 
         [Fact]

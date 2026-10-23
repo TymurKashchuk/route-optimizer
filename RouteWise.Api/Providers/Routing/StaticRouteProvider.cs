@@ -21,19 +21,22 @@ namespace RouteWise.Api.Providers.Routing
             var count = locations.Count;
             var speedKmH = GetSpeedKmH(travelMode);
 
+            var travelTimesSeconds = new List<List<int>>();
             var travelTimesMinutes = new List<List<int>>();
             var distancesKm = new List<List<double>>();
 
             for (int i = 0; i < count; i++)
             {
-                var timeRow = new List<int>();
+                var secRow = new List<int>();
+                var minRow = new List<int>();
                 var distRow = new List<double>();
 
                 for (int j = 0; j < count; j++)
                 {
                     if (i == j)
                     {
-                        timeRow.Add(0);
+                        secRow.Add(0);
+                        minRow.Add(0);
                         distRow.Add(0.0);
                     }
                     else
@@ -41,21 +44,27 @@ namespace RouteWise.Api.Providers.Routing
                         var distance = CalculateHaversineDistanceKm(locations[i], locations[j]);
                         var roundedDistance = Math.Round(distance, 2);
 
+                        var seconds = roundedDistance <= 0.0
+                            ? 0
+                            : (int)Math.Max(1, Math.Round((distance / speedKmH) * 3600.0));
                         var minutes = roundedDistance <= 0.0
                             ? 0
                             : (int)Math.Max(1, Math.Round((distance / speedKmH) * 60.0));
 
-                        timeRow.Add(minutes);
+                        secRow.Add(seconds);
+                        minRow.Add(minutes);
                         distRow.Add(roundedDistance);
                     }
                 }
 
-                travelTimesMinutes.Add(timeRow);
+                travelTimesSeconds.Add(secRow);
+                travelTimesMinutes.Add(minRow);
                 distancesKm.Add(distRow);
             }
 
             var matrix = new RouteMatrix
             {
+                TravelTimesSeconds = travelTimesSeconds,
                 TravelTimesMinutes = travelTimesMinutes,
                 DistancesKm = distancesKm
             };

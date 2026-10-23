@@ -194,6 +194,7 @@ namespace RouteWise.Api.Providers.Routing
                 throw new OpenRouteServiceException("OpenRouteService matrix size does not match requested locations count.");
             }
 
+            var travelTimesSeconds = new List<List<int>>();
             var travelTimesMinutes = new List<List<int>>();
             var distancesKm = new List<List<double>>();
 
@@ -207,6 +208,7 @@ namespace RouteWise.Api.Providers.Routing
                     throw new OpenRouteServiceException("OpenRouteService matrix row size is invalid.");
                 }
 
+                var timeSecondsRow = new List<int>();
                 var timeMinutesRow = new List<int>();
                 var distanceKmRow = new List<double>();
 
@@ -220,16 +222,20 @@ namespace RouteWise.Api.Providers.Routing
                         throw new OpenRouteServiceException($"Route between location {i} and {j} is unreachable.");
                     }
 
-                    timeMinutesRow.Add((int)Math.Round(durationSeconds.Value / 60.0));
+                    var seconds = (int)Math.Round(durationSeconds.Value);
+                    timeSecondsRow.Add(seconds);
+                    timeMinutesRow.Add((int)Math.Round(seconds / 60.0));
                     distanceKmRow.Add(Math.Round(distanceMeters.Value / 1000.0, 2));
                 }
 
+                travelTimesSeconds.Add(timeSecondsRow);
                 travelTimesMinutes.Add(timeMinutesRow);
                 distancesKm.Add(distanceKmRow);
             }
 
             return new RouteMatrix
             {
+                TravelTimesSeconds = travelTimesSeconds,
                 TravelTimesMinutes = travelTimesMinutes,
                 DistancesKm = distancesKm
             };
