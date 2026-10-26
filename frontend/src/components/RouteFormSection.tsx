@@ -4,7 +4,7 @@ import { AddressAutocompleteInput } from './AddressAutocompleteInput';
 import { StopsSection } from './StopsSection';
 import { CustomDatePicker } from './CustomDatePicker';
 import { CustomTimePicker } from './CustomTimePicker';
-import { reverseGeocode } from '../api/geocodingClient';
+import { useGeolocation } from '../hooks/useGeolocation';
 import { adjustTimeString, getCurrentRoundedTimeString, getTodayDateString, isDateTimeInPast } from '../utils/dateTime';
 import { resolveUpdatedLabel } from '../utils/address';
 
@@ -93,8 +93,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
   isStale,
 }) => {
   const isArriveBy = planningMode === 'arrive-by';
-  const [isLocating, setIsLocating] = useState<boolean>(false);
-  const [locationError, setLocationError] = useState<string | null>(null);
+  const { isLocating, locationError, setLocationError, requestCurrentLocation } = useGeolocation();
   const [isCustomScope, setIsCustomScope] = useState<boolean>(() => {
     return searchScope === 'city' && !POPULAR_CITIES.includes(selectedCity);
   });
@@ -136,56 +135,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
   };
 
   const handleUseCurrentLocation = () => {
-    if (!navigator.geolocation) {
-      setLocationError('Геолокація не підтримується вашим браузером.');
-      return;
-    }
-
-    setIsLocating(true);
-    setLocationError(null);
-
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          const { latitude, longitude } = pos.coords;
-          const result = await reverseGeocode(latitude, longitude);
-          onStartChange({
-            label: 'Моє місцезнаходження',
-            address: result.address,
-            latitude,
-            longitude,
-          });
-        } catch (err: unknown) {
-          const message =
-            err instanceof Error ? err.message : 'Не вдалося визначити адресу за координатами.';
-          setLocationError(message);
-        } finally {
-          setIsLocating(false);
-        }
-      },
-      (geoError) => {
-        setIsLocating(false);
-        switch (geoError.code) {
-          case geoError.PERMISSION_DENIED:
-            setLocationError('Доступ до геопозиції відхилено.');
-            break;
-          case geoError.POSITION_UNAVAILABLE:
-            setLocationError('GPS-дані недоступні.');
-            break;
-          case geoError.TIMEOUT:
-            setLocationError('Час очікування GPS вичерпано.');
-            break;
-          default:
-            setLocationError('Не вдалося визначити геопозицію.');
-            break;
-        }
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 60000,
-      }
-    );
+    requestCurrentLocation(onStartChange);
   };
 
   return (
