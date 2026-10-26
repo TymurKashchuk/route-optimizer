@@ -1,4 +1,5 @@
 import React from 'react';
+import './TimelineView.css';
 import type { PlanningMode, RouteStepDto, TimelineItemDto, TravelMode } from '../../types/route';
 import { formatDayMonthUk, formatTime, getServiceDuration, isTimestampInPast } from '../../utils/dateTime';
 

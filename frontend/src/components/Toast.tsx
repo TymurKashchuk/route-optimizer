@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import './Toast.css';
 
 export type ToastType = 'error' | 'info' | 'success';
 

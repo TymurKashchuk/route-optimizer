@@ -1,0 +1,226 @@
+/* Timeline Card Wrapper */
+.timeline-card-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-soft);
+}
+
+/* ==========================================================================
+   Schedule Timeline Styles (Mockup-aligned with continuous spine)
+   ========================================================================== */
+.schedule-timeline-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.schedule-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-bottom: 0.5rem;
+}
+
+.schedule-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.schedule-meta {
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.schedule-late-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.65rem 0.85rem;
+  margin-bottom: 0.85rem;
+  border-radius: var(--radius-sm);
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+[data-theme='dark'] .schedule-late-alert {
+  background-color: rgba(220, 38, 38, 0.12);
+  border-color: rgba(220, 38, 38, 0.3);
+  color: #fca5a5;
+}
+
+.schedule-late-alert .late-icon {
+  flex-shrink: 0;
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.schedule-stale-notice {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(232, 80, 31, 0.08);
+  border: 1px solid rgba(232, 80, 31, 0.25);
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-main);
+  line-height: 1.35;
+}
+
+.schedule-stale-notice .stale-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+.schedule-items-list {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.schedule-step-item {
+  display: flex;
+  align-items: stretch;
+  position: relative;
+  gap: 0.85rem;
+}
+
+.schedule-time-col {
+  width: 58px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex-shrink: 0;
+  padding-top: 1px;
+}
+
+.schedule-main-time {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.schedule-sub-time {
+  font-size: 0.725rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* Spine Track: dot on top and continuous stem going all the way down */
+.schedule-spine-col {
+  width: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.timeline-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  z-index: 2;
+  position: relative;
+  margin-top: 4px;
+  box-shadow: 0 0 0 2px var(--bg-card);
+  box-sizing: border-box;
+}
+
+.timeline-dot.dot-start {
+  background: var(--ink);
+  border: 2px solid var(--ink);
+}
+
+.timeline-dot.dot-stop {
+  background: var(--bg-card);
+  border: 2.5px solid var(--accent);
+}
+
+.timeline-dot.dot-dest {
+  background: var(--accent);
+  border: 2px solid var(--accent);
+}
+
+/* Continuous unbroken stem line */
+.timeline-continuous-stem {
+  position: absolute;
+  top: 8px;
+  bottom: -6px;
+  width: 2.5px;
+  background: var(--accent);
+  z-index: 1;
+}
+
+.schedule-body-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 1.25rem;
+}
+
+.schedule-step-item.is-last .schedule-body-col {
+  padding-bottom: 0;
+}
+
+.schedule-stop-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding-top: 1px;
+}
+
+.schedule-name-text {
+  font-size: 0.925rem;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.schedule-name-text strong {
+  font-weight: 800;
+}
+
+.schedule-status-subtext {
+  font-size: 0.775rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.schedule-transit-chip-row {
+  margin-top: 0.75rem;
+  display: flex;
+  align-items: center;
+}
+
+.schedule-leg-pill {
+  display: inline-flex;
+  align-items: center;
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  padding: 0.2rem 0.65rem;
+  border-radius: var(--radius-chip);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+  box-shadow: var(--shadow-soft);
+}

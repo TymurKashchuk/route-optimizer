@@ -1,0 +1,1013 @@
+/* ==========================================================================
+   Central Map Canvas & Floating Overlays (Mockup-aligned)
+   ========================================================================== */
+.results-column-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.map-stage-card {
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+  padding: 0;
+}
+
+.map-canvas-container {
+  position: relative;
+  width: 100%;
+  height: 480px;
+}
+
+.leaflet-map-element {
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* Floating Actions in Top Right of Map */
+.map-floating-actions {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.floating-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--bg-card);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  padding: 0.45rem 0.85rem;
+  border-radius: var(--radius-field);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.floating-action-btn:hover {
+  background: var(--surface-muted);
+  border-color: var(--ink);
+}
+
+.floating-action-btn.copied {
+  color: var(--success-fg);
+  border-color: var(--success-line);
+  background: var(--success-bg);
+}
+
+.floating-action-btn.floating-action-stale {
+  border-color: rgba(232, 80, 31, 0.45);
+  color: var(--accent-fg);
+}
+
+.action-arrow-icon {
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.btn-label-full {
+  display: inline;
+}
+
+.btn-label-short {
+  display: none;
+}
+
+@media (max-width: 1200px) {
+  .btn-label-full {
+    display: none;
+  }
+  .btn-label-short {
+    display: inline;
+  }
+}
+
+/* Floating Hero Card in Top Left of Map (Mockup: compact ~300px, max-height ~170px) */
+.map-hero-overlay-slot {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 500;
+  width: 300px;
+  max-width: 300px;
+  pointer-events: none;
+}
+
+.map-hero-overlay-slot > * {
+  pointer-events: auto;
+}
+
+.hero-metrics-card {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 0.95rem 1.15rem;
+  box-shadow: var(--shadow-overlay);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  width: 100%;
+  max-width: 300px;
+  min-height: min-content;
+  box-sizing: border-box;
+  animation: hero-fade-in 0.25s ease-out;
+  transition: border-color 0.2s ease;
+}
+
+.hero-metrics-card.is-stale {
+  border-color: rgba(232, 80, 31, 0.45);
+}
+
+.hero-stale-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(232, 80, 31, 0.12);
+  color: var(--accent);
+  border: 1px solid rgba(232, 80, 31, 0.25);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+@keyframes hero-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-caption-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.hero-caption {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.hero-recommended-dep {
+  font-size: 0.7rem;
+  color: var(--accent-fg);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.hero-recommended-dep.is-late {
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+}
+
+[data-theme='dark'] .hero-recommended-dep.is-late {
+  color: #f87171;
+  background: rgba(220, 38, 38, 0.18);
+  border-color: rgba(220, 38, 38, 0.35);
+}
+
+.hero-time-value {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  margin: 0.05rem 0;
+  white-space: nowrap;
+}
+
+.hero-subline {
+  font-size: 0.775rem;
+  font-weight: 500;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+  line-height: 1.35;
+}
+
+.hero-subdot {
+  color: var(--faint);
+  font-weight: 700;
+}
+
+.hero-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  margin-top: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.hero-savings-chips {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.hero-pill-saving {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.725rem;
+  font-weight: 700;
+  color: var(--success-fg);
+  background: var(--success-bg);
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--radius-chip);
+  border: 1px solid var(--success-line);
+  white-space: nowrap;
+}
+
+.hero-neutral-text {
+  font-size: 0.725rem;
+  color: var(--muted);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.hero-btn-compare {
+  background: transparent;
+  border: none;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s ease;
+}
+
+.hero-btn-compare:hover {
+  color: var(--accent);
+}
+
+.hero-compare-expanded {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.compare-mini-col {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.compare-mini-label {
+  font-weight: 600;
+}
+
+.compare-accent {
+  color: var(--accent-fg);
+}
+
+/* Responsive Map & Hero Card: flows under the map on screens <= 1100px to prevent overlap */
+@media (max-width: 1100px) {
+  .map-canvas-container {
+    height: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .leaflet-map-element {
+    height: 380px;
+    order: 1;
+  }
+
+  .map-hero-overlay-slot {
+    order: 2;
+    position: static;
+    width: 100%;
+    max-width: 100%;
+    padding: 1.15rem 1.25rem;
+    border-top: 1px solid var(--line);
+    background: var(--bg-card);
+    pointer-events: auto;
+  }
+
+  .hero-metrics-card {
+    box-shadow: none;
+    border: none;
+    padding: 0;
+    width: 100%;
+    max-width: 100%;
+    max-height: none;
+    border-radius: 0;
+    animation: none;
+  }
+
+  .hero-metrics-card .hero-time-value {
+    font-size: 2.15rem;
+  }
+
+  .map-floating-actions {
+    top: 0.75rem;
+    right: 0.75rem;
+  }
+}
+
+@media (max-width: 540px) {
+  .leaflet-map-element {
+    height: 320px;
+  }
+
+  .map-floating-actions {
+    top: 0.5rem;
+    right: 0.5rem;
+    gap: 0.35rem;
+  }
+
+  .floating-action-btn {
+    padding: 0.35rem 0.55rem;
+    font-size: 0.725rem;
+  }
+}
+
+/* Map Loading Overlay */
+.map-loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--bg-card) 75%, transparent);
+  backdrop-filter: blur(2px);
+  z-index: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.map-loading-spinner-box {
+  background: var(--bg-card);
+  padding: 0.85rem 1.25rem;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-overlay);
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* Markers on Map */
+.custom-map-marker-container {
+  background: transparent;
+  border: none;
+}
+
+.map-marker-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 800;
+  box-shadow: var(--shadow-overlay);
+  user-select: none;
+}
+
+.map-marker-start {
+  background: var(--ink);
+  color: var(--ink-inverse);
+  border: 2px solid var(--bg-card);
+}
+
+.map-marker-stop {
+  background: var(--bg-card);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+}
+
+.map-marker-dest {
+  background: var(--accent);
+  color: var(--on-accent);
+  border: 2px solid var(--bg-card);
+}
+
+/* Clicked Marker */
+.marker-clicked-dot {
+  width: 12px;
+  height: 12px;
+  background-color: var(--accent);
+  border: 2px solid var(--bg-card);
+  border-radius: 50%;
+  box-shadow: var(--shadow-soft);
+  z-index: 2;
+}
+
+.marker-pulse-ring {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background-color: var(--accent-line);
+  animation: marker-pulse-expand 1.8s ease-out infinite;
+  z-index: 1;
+}
+
+/* Empty State Guide Card: Як це працює */
+.empty-guide-card {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.guide-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.guide-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.btn-try-example {
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  color: var(--accent-fg);
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-chip);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-try-example:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+}
+
+.guide-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 680px) {
+  .guide-steps-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.guide-step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+}
+
+.guide-step-num {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.guide-step-item strong {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 0.15rem;
+}
+
+.guide-step-item p {
+  margin: 0;
+  font-size: 0.775rem;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+
+/* Map Header Action Buttons (Google Maps & Copy Link) */
+.map-header-ext-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent-fg);
+  text-decoration: none;
+  padding: 0.32rem 0.65rem;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-line);
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.map-header-ext-link:hover {
+  background: var(--accent-soft);
+  color: var(--accent-hover);
+  border-color: var(--accent-fg);
+}
+
+.map-header-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-main);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 0.32rem 0.65rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.map-header-copy-btn:hover {
+  background: var(--surface-muted);
+  border-color: var(--line-strong);
+  color: var(--text-main);
+}
+
+.map-header-copy-btn.copied {
+  background: var(--success-bg);
+  border-color: var(--success-dot);
+  color: var(--success-fg);
+  font-weight: 600;
+}
+
+/* Floating copy feedback snackbar */
+.export-toast-snackbar {
+  position: fixed;
+  bottom: 1.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background-color: var(--ink);
+  color: var(--ink-inverse);
+  padding: 0.7rem 1.2rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: var(--shadow-overlay);
+  z-index: 10000;
+  pointer-events: none;
+  max-width: calc(100vw - 2rem);
+  box-sizing: border-box;
+  animation: snackbar-slide-up 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.export-toast-snackbar svg {
+  color: var(--success-dot);
+  flex-shrink: 0;
+}
+
+@keyframes snackbar-slide-up {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 14px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@media (max-width: 680px) {
+  .route-map-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.65rem;
+  }
+
+  .route-map-header-right {
+    width: 100%;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .map-actions-group {
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  .map-header-divider {
+    display: none;
+  }
+}
+
+
+/* ==========================================================================
+   Map Click Waypoint Marker & Action Popup
+   ========================================================================== */
+.map-marker-clicked {
+  position: relative;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.marker-clicked-dot {
+  width: 14px;
+  height: 14px;
+  background-color: var(--primary);
+  border: 2.5px solid var(--bg-card);
+  border-radius: 50%;
+  box-shadow: var(--shadow-soft);
+  z-index: 2;
+}
+
+.marker-pulse-ring {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: var(--accent-line);
+  animation: marker-pulse-expand 1.8s ease-out infinite;
+  z-index: 1;
+}
+
+@keyframes marker-pulse-expand {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+.map-click-popup {
+  min-width: 190px;
+  max-width: 250px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.map-click-popup p {
+  margin: 0 !important;
+}
+
+.map-click-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--primary);
+  margin-bottom: 0.15rem;
+}
+
+.map-click-header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.btn-popup-close {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0 4px;
+  font-size: 0.95rem;
+  line-height: 1;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.btn-popup-close:hover {
+  color: var(--text-main);
+  background-color: var(--surface-muted);
+}
+
+.map-click-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  padding: 0.2rem 0;
+}
+
+.map-click-address {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-main);
+  line-height: 1.3;
+  margin: 0 !important;
+  word-break: break-word;
+}
+
+.map-click-error {
+  font-size: 0.72rem;
+  color: var(--danger);
+  margin: 0 !important;
+}
+
+.map-click-address-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.map-click-prompt {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin: 0.15rem 0 0 !important;
+  line-height: 1.2;
+}
+
+.map-click-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.map-action-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.35rem 0.4rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.map-action-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn-action-start {
+  background-color: var(--ink);
+  border-color: var(--ink);
+  color: var(--ink-inverse);
+}
+
+.btn-action-start:hover {
+  background-color: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.btn-action-stop {
+  background-color: var(--bg-card);
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+.btn-action-stop:hover {
+  background-color: var(--surface-muted);
+  border-color: var(--ink);
+}
+
+.btn-action-dest {
+  background-color: var(--accent-soft);
+  border-color: var(--accent-line);
+  color: var(--accent-fg);
+}
+
+.btn-action-dest:hover {
+  background-color: var(--accent-soft);
+  border-color: var(--accent-fg);
+}
+
+/* Leaflet Popup Theme Support (Light & Dark) */
+.leaflet-popup-content-wrapper {
+  background-color: var(--bg-card);
+  color: var(--text-main);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-overlay);
+  border: 1px solid var(--border-color);
+  padding: 0;
+}
+
+.leaflet-popup-content {
+  margin: 0.65rem 0.85rem !important;
+  line-height: 1.35;
+  color: var(--text-main);
+}
+
+.leaflet-popup-tip {
+  background-color: var(--bg-card);
+}
+
+.leaflet-container a.leaflet-popup-close-button {
+  color: var(--text-muted);
+  top: 8px;
+  right: 8px;
+  padding: 2px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+}
+
+.leaflet-container a.leaflet-popup-close-button:hover {
+  color: var(--text-main);
+  background-color: var(--surface-muted);
+}
+
+/* Dark mode specific popup styling */
+[data-theme='dark'] .leaflet-popup-content-wrapper {
+  background-color: var(--bg-card);
+  color: var(--text-main);
+  border-color: var(--line);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme='dark'] .leaflet-popup-tip {
+  background-color: var(--bg-card);
+}
+
+[data-theme='dark'] .map-click-address {
+  color: var(--text-main);
+}
+
+[data-theme='dark'] .map-click-prompt {
+  color: var(--text-muted);
+}
+
+[data-theme='dark'] .btn-action-start {
+  background-color: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+[data-theme='dark'] .btn-action-start:hover {
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+[data-theme='dark'] .btn-action-stop {
+  background-color: var(--surface-muted);
+  border-color: var(--line);
+  color: var(--text-main);
+}
+
+[data-theme='dark'] .btn-action-stop:hover {
+  background-color: var(--border-color);
+  border-color: var(--text-muted);
+}
+
+[data-theme='dark'] .btn-action-dest {
+  background-color: rgba(232, 80, 31, 0.2);
+  border-color: rgba(232, 80, 31, 0.45);
+  color: var(--accent-fg);
+}
+
+[data-theme='dark'] .btn-action-dest:hover {
+  background-color: rgba(232, 80, 31, 0.3);
+  border-color: var(--accent-fg);
+}
+
+/* Leaflet controls & attribution (theme-aware via tokens) */
+/* Completely remove all map zoom buttons (+ / -) for a clean map matching mockup */
+.leaflet-control-zoom {
+  display: none !important;
+}
+
+.leaflet-bottom.leaflet-right {
+  margin-bottom: 0.5rem;
+  margin-right: 0.5rem;
+}
+
+.leaflet-bottom.leaflet-right .leaflet-control-attribution {
+  margin: 0;
+  border-radius: 4px;
+}
+
+.leaflet-container {
+  font-family: var(--font-sans);
+  background-color: var(--bg-app);
+}
+
+.leaflet-container .leaflet-bar a {
+  background-color: var(--bg-card);
+  color: var(--ink);
+  border-bottom-color: var(--line);
+}
+
+.leaflet-container .leaflet-bar a:hover {
+  background-color: var(--surface-muted);
+}
+
+.leaflet-container .leaflet-bar a.leaflet-disabled {
+  background-color: var(--surface-muted);
+  color: var(--faint);
+}
+
+.leaflet-container .leaflet-control-attribution {
+  background-color: color-mix(in srgb, var(--bg-card) 85%, transparent);
+  color: var(--muted);
+}
+
+.leaflet-container .leaflet-control-attribution a {
+  color: var(--accent-fg);
+}
+
+/* Dark tiles styling: CSS filter for OpenStreetMap */
+[data-theme='dark'] .leaflet-tile-pane {
+  filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
+}
+
+/* Focus states for controls that suppress the native outline */
+.stop-stay-pill:focus-within {
+  border-color: var(--accent-fg);
+  box-shadow: var(--focus-ring);
+}
+
+.scope-compact-select:focus-visible,
+.stop-title-input:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+
+/* Changing numbers: times, distances, durations */
+.trip-metric-value,
+.trip-metric-subtext,
+.time-pill,
+.transit-info-badge,
+.time-picker-input,
+.btn-time-pill,
+.btn-time-step,
+.comparison-stats,
+.stay-pill-input,
+.recommendation-banner-title strong,
+.stops-count-hint {
+  font-variant-numeric: tabular-nums;
+}

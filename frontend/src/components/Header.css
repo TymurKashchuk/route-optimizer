@@ -1,0 +1,185 @@
+/* Header Layout */
+.app-header {
+  background-color: var(--bg-card);
+  border-bottom: 1px solid var(--line);
+  padding: 0.85rem 1.75rem;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+.header-container {
+  max-width: 1440px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.brand-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--ink);
+  color: var(--ink-inverse);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.brand-text-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.brand-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.brand-subtitle {
+  font-size: 0.825rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+/* Server Status Badge */
+.header-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.825rem;
+  font-weight: 600;
+}
+
+.header-status-badge .status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.header-status-badge.status-online {
+  color: var(--success-fg);
+}
+.header-status-badge.status-online .status-dot {
+  background-color: var(--success-dot);
+  box-shadow: 0 0 0 2px var(--success-bg);
+}
+
+.header-status-badge.status-checking {
+  color: var(--muted);
+}
+.header-status-badge.status-checking .status-dot {
+  background-color: var(--faint);
+}
+
+.header-status-badge.status-offline {
+  color: var(--danger);
+}
+.header-status-badge.status-offline .status-dot {
+  background-color: var(--danger);
+}
+
+/* Celestial Sun/Moon Theme Toggle Switch */
+.theme-toggle-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  outline: none;
+}
+
+.theme-toggle-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.theme-toggle-track {
+  width: 58px;
+  height: 28px;
+  border-radius: 9999px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 6px;
+  position: relative;
+  transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: var(--shadow-inset);
+}
+
+.theme-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  transition: color 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+}
+
+.sun-icon {
+  color: var(--accent-bright);
+}
+
+.moon-icon {
+  color: var(--faint);
+}
+
+[data-theme='dark'] .sun-icon {
+  color: var(--faint);
+  opacity: 0.6;
+}
+
+[data-theme='dark'] .moon-icon {
+  color: var(--ink);
+  opacity: 1;
+}
+
+.theme-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+[data-theme='dark'] .theme-toggle-thumb {
+  transform: translateX(28px);
+  background: var(--accent);
+  box-shadow: var(--shadow-soft);
+}
+
+.badge-muted {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  background: var(--bg-app);
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+}
