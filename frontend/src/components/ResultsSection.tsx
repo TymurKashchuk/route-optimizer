@@ -1,4 +1,5 @@
 import React from 'react';
+import './ResultsSection.css';
 import type { AddressInput, OptimizeRouteResponse, RouteStop } from '../types/route';
 import { RouteMetricsSummary } from './results/RouteMetricsSummary';
 import { TimelineView } from './results/TimelineView';

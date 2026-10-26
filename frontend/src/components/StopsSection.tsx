@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+import './StopsSection.css';
 import type { RouteStop } from '../types/route';
 import { AddressAutocompleteInput } from './AddressAutocompleteInput';
-import { deriveStopLabel } from '../utils/address';
+import { resolveUpdatedLabel } from '../utils/address';
 
 interface StopsSectionProps {
   stops: RouteStop[];
@@ -105,14 +106,13 @@ export const StopsSection: React.FC<StopsSectionProps> = ({
                       hasCoordinates={Boolean(stop.latitude && stop.longitude)}
                       onEnterPress={onEnterPress}
                       onChange={(newAddress, suggestion) => {
-                        const isDefaultLabel =
-                          !stop.label ||
-                          stop.label.startsWith('Зупинка') ||
-                          stop.label.startsWith('Stop') ||
-                          stop.label.trim().length < 3;
-                        const cleanLabel = isDefaultLabel
-                          ? deriveStopLabel(newAddress, `Зупинка ${index + 1}`)
-                          : stop.label;
+                        const cleanLabel = resolveUpdatedLabel(
+                          stop.label,
+                          stop.address,
+                          newAddress,
+                          `Зупинка ${index + 1}`,
+                          suggestion?.displayName
+                        );
                         onUpdateStop(stop.id, {
                           address: newAddress,
                           label: cleanLabel,

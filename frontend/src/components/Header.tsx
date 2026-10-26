@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import './Header.css';
 
 interface HeaderProps {
   theme: 'light' | 'dark';

@@ -1,0 +1,208 @@
+/* Address Autocomplete */
+.autocomplete-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.autocomplete-wrapper.autocomplete-open,
+.autocomplete-wrapper:focus-within {
+  z-index: 99999;
+}
+
+.autocomplete-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-overlay);
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 999999 !important;
+  list-style: none;
+  padding: 0.35rem 0;
+  margin: 0;
+}
+
+.autocomplete-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.autocomplete-item:hover,
+.autocomplete-item.active {
+  background-color: var(--primary-light);
+  color: var(--primary);
+}
+
+.autocomplete-icon {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: var(--text-light);
+}
+
+.autocomplete-item:hover .autocomplete-icon,
+.autocomplete-item.active .autocomplete-icon {
+  color: var(--primary);
+}
+
+.autocomplete-item-content {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  text-align: left;
+}
+
+.autocomplete-item-primary {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.autocomplete-item-secondary {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 1px;
+}
+
+.autocomplete-trailing-wrap {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  z-index: 2;
+}
+
+.chain-row-start .chain-input-box .autocomplete-trailing-wrap {
+  right: 32px;
+}
+
+.chain-row-start .form-input-clean {
+  padding-right: 5.75rem !important;
+}
+
+.chain-row-dest .form-input-clean,
+.stop-address-box .form-input-clean {
+  padding-right: 4.8rem !important;
+}
+
+.autocomplete-trailing-wrap .autocomplete-clear-btn,
+.autocomplete-trailing-wrap .autocomplete-spinner {
+  position: static;
+  transform: none;
+  right: auto;
+  top: auto;
+}
+
+.autocomplete-clear-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0 4px;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--text-light);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.autocomplete-clear-btn:hover {
+  color: var(--text-main);
+  background-color: var(--border-color);
+}
+
+.autocomplete-spinner {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border-color);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  pointer-events: none;
+}
+
+.autocomplete-coord-badge {
+  font-size: 0.68rem;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-weight: 600;
+  white-space: nowrap;
+  user-select: none;
+  line-height: 1.2;
+  cursor: help;
+}
+
+.autocomplete-coord-badge.confirmed {
+  color: #15803d;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.autocomplete-coord-badge.unconfirmed {
+  color: #b45309;
+  background-color: #fffbeb;
+  border: 1px solid #fde68a;
+  font-size: 0.65rem;
+  font-weight: 500;
+}
+
+[data-theme='dark'] .autocomplete-coord-badge.confirmed {
+  color: #4ade80;
+  background-color: rgba(34, 197, 94, 0.15);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+[data-theme='dark'] .autocomplete-coord-badge.unconfirmed {
+  color: #fcd34d;
+  background-color: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.autocomplete-status-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.82rem;
+  user-select: none;
+}
+
+.autocomplete-status-item.autocomplete-empty {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.autocomplete-status-item.autocomplete-error {
+  color: #dc2626;
+  background-color: rgba(220, 38, 38, 0.06);
+}
+
+[data-theme='dark'] .autocomplete-status-item.autocomplete-error {
+  color: #f87171;
+  background-color: rgba(220, 38, 38, 0.15);
+}

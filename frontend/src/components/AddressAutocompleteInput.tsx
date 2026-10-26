@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useId } from 'react';
+import './AddressAutocompleteInput.css';
 import { searchAddresses } from '../api/geocodingClient';
 import type { AddressSuggestionDto } from '../types/route';
 

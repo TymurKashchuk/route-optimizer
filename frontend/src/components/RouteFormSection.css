@@ -1,0 +1,573 @@
+/* Form Styles */
+.travel-mode-group,
+.planning-mode-group {
+  display: flex;
+  background-color: var(--bg-app);
+  padding: 3px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  margin-bottom: 0.75rem;
+  gap: 4px;
+}
+
+.travel-mode-btn,
+.planning-mode-btn {
+  flex: 1;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.travel-mode-btn svg,
+.planning-mode-btn svg {
+  flex-shrink: 0;
+}
+
+.travel-mode-btn:hover:not(:disabled),
+.planning-mode-btn:hover:not(:disabled) {
+  color: var(--text-main);
+}
+
+.travel-mode-btn.active,
+.planning-mode-btn.active {
+  background-color: var(--bg-card);
+  color: var(--primary);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+
+.travel-mode-btn:disabled,
+.planning-mode-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-main);
+}
+
+.form-label-sm {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   New 3-Section Planner Card Form (Mockup-aligned)
+   ========================================================================== */
+.form-planner-card {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.35rem;
+  box-shadow: var(--shadow-soft);
+}
+
+.planner-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.planner-heading-group {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.planner-main-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.draft-saved-pill {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--success-fg);
+  background: var(--success-bg);
+  border: 1px solid var(--success-line);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-chip);
+}
+
+.btn-card-reset {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-card-reset:hover:not(:disabled) {
+  border-color: var(--danger-line);
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+/* Numbered Section Header (1 · КУДИ ЇДЕМО, 2 · КОЛИ, 3 · ЯК ЇДЕМО) */
+.form-sub-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.section-step-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Region / Search Scope Row */
+.scope-inline-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.775rem;
+}
+
+.scope-text-prefix {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.scope-select-input,
+.scope-custom-input {
+  font-size: 0.775rem;
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.2rem 0.45rem;
+  outline: none;
+}
+
+.scope-select-input:focus,
+.scope-custom-input:focus {
+  border-color: var(--accent);
+}
+
+/* Route Chain: A, Stops, B */
+.route-chain-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.chain-row-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  position: relative;
+}
+
+.marker-solid-a,
+.marker-solid-b {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.775rem;
+  font-weight: 800;
+  color: var(--ink-inverse);
+  flex-shrink: 0;
+  box-shadow: var(--shadow-soft);
+}
+
+.marker-solid-a {
+  background: var(--ink);
+}
+
+.marker-solid-b {
+  background: var(--accent);
+}
+
+.chain-input-box {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.chain-input-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.chain-input-box .form-input-clean {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: var(--bg-card);
+  border-radius: var(--radius-field);
+  padding: 0.55rem 0.75rem;
+  padding-right: 2.2rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--ink);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.chain-input-box .form-input-clean:focus {
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+  outline: none;
+}
+
+.btn-gps-action {
+  position: absolute;
+  right: 6px;
+  background: transparent;
+  border: none;
+  color: var(--faint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: color 0.15s ease;
+}
+
+.btn-gps-action:hover:not(:disabled) {
+  color: var(--accent);
+}
+
+
+/* SECTION 2: КОЛИ */
+.mode-toggle-bar {
+  display: flex;
+  background: var(--surface-muted);
+  padding: 3px;
+  border-radius: var(--radius-field);
+  border: 1px solid var(--line);
+  gap: 3px;
+}
+
+.mode-toggle-tab {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.mode-toggle-tab.active {
+  background: var(--bg-card);
+  color: var(--ink);
+  box-shadow: var(--shadow-soft);
+}
+
+.datetime-compact-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+}
+
+.datetime-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.datetime-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.clean-field-input {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: var(--bg-card);
+  border-radius: var(--radius-field);
+  padding: 0.5rem 0.65rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ink);
+  outline: none;
+  font-variant-numeric: tabular-nums;
+  accent-color: var(--accent);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.clean-field-input:focus {
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+}
+
+
+/* SECTION 3: ЯК ЇДЕМО */
+.travel-mode-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.travel-mode-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.75rem 0.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-field);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.travel-mode-card:hover:not(:disabled) {
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+.travel-mode-card.active {
+  border-color: var(--ink);
+  border-width: 2px;
+  padding: calc(0.75rem - 1px) calc(0.5rem - 1px);
+  color: var(--ink);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-soft);
+}
+
+.mode-card-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+/* Algorithm Segmented Bar */
+.algo-segmented-bar {
+  display: flex;
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-field);
+  padding: 3px;
+  gap: 3px;
+}
+
+.algo-btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.775rem;
+  font-weight: 600;
+  padding: 0.4rem 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.algo-btn.active {
+  background: var(--bg-card);
+  color: var(--ink);
+  box-shadow: var(--shadow-soft);
+}
+
+/* PRIMARY CTA: Оптимізувати маршрут */
+.planner-cta-wrap {
+  margin-top: 0.35rem;
+}
+
+.btn-hero-cta {
+  width: 100%;
+  background: var(--accent);
+  color: var(--on-accent);
+  border: none;
+  border-radius: var(--radius-cta);
+  padding: 0.95rem 1.25rem;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow-accent);
+  transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-hero-cta:hover:not(:disabled) {
+  background: var(--accent-hover);
+  box-shadow: 0 10px 24px -6px rgba(201, 64, 15, 0.6);
+  transform: translateY(-1px);
+}
+
+.btn-hero-cta:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-hero-cta.btn-hero-cta-stale {
+  box-shadow: 0 0 0 3px rgba(232, 80, 31, 0.35), var(--shadow-accent);
+}
+
+.cta-loading-content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+}
+.form-error-sm {
+  font-size: 0.75rem;
+  color: var(--danger);
+  margin-top: 0.25rem;
+}
+
+.form-warning-sm {
+  font-size: 0.78rem;
+  color: #b45309;
+  margin-top: 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 500;
+}
+
+[data-theme='dark'] .form-warning-sm {
+  color: #f59e0b;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-field);
+  color: var(--text-main);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: var(--focus-ring);
+}
+
+.form-input-sm {
+  padding: 0.4rem 0.6rem;
+  font-size: 0.85rem;
+}
+
+
+/* Trip Planner Header & Draft Status */
+.trip-planner-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.draft-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.725rem;
+  font-weight: 500;
+  color: var(--success-fg);
+  background: var(--success-bg);
+  border: 1px solid var(--success-line);
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+}
+
+.trip-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.btn-reset-draft {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 0.4rem 0.7rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-reset-draft:hover:not(:disabled) {
+  color: var(--danger);
+  border-color: var(--danger-line);
+  background: var(--danger-soft);
+}
+
+.btn-reset-draft:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .trip-planner-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .trip-header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+/* ==========================================================================
+   Dark Mode Refinements & Contrast Enhancements
+   ========================================================================== */
+
+[data-theme='dark'] input:-webkit-autofill,
+[data-theme='dark'] input:-webkit-autofill:hover,
+[data-theme='dark'] input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text-main) !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--bg-input) inset !important;
+  box-shadow: 0 0 0 1000px var(--bg-input) inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
