@@ -8,7 +8,7 @@ import type { AddressInput, AlgorithmType, OptimizeRouteResponse, PlanningMode, 
 import { optimizeRoute } from './api/routeClient';
 import { clearTripDraft, loadTripDraft, saveTripDraft } from './utils/draftStorage';
 import { getCurrentRoundedTimeString, getTodayDateString } from './utils/dateTime';
-import { deriveStopLabel } from './utils/address';
+import { deriveStopLabel, isDefaultOrDerivedLabel } from './utils/address';
 
 function generateId(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -358,21 +358,21 @@ export const App: React.FC = () => {
           arrivalBy: planningMode === 'arrive-by' ? arrivalBy : undefined,
           start: {
             ...start,
-            label: (start.label && start.label.trim().length >= 3)
-              ? start.label.trim()
-              : deriveStopLabel(start.address, 'Старт'),
+            label: isDefaultOrDerivedLabel(start.label, start.address, 'Старт')
+              ? deriveStopLabel(start.address, 'Старт')
+              : start.label.trim(),
           },
           destination: {
             ...destination,
-            label: (destination.label && destination.label.trim().length >= 3)
-              ? destination.label.trim()
-              : deriveStopLabel(destination.address, 'Фініш'),
+            label: isDefaultOrDerivedLabel(destination.label, destination.address, 'Фініш')
+              ? deriveStopLabel(destination.address, 'Фініш')
+              : destination.label.trim(),
           },
           stops: stops.map((s, idx) => ({
             ...s,
-            label: (s.label && s.label.trim().length >= 3)
-              ? s.label.trim()
-              : deriveStopLabel(s.address, `Зупинка ${idx + 1}`),
+            label: isDefaultOrDerivedLabel(s.label, s.address, `Зупинка ${idx + 1}`)
+              ? deriveStopLabel(s.address, `Зупинка ${idx + 1}`)
+              : s.label.trim(),
           })),
         },
         controller.signal

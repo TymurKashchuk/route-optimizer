@@ -6,7 +6,7 @@ import { CustomDatePicker } from './CustomDatePicker';
 import { CustomTimePicker } from './CustomTimePicker';
 import { reverseGeocode } from '../api/geocodingClient';
 import { adjustTimeString, getCurrentRoundedTimeString, getTodayDateString, isDateTimeInPast } from '../utils/dateTime';
-import { deriveStopLabel } from '../utils/address';
+import { resolveUpdatedLabel } from '../utils/address';
 
 const POPULAR_CITIES = [
   'Житомир',
@@ -287,9 +287,16 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
                   onEnterPress={handleCtaClick}
                   onChange={(newAddress, suggestion) => {
                     setLocationError(null);
+                    const cleanLabel = resolveUpdatedLabel(
+                      start.label,
+                      start.address,
+                      newAddress,
+                      'Старт',
+                      suggestion?.displayName
+                    );
                     onStartChange({
                       ...start,
-                      label: deriveStopLabel(newAddress, 'Старт'),
+                      label: cleanLabel,
                       address: newAddress,
                       latitude: suggestion?.latitude,
                       longitude: suggestion?.longitude,
@@ -359,9 +366,16 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
                   hasCoordinates={Boolean(destination.latitude && destination.longitude)}
                   onEnterPress={handleCtaClick}
                   onChange={(newAddress, suggestion) => {
+                    const cleanLabel = resolveUpdatedLabel(
+                      destination.label,
+                      destination.address,
+                      newAddress,
+                      'Фініш',
+                      suggestion?.displayName
+                    );
                     onDestinationChange({
                       ...destination,
-                      label: deriveStopLabel(newAddress, 'Фініш'),
+                      label: cleanLabel,
                       address: newAddress,
                       latitude: suggestion?.latitude,
                       longitude: suggestion?.longitude,
