@@ -64,6 +64,24 @@ export const StopsSection: React.FC<StopsSectionProps> = ({
     setDragOverIndex(null);
   };
 
+  const handleMoveUp = (index: number) => {
+    if (index <= 0 || isLoading) return;
+    const updated = [...stops];
+    const temp = updated[index];
+    updated[index] = updated[index - 1];
+    updated[index - 1] = temp;
+    onReorderStops?.(updated);
+  };
+
+  const handleMoveDown = (index: number) => {
+    if (index >= stops.length - 1 || isLoading) return;
+    const updated = [...stops];
+    const temp = updated[index];
+    updated[index] = updated[index + 1];
+    updated[index + 1] = temp;
+    onReorderStops?.(updated);
+  };
+
   return (
     <div className="stops-chain-container">
       {stops.length > 0 && (
@@ -152,6 +170,36 @@ export const StopsSection: React.FC<StopsSectionProps> = ({
                     />
                     <span className="stop-stay-unit">хв</span>
                   </div>
+
+                  {/* Reorder Stop Buttons (Mobile & Keyboard accessibility) */}
+                  {stops.length >= 2 && (
+                    <div className="stop-reorder-group">
+                      <button
+                        type="button"
+                        className="stop-reorder-btn"
+                        title={`Перемістити зупинку ${index + 1} вище`}
+                        aria-label={`Перемістити зупинку ${index + 1} вище`}
+                        onClick={() => handleMoveUp(index)}
+                        disabled={isLoading || index === 0}
+                      >
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <polyline points="18 15 12 9 6 15" />
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        className="stop-reorder-btn"
+                        title={`Перемістити зупинку ${index + 1} нижче`}
+                        aria-label={`Перемістити зупинку ${index + 1} нижче`}
+                        onClick={() => handleMoveDown(index)}
+                        disabled={isLoading || index === stops.length - 1}
+                      >
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
 
                   {/* Remove Stop Button */}
                   <button

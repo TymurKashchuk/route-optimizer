@@ -104,6 +104,37 @@
   color: var(--muted);
 }
 
+.stop-reorder-group {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 1px;
+  flex-shrink: 0;
+}
+
+.stop-reorder-btn {
+  background: transparent;
+  border: none;
+  color: var(--faint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 4px;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: color 0.15s ease, background-color 0.15s ease;
+  line-height: 1;
+}
+
+.stop-reorder-btn:hover:not(:disabled) {
+  color: var(--ink);
+  background: var(--surface-muted);
+}
+
+.stop-reorder-btn:disabled {
+  opacity: 0.2;
+  cursor: not-allowed;
+}
+
 .stop-remove-btn {
   background: transparent;
   border: none;
