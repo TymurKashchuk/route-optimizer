@@ -19,7 +19,6 @@ namespace RouteWise.Api.Providers.Routing
             CancellationToken cancellationToken = default)
         {
             var count = locations.Count;
-            var speedKmH = GetSpeedKmH(travelMode);
 
             var travelTimesSeconds = new List<List<int>>();
             var travelTimesMinutes = new List<List<int>>();
@@ -43,6 +42,7 @@ namespace RouteWise.Api.Providers.Routing
                     {
                         var distance = CalculateHaversineDistanceKm(locations[i], locations[j]);
                         var roundedDistance = Math.Round(distance, 2);
+                        var speedKmH = GetSpeedKmH(travelMode, distance);
 
                         var seconds = roundedDistance <= 0.0
                             ? 0
@@ -96,15 +96,40 @@ namespace RouteWise.Api.Providers.Routing
             return Task.FromResult(geometry);
         }
 
-        private static double GetSpeedKmH(string? travelMode)
+        private static double GetSpeedKmH(string? travelMode, double distanceKm)
         {
             var normalizedMode = TravelMode.Normalize(travelMode);
             return normalizedMode switch
             {
                 TravelMode.Walking => 5.0,
                 TravelMode.Cycling => 15.0,
-                _ => 50.0
+                _ => GetDrivingSpeedKmH(distanceKm)
             };
+        }
+
+        private static double GetDrivingSpeedKmH(double distanceKm)
+        {
+            // Urban driving (< 8 km): traffic lights, intersections, pedestrian crossings, speed bumps (~25 km/h)
+            if (distanceKm <= 8.0)
+            {
+                return 25.0;
+            }
+
+            // Suburban / ring road / regional roads (8 - 30 km): speed gradually increases from 25 to 60 km/h
+            if (distanceKm <= 30.0)
+            {
+                var t = (distanceKm - 8.0) / (30.0 - 8.0);
+                return 25.0 + t * (60.0 - 25.0);
+            }
+
+            // Intercity / highway (> 30 km, e.g. M-06 Zhytomyr-Kyiv): speeds of 60 to 85 km/h
+            if (distanceKm <= 100.0)
+            {
+                var t = (distanceKm - 30.0) / (100.0 - 30.0);
+                return 60.0 + t * (85.0 - 60.0);
+            }
+
+            return 85.0;
         }
 
         private static double CalculateHaversineDistanceKm(LocationPoint origin, LocationPoint destination)

@@ -16,6 +16,48 @@ namespace RouteWise.Api.Optimizers
 
             while (orderedStops.Count < stops.Count)
             {
+                var remainingCount = stops.Count - visited.Count;
+
+                if (remainingCount == 1)
+                {
+                    for (int s = 0; s < stops.Count; s++)
+                    {
+                        if (!visited.Contains(s))
+                        {
+                            visited.Add(s);
+                            orderedStops.Add(stops[s]);
+                            orderedIndices.Add(s);
+                            break;
+                        }
+                    }
+                    break;
+                }
+
+                if (destinationMatrixIndex.HasValue && remainingCount == 2)
+                {
+                    var remaining = new List<int>(2);
+                    for (int s = 0; s < stops.Count; s++)
+                    {
+                        if (!visited.Contains(s)) remaining.Add(s);
+                    }
+
+                    int s1 = remaining[0], s2 = remaining[1];
+                    int idx1 = s1 + 1, idx2 = s2 + 1;
+                    int cost1Then2 = matrix.GetTravelTimeSeconds(currentMatrixIndex, idx1) +
+                                     matrix.GetTravelTimeSeconds(idx1, idx2) +
+                                     matrix.GetTravelTimeSeconds(idx2, destinationMatrixIndex.Value);
+                    int cost2Then1 = matrix.GetTravelTimeSeconds(currentMatrixIndex, idx2) +
+                                     matrix.GetTravelTimeSeconds(idx2, idx1) +
+                                     matrix.GetTravelTimeSeconds(idx1, destinationMatrixIndex.Value);
+
+                    int chosen = cost1Then2 <= cost2Then1 ? s1 : s2;
+                    visited.Add(chosen);
+                    orderedStops.Add(stops[chosen]);
+                    orderedIndices.Add(chosen);
+                    currentMatrixIndex = chosen + 1;
+                    continue;
+                }
+
                 int? bestStopIndex = null;
                 int bestTravelTime = int.MaxValue;
 

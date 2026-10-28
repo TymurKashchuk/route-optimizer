@@ -278,7 +278,7 @@ export const App: React.FC = () => {
     });
     setTravelMode('driving');
     setPlanningMode('depart-at');
-    setDepartureTime(`${getTodayDateString()}T09:00`);
+    setDepartureTime(`${getTodayDateString()}T${getCurrentRoundedTimeString()}`);
     setAlgorithm('two-opt');
     setSearchScope('all-ukraine');
     setToast(null);

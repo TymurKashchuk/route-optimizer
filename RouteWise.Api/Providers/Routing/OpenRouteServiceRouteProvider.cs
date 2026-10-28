@@ -92,7 +92,7 @@ namespace RouteWise.Api.Providers.Routing
                     throw new OpenRouteServiceException("OpenRouteService returned an empty or invalid matrix response.");
                 }
 
-                return MapToRouteMatrix(matrixResponse, locations.Count);
+                return MapToRouteMatrix(matrixResponse, locations.Count, travelMode);
             }
         }
 
@@ -187,7 +187,7 @@ namespace RouteWise.Api.Providers.Routing
             }
         }
 
-        private static RouteMatrix MapToRouteMatrix(OrsMatrixResponse response, int expectedCount)
+        private static RouteMatrix MapToRouteMatrix(OrsMatrixResponse response, int expectedCount, string travelMode)
         {
             if (response.Durations!.Count != expectedCount || response.Distances!.Count != expectedCount)
             {
@@ -197,6 +197,7 @@ namespace RouteWise.Api.Providers.Routing
             var travelTimesSeconds = new List<List<int>>();
             var travelTimesMinutes = new List<List<int>>();
             var distancesKm = new List<List<double>>();
+            var isDriving = string.Equals(TravelMode.Normalize(travelMode), TravelMode.Driving, StringComparison.OrdinalIgnoreCase);
 
             for (int i = 0; i < expectedCount; i++)
             {
@@ -222,10 +223,29 @@ namespace RouteWise.Api.Providers.Routing
                         throw new OpenRouteServiceException($"Route between location {i} and {j} is unreachable.");
                     }
 
-                    var seconds = (int)Math.Round(durationSeconds.Value);
+                    var rawSeconds = durationSeconds.Value;
+                    var distanceKm = Math.Round(distanceMeters.Value / 1000.0, 2);
+
+                    int seconds;
+                    if (i == j || rawSeconds <= 0.0)
+                    {
+                        seconds = 0;
+                    }
+                    else if (isDriving)
+                    {
+                        // OpenRouteService calculates free-flow driving duration without traffic lights,
+                        // pedestrian crosswalks or urban congestion. Apply urban impedance factor for city trips.
+                        var trafficFactor = GetUrbanTrafficFactor(distanceKm);
+                        seconds = (int)Math.Max(1, Math.Round(rawSeconds * trafficFactor));
+                    }
+                    else
+                    {
+                        seconds = (int)Math.Round(rawSeconds);
+                    }
+
                     timeSecondsRow.Add(seconds);
                     timeMinutesRow.Add((int)Math.Round(seconds / 60.0));
-                    distanceKmRow.Add(Math.Round(distanceMeters.Value / 1000.0, 2));
+                    distanceKmRow.Add(distanceKm);
                 }
 
                 travelTimesSeconds.Add(timeSecondsRow);
@@ -239,6 +259,26 @@ namespace RouteWise.Api.Providers.Routing
                 TravelTimesMinutes = travelTimesMinutes,
                 DistancesKm = distancesKm
             };
+        }
+
+        private static double GetUrbanTrafficFactor(double distanceKm)
+        {
+            // Urban driving (< 8 km, e.g. crossing Zhytomyr, Hydropark to Vitruka):
+            // Accounts for red traffic light waiting (30-60s per signal) and pedestrian crosswalks (+45%)
+            if (distanceKm <= 8.0)
+            {
+                return 1.45;
+            }
+
+            // Suburban / ring road (8 to 25 km): smooth decline to highway conditions
+            if (distanceKm <= 25.0)
+            {
+                var t = (distanceKm - 8.0) / (25.0 - 8.0);
+                return 1.45 - t * (1.45 - 1.0);
+            }
+
+            // Highway / intercity (> 25 km, e.g. M-06): free-flow ORS speeds are accurate
+            return 1.0;
         }
     }
 }

@@ -113,7 +113,11 @@ namespace RouteWise.Api.Services
 
             if (_cache != null)
             {
-                _cache.Set(cacheKey, resolved, GeocodingCacheDuration);
+                _cache.Set(cacheKey, resolved, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = GeocodingCacheDuration,
+                    Size = 1
+                });
             }
 
             return resolved;

@@ -94,26 +94,26 @@ namespace RouteWise.Tests.Providers
 
             var (provider, _) = CreateProvider(validJson);
 
-            var matrix = await provider.BuildMatrixAsync(_demoLocations);
+            // Walking mode maps raw free-flow response without vehicle traffic factors
+            var walkingMatrix = await provider.BuildMatrixAsync(_demoLocations, TravelMode.Walking);
 
-            Assert.NotNull(matrix);
-            Assert.Equal(3, matrix.TravelTimesMinutes.Count);
-            Assert.Equal(3, matrix.DistancesKm.Count);
+            Assert.NotNull(walkingMatrix);
+            Assert.Equal(3, walkingMatrix.TravelTimesMinutes.Count);
+            Assert.Equal(3, walkingMatrix.DistancesKm.Count);
 
-            Assert.Equal(0, matrix.TravelTimesMinutes[0][0]);
-            Assert.Equal(12, matrix.TravelTimesMinutes[0][1]);
-            Assert.Equal(18, matrix.TravelTimesMinutes[0][2]);
+            Assert.Equal(0, walkingMatrix.TravelTimesMinutes[0][0]);
+            Assert.Equal(12, walkingMatrix.TravelTimesMinutes[0][1]);
+            Assert.Equal(18, walkingMatrix.TravelTimesMinutes[0][2]);
 
-            Assert.Equal(0, matrix.TravelTimesSeconds[0][0]);
-            Assert.Equal(720, matrix.TravelTimesSeconds[0][1]);
-            Assert.Equal(1080, matrix.TravelTimesSeconds[0][2]);
+            Assert.Equal(0, walkingMatrix.TravelTimesSeconds[0][0]);
+            Assert.Equal(720, walkingMatrix.TravelTimesSeconds[0][1]);
+            Assert.Equal(1080, walkingMatrix.TravelTimesSeconds[0][2]);
 
-            Assert.Equal(720, matrix.GetTravelTimeSeconds(0, 1));
-            Assert.Equal(12, matrix.GetTravelTimeMinutes(0, 1));
-
-            Assert.Equal(0.0, matrix.DistancesKm[0][0]);
-            Assert.Equal(5.2, matrix.DistancesKm[0][1]);
-            Assert.Equal(8.4, matrix.DistancesKm[0][2]);
+            // Driving mode applies urban traffic impedance factor for city routes (< 8 km: 1.45x)
+            var drivingMatrix = await provider.BuildMatrixAsync(_demoLocations, TravelMode.Driving);
+            Assert.Equal(1044, drivingMatrix.TravelTimesSeconds[0][1]); // 720 * 1.45 = 1044 s
+            Assert.Equal(17, drivingMatrix.TravelTimesMinutes[0][1]);    // 1044 / 60 = 17 min
+            Assert.Equal(5.2, drivingMatrix.DistancesKm[0][1]);
         }
 
         [Fact]

@@ -90,5 +90,32 @@ namespace RouteWise.Tests.Providers
             Assert.Equal(_pointB.Latitude, geometry.Coordinates[1].Latitude);
             Assert.Equal(_pointC.Latitude, geometry.Coordinates[2].Latitude);
         }
+
+        [Fact]
+        public async Task BuildMatrixAsync_DrivingSpeedScalesWithDistance_HigherSpeedOnHighways()
+        {
+            var provider = new StaticRouteProvider();
+            var urbanLocations = new List<LocationPoint> { _pointA, _pointB }; // ~1.65 km
+            var highwayLocations = new List<LocationPoint>
+            {
+                new() { Latitude = 50.25465, Longitude = 28.65867 }, // Zhytomyr
+                new() { Latitude = 50.45010, Longitude = 30.52340 }  // Kyiv (~135 km)
+            };
+
+            var urbanMatrix = await provider.BuildMatrixAsync(urbanLocations, TravelMode.Driving);
+            var highwayMatrix = await provider.BuildMatrixAsync(highwayLocations, TravelMode.Driving);
+
+            var urbanDistance = urbanMatrix.DistancesKm[0][1];
+            var urbanMinutes = urbanMatrix.TravelTimesMinutes[0][1];
+            var urbanSpeedKmH = (urbanDistance / urbanMinutes) * 60.0;
+
+            var highwayDistance = highwayMatrix.DistancesKm[0][1];
+            var highwayMinutes = highwayMatrix.TravelTimesMinutes[0][1];
+            var highwaySpeedKmH = (highwayDistance / highwayMinutes) * 60.0;
+
+            Assert.True(highwayDistance > 100.0);
+            Assert.True(highwaySpeedKmH > urbanSpeedKmH);
+            Assert.InRange(highwaySpeedKmH, 75.0, 95.0);
+        }
     }
 }

@@ -12,7 +12,7 @@ RouteWise використовує евристичні алгоритми дл�
 
 ```bash
 # Клонувати репозиторій
-git clone [https://github.com/TymurKashchuk/route-optimizer.git](https://github.com/TymurKashchuk/route-optimizer.git)
+git clone https://github.com/TymurKashchuk/route-optimizer.git
 cd route-optimizer
 
 # Створити файл змінних середовища
@@ -94,7 +94,7 @@ docker compose up --build -d
 | Бекенд | .NET 8, ASP.NET Core Web API, FluentValidation, Microsoft.Extensions.Caching, Swagger / OpenAPI |
 | Фронтенд | React 19, TypeScript, Vite, Leaflet, react-leaflet, Oxlint |
 | Зовнішні сервіси | OpenRouteService API: Pelias Geocoding, Directions v2, Matrix v2 |
-| Тести | xUnit, Moq, Vitest, happy-dom |
+| Тести | xUnit, Vitest, happy-dom |
 | Інфраструктура | Docker, Docker Compose, Nginx, GitHub Actions |
 
 ## Конфігурація
