@@ -50,7 +50,11 @@ namespace RouteWise.Api.Services
                 Confidence = r.Confidence
             }).ToList();
 
-            _cache.Set(cacheKey, dtos, CacheDuration);
+            _cache.Set(cacheKey, dtos, new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = CacheDuration,
+                Size = 1
+            });
 
             return dtos;
         }
@@ -84,7 +88,11 @@ namespace RouteWise.Api.Services
                 Confidence = result.Confidence
             };
 
-            _cache.Set(cacheKey, dto, CacheDuration);
+            _cache.Set(cacheKey, dto, new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = CacheDuration,
+                Size = 1
+            });
             return dto;
         }
     }

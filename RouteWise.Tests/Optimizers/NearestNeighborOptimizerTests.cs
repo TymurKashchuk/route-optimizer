@@ -1,4 +1,4 @@
-﻿using RouteWise.Api.Models;
+using RouteWise.Api.Models;
 using RouteWise.Api.Optimizers;
 using System;
 using System.Collections.Generic;
@@ -46,6 +46,37 @@ namespace RouteWise.Tests.Optimizers
             Assert.Equal(1, result.OrderedStopIndices[0]);
             Assert.Equal(2, result.OrderedStopIndices[1]);
             Assert.Equal(0, result.OrderedStopIndices[2]);
+        }
+
+        [Fact]
+        public void Optimize_WithDestinationMatrixIndex_TakesDestinationIntoAccountForLastStops()
+        {
+            var optimizer = new NearestNeighborOptimizer();
+
+            var stops = new List<RouteStop>
+            {
+                new() { Id = "1", Label = "Stop A", Address = "Address A" },
+                new() { Id = "2", Label = "Stop B", Address = "Address B" }
+            };
+
+            // Indices: 0 = Start, 1 = Stop A, 2 = Stop B, 3 = Destination
+            var matrix = new RouteMatrix
+            {
+                TravelTimesSeconds = new List<List<int>>
+                {
+                    new() { 0, 100, 100, 200 },    // 0: Start
+                    new() { 100, 0, 50, 500 },     // 1: Stop A (far from Dest: 500s)
+                    new() { 100, 50, 0, 50 },      // 2: Stop B (close to Dest: 50s)
+                    new() { 200, 500, 50, 0 }      // 3: Destination
+                }
+            };
+
+            // Start -> A -> B -> Dest = 100 + 50 + 50 = 200s
+            // Start -> B -> A -> Dest = 100 + 50 + 500 = 650s
+            var result = optimizer.Optimize(stops, matrix, destinationMatrixIndex: 3);
+
+            Assert.Equal("Stop A", result.OrderedStops[0].Label);
+            Assert.Equal("Stop B", result.OrderedStops[1].Label);
         }
     }
 }

@@ -10,6 +10,7 @@ using Microsoft.Extensions.Options;
 using System.Reflection;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.HttpOverrides;
 using RouteWise.Api.Middleware;
 
 namespace RouteWise.Api
@@ -88,7 +89,17 @@ namespace RouteWise.Api
             builder.Services.AddScoped<IRouteOptimizer>(sp => sp.GetRequiredService<NearestNeighborOptimizer>());
             builder.Services.AddScoped<IRouteOptimizer>(sp => new TwoOptOptimizer(sp.GetRequiredService<NearestNeighborOptimizer>()));
 
-            builder.Services.AddMemoryCache();
+            builder.Services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+                options.KnownNetworks.Clear();
+                options.KnownProxies.Clear();
+            });
+
+            builder.Services.AddMemoryCache(options =>
+            {
+                options.SizeLimit = 1000;
+            });
 
             builder.Services.AddScoped<GeocodingSearchService>();
             builder.Services.AddScoped<StaticGeocodingProvider>();
@@ -135,6 +146,7 @@ namespace RouteWise.Api
 
             var app = builder.Build();
 
+            app.UseForwardedHeaders();
             app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
             // Configure the HTTP request pipeline.
@@ -147,7 +159,8 @@ namespace RouteWise.Api
             app.UseCors();
             app.UseRateLimiter();
 
-            if (!app.Environment.IsDevelopment())
+            var isRunningInContainer = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
+            if (!app.Environment.IsDevelopment() && !isRunningInContainer && builder.Configuration.GetValue<bool>("EnableHttpsRedirection", false))
             {
                 app.UseHttpsRedirection();
             }
