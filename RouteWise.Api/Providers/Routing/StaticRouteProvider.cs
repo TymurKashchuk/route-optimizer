@@ -103,7 +103,9 @@ namespace RouteWise.Api.Providers.Routing
             {
                 TravelMode.Walking => 5.0,
                 TravelMode.Cycling => 15.0,
-                _ => 50.0
+                // Realistic urban door-to-door driving speed (accounting for traffic lights,
+                // intersections, pedestrian crossings and straight-line detour factor)
+                _ => 25.0
             };
         }
 

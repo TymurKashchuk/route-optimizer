@@ -95,14 +95,14 @@
   }
 }
 
-/* Floating Hero Card in Top Left of Map (Mockup: compact ~300px, max-height ~170px) */
+/* Floating Hero Card in Top Left of Map (Mockup: compact ~300-340px, max-height ~170px) */
 .map-hero-overlay-slot {
   position: absolute;
   top: 1rem;
   left: 1rem;
   z-index: 500;
-  width: 300px;
-  max-width: 300px;
+  width: auto;
+  max-width: min(340px, calc(100% - 2rem));
   pointer-events: none;
 }
 
@@ -114,17 +114,19 @@
   background: var(--bg-card);
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
-  padding: 0.95rem 1.15rem;
+  padding: 0.85rem 1.05rem;
   box-shadow: var(--shadow-overlay);
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.25rem;
   width: 100%;
-  max-width: 300px;
+  max-width: 340px;
+  min-width: 280px;
   min-height: min-content;
   box-sizing: border-box;
   animation: hero-fade-in 0.25s ease-out;
   transition: border-color 0.2s ease;
+  overflow: hidden;
 }
 
 .hero-metrics-card.is-stale {
@@ -158,7 +160,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: 0.4rem 0.6rem;
+  flex-wrap: wrap;
+}
+
+.hero-caption-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
 }
 
 .hero-caption {

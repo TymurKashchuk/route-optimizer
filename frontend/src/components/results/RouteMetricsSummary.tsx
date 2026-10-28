@@ -35,12 +35,14 @@ export const RouteMetricsSummary: React.FC<RouteMetricsSummaryProps> = ({
     <div className={`hero-metrics-card ${isStale ? 'is-stale' : ''}`}>
       {/* Mini top caption */}
       <div className="hero-caption-row">
-        <span className="hero-caption">ЗАГАЛЬНИЙ ЧАС</span>
-        {isStale && (
-          <span className="hero-stale-badge" title="Дані форми було змінено після побудови">
-            Потрібно оновити
-          </span>
-        )}
+        <div className="hero-caption-left">
+          <span className="hero-caption">ЗАГАЛЬНИЙ ЧАС</span>
+          {isStale && (
+            <span className="hero-stale-badge" title="Дані форми було змінено після побудови">
+              Потрібно оновити
+            </span>
+          )}
+        </div>
         {planningMode === 'arrive-by' && recommendedDepartureTime && (
           <span
             className={`hero-recommended-dep ${isDepartureInPast ? 'is-late' : ''}`}
