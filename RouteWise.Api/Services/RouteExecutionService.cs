@@ -9,12 +9,30 @@ namespace RouteWise.Api.Services
     public class RouteExecutionService
     {
         private readonly RouteMatrixService _routeMatrixService;
-        private readonly IEnumerable<IRouteOptimizer> _optimizers;
+        private readonly IRouteOptimizerRegistry _optimizerRegistry;
         private readonly MetricsService _metricsService;
         private readonly TimelineService _timelineService;
         private readonly RouteComparisonService _routeComparisonService;
         private readonly RouteExplanationService _routeExplanationService;
         private readonly RoutePreviewService _routePreviewService;
+
+        public RouteExecutionService(
+            RouteMatrixService routeMatrixService,
+            IRouteOptimizerRegistry optimizerRegistry,
+            MetricsService metricsService,
+            TimelineService timelineService,
+            RouteComparisonService routeComparisonService,
+            RouteExplanationService routeExplanationService,
+            RoutePreviewService routePreviewService)
+        {
+            _routeMatrixService = routeMatrixService;
+            _optimizerRegistry = optimizerRegistry;
+            _metricsService = metricsService;
+            _timelineService = timelineService;
+            _routeComparisonService = routeComparisonService;
+            _routeExplanationService = routeExplanationService;
+            _routePreviewService = routePreviewService;
+        }
 
         public RouteExecutionService(
             RouteMatrixService routeMatrixService,
@@ -24,14 +42,15 @@ namespace RouteWise.Api.Services
             RouteComparisonService routeComparisonService,
             RouteExplanationService routeExplanationService,
             RoutePreviewService routePreviewService)
+            : this(
+                routeMatrixService,
+                new RouteOptimizerRegistry(optimizers),
+                metricsService,
+                timelineService,
+                routeComparisonService,
+                routeExplanationService,
+                routePreviewService)
         {
-            _routeMatrixService = routeMatrixService;
-            _optimizers = optimizers;
-            _metricsService = metricsService;
-            _timelineService = timelineService;
-            _routeComparisonService = routeComparisonService;
-            _routeExplanationService = routeExplanationService;
-            _routePreviewService = routePreviewService;
         }
 
         public async Task<OptimizeRouteResponse> ExecuteAsync(
@@ -51,15 +70,15 @@ namespace RouteWise.Api.Services
 
             var matrixResult = await _routeMatrixService.BuildMatrixAsync(start, stops, destination, travelMode, cancellationToken);
 
-            var originalOptimizer = _optimizers.First(o =>
-                o.AlgorithmName.Equals("original", StringComparison.OrdinalIgnoreCase));
+            var originalOptimizer = _optimizerRegistry.GetOptimizer("original")
+                ?? throw new InvalidOperationException("Default 'original' optimizer is not registered in the system.");
 
-            var selectedOptimizer = _optimizers.FirstOrDefault(o =>
-                o.AlgorithmName.Equals(algorithm, StringComparison.OrdinalIgnoreCase));
+            var selectedOptimizer = _optimizerRegistry.GetOptimizer(algorithm);
 
             if (selectedOptimizer is null)
             {
-                throw new UserInputException($"Unknown algorithm: {algorithm}");
+                var available = string.Join(", ", _optimizerRegistry.GetAvailableAlgorithmNames());
+                throw new UserInputException($"Unknown algorithm: {algorithm}. Available algorithms: {available}");
             }
 
             int? destinationMatrixIndex = destination != null ? stops.Count + 1 : null;

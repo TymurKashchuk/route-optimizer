@@ -86,6 +86,7 @@ namespace RouteWise.Api
             builder.Services.AddScoped<NearestNeighborOptimizer>();
             builder.Services.AddScoped<IRouteOptimizer>(sp => sp.GetRequiredService<NearestNeighborOptimizer>());
             builder.Services.AddScoped<IRouteOptimizer>(sp => new TwoOptOptimizer(sp.GetRequiredService<NearestNeighborOptimizer>()));
+            builder.Services.AddScoped<IRouteOptimizerRegistry, RouteOptimizerRegistry>();
 
             builder.Services.Configure<ForwardedHeadersOptions>(options =>
                 ForwardedHeadersSetup.Configure(options, builder.Configuration));
