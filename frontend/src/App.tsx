@@ -7,7 +7,7 @@ import { Toast, type ToastType } from './components/Toast';
 import type { AddressInput, AlgorithmType, OptimizeRouteResponse, PlanningMode, RouteStop, SearchScope, TravelMode } from './types/route';
 import { optimizeRoute } from './api/routeClient';
 import { getInitialDraft, useTripDraft } from './hooks/useTripDraft';
-import { getCurrentRoundedTimeString, getTodayDateString } from './utils/dateTime';
+import { getCurrentRoundedDateTimeString, getTodayDateString } from './utils/dateTime';
 import { deriveStopLabel, isDefaultOrDerivedLabel } from './utils/address';
 
 function generateId(): string {
@@ -278,7 +278,7 @@ export const App: React.FC = () => {
     });
     setTravelMode('driving');
     setPlanningMode('depart-at');
-    setDepartureTime(`${getTodayDateString()}T${getCurrentRoundedTimeString()}`);
+    setDepartureTime(getCurrentRoundedDateTimeString());
     setAlgorithm('two-opt');
     setSearchScope('all-ukraine');
     setToast(null);
@@ -291,7 +291,7 @@ export const App: React.FC = () => {
       setStops(DEFAULT_STOPS);
       setPlanningMode('depart-at');
       setTravelMode('driving');
-      setDepartureTime(`${getTodayDateString()}T${getCurrentRoundedTimeString()}`);
+      setDepartureTime(getCurrentRoundedDateTimeString());
       setArrivalBy(`${getTodayDateString()}T14:00`);
       setAlgorithm('two-opt');
       setSearchScope('all-ukraine');

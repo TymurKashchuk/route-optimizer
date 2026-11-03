@@ -6,6 +6,7 @@ import {
   getTodayDateString,
   getTomorrowDateString,
   isDateTimeInPast,
+  getCurrentRoundedDateTimeString,
 } from '../dateTime';
 
 describe('dateTime utils', () => {
@@ -69,4 +70,18 @@ describe('dateTime utils', () => {
       expect(isDateTimeInPast('2099-01-01', '12:00')).toBe(false);
     });
   });
-});
+
+  describe('getCurrentRoundedDateTimeString', () => {
+    it('rounds up to the next 5 minutes on the same day', () => {
+      expect(getCurrentRoundedDateTimeString(new Date(2026, 9, 6, 14, 2))).toBe('2026-10-06T14:05');
+      expect(getCurrentRoundedDateTimeString(new Date(2026, 9, 6, 14, 5))).toBe('2026-10-06T14:05');
+    });
+
+    it('rolls over to the next day after 23:55 (date and time together)', () => {
+      expect(getCurrentRoundedDateTimeString(new Date(2026, 9, 6, 23, 58))).toBe('2026-10-07T00:00');
+    });
+
+    it('rolls over month and year boundaries', () => {
+      expect(getCurrentRoundedDateTimeString(new Date(2026, 11, 31, 23, 56))).toBe('2027-01-01T00:00');
+    });
+  });});

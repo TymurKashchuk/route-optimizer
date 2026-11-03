@@ -6,7 +6,7 @@ import { StopsSection } from './StopsSection';
 import { CustomDatePicker } from './CustomDatePicker';
 import { CustomTimePicker } from './CustomTimePicker';
 import { useGeolocation } from '../hooks/useGeolocation';
-import { adjustTimeString, getCurrentRoundedTimeString, getTodayDateString, isDateTimeInPast } from '../utils/dateTime';
+import { adjustTimeString, getCurrentRoundedDateTimeString, getCurrentRoundedTimeString, getTodayDateString, isDateTimeInPast } from '../utils/dateTime';
 import { resolveUpdatedLabel } from '../utils/address';
 
 const POPULAR_CITIES = [
@@ -125,6 +125,16 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
       onArrivalByChange(combined);
     } else {
       onDepartureTimeChange(combined);
+    }
+  };
+
+  // "Now" must set date AND time together: near midnight the rounded time belongs to tomorrow.
+  const handleSetNow = () => {
+    const nowValue = getCurrentRoundedDateTimeString();
+    if (isArriveBy) {
+      onArrivalByChange(nowValue);
+    } else {
+      onDepartureTimeChange(nowValue);
     }
   };
 
@@ -420,7 +430,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
           <button
             type="button"
             className="preset-time-chip"
-            onClick={() => handleTimeChange(getCurrentRoundedTimeString())}
+            onClick={handleSetNow}
             disabled={isLoading}
           >
             Зараз

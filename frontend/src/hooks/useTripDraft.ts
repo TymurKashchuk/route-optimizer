@@ -8,11 +8,11 @@ import type {
   TravelMode,
 } from '../types/route';
 import { loadTripDraft, saveTripDraft, clearTripDraft } from '../utils/draftStorage';
-import { getCurrentRoundedTimeString, getTodayDateString } from '../utils/dateTime';
+import { getCurrentRoundedDateTimeString, getTodayDateString } from '../utils/dateTime';
 
 export function sanitizeDraftDate(dateTimeStr?: string, defaultHour?: string): string {
   const todayStr = getTodayDateString();
-  const fallbackHour = defaultHour || getCurrentRoundedTimeString();
+  const fallbackHour = defaultHour || getCurrentRoundedDateTimeString().split('T')[1];
   if (!dateTimeStr) return `${todayStr}T${fallbackHour}`;
   const [date, time] = dateTimeStr.split('T');
   const safeTime = time || fallbackHour;
