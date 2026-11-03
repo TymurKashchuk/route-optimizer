@@ -46,10 +46,10 @@ namespace RouteWise.Tests.Middleware
         }
 
         [Fact]
-        public async Task InvokeAsync_WhenInvalidOperationException_Returns400BadRequest()
+        public async Task InvokeAsync_WhenUserInputException_Returns400BadRequest()
         {
             var middleware = new GlobalExceptionHandlingMiddleware(
-                _ => throw new InvalidOperationException("Invalid operation performed"),
+                _ => throw new UserInputException("Invalid operation performed"),
                 NullLogger<GlobalExceptionHandlingMiddleware>.Instance);
 
             var context = new DefaultHttpContext();
@@ -127,5 +127,23 @@ namespace RouteWise.Tests.Middleware
             await middleware.InvokeAsync(context);
 
             Assert.Equal(StatusCodes.Status500InternalServerError, context.Response.StatusCode);
+        }
+
+        [Fact]
+        public async Task InvokeAsync_WhenInternalInvalidOperationException_Returns500AndHidesDetails()
+        {
+            var middleware = new GlobalExceptionHandlingMiddleware(
+                _ => throw new InvalidOperationException("Sequence contains no elements"),
+                NullLogger<GlobalExceptionHandlingMiddleware>.Instance);
+
+            var context = new DefaultHttpContext();
+            context.Response.Body = new MemoryStream();
+
+            await middleware.InvokeAsync(context);
+
+            Assert.Equal(StatusCodes.Status500InternalServerError, context.Response.StatusCode);
+            context.Response.Body.Seek(0, SeekOrigin.Begin);
+            var body = await new StreamReader(context.Response.Body).ReadToEndAsync();
+            Assert.DoesNotContain("Sequence contains", body);
         }    }
 }

@@ -292,7 +292,7 @@ namespace RouteWise.Tests.Providers
 
 
         [Fact]
-        public async Task GeocodeAsync_WhenNotFound_ThrowsInvalidOperationException()
+        public async Task GeocodeAsync_WhenNotFound_ThrowsUserInputException()
         {
             var jsonResponse = """
             {
@@ -303,7 +303,7 @@ namespace RouteWise.Tests.Providers
 
             var (provider, _) = CreateProvider(jsonResponse);
 
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            var exception = await Assert.ThrowsAsync<UserInputException>(() =>
                 provider.GeocodeAsync("NonExistentAddress123"));
 
             Assert.Contains("Address not found", exception.Message);

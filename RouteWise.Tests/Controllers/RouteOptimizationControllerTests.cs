@@ -1,3 +1,4 @@
+using RouteWise.Api.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using RouteWise.Api.Contracts.Requests;
 using RouteWise.Api.Contracts.Responses;
@@ -65,7 +66,7 @@ namespace RouteWise.Tests.Controllers
                 Destination = new AddressInput { Label = "End", Address = "Zhytomyr City Hospital" }
             };
 
-            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            await Assert.ThrowsAsync<UserInputException>(() =>
                 controller.Optimize(request, CancellationToken.None));
         }
     }

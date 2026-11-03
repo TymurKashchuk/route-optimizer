@@ -1,3 +1,4 @@
+using RouteWise.Api.Exceptions;
 using Microsoft.Extensions.Options;
 using RouteWise.Api.Contracts.Requests;
 using RouteWise.Api.Models;
@@ -87,7 +88,7 @@ namespace RouteWise.Tests.Services
         }
 
         [Fact]
-        public async Task Execute_WithUnknownAlgorithm_ThrowsInvalidOperationException()
+        public async Task Execute_WithUnknownAlgorithm_ThrowsUserInputException()
         {
             var staticRouteProvider = new StaticRouteProvider();
             var routeMatrixService = new RouteMatrixService(
@@ -137,7 +138,7 @@ namespace RouteWise.Tests.Services
                 Destination = null!
             };
 
-            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            await Assert.ThrowsAsync<UserInputException>(() =>
                 service.ExecuteAsync(request));
         }
 

@@ -1,3 +1,4 @@
+using RouteWise.Api.Exceptions;
 using RouteWise.Api.Models;
 
 namespace RouteWise.Api.Providers.Geocoding
@@ -213,7 +214,7 @@ namespace RouteWise.Api.Providers.Geocoding
 
             var availableAddresses = string.Join(",", _knownAddresses.Keys);
 
-            throw new InvalidOperationException($"Unknown address: {address}. Available demo addresses: {availableAddresses}");
+            throw new UserInputException($"Unknown address: {address}. Available demo addresses: {availableAddresses}");
         }
 
         public Task<IReadOnlyList<AddressSearchResult>> SearchAsync(

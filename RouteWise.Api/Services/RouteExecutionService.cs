@@ -1,3 +1,4 @@
+using RouteWise.Api.Exceptions;
 using RouteWise.Api.Contracts.Requests;
 using RouteWise.Api.Contracts.Responses;
 using RouteWise.Api.Models;
@@ -58,7 +59,7 @@ namespace RouteWise.Api.Services
 
             if (selectedOptimizer is null)
             {
-                throw new InvalidOperationException($"Unknown algorithm: {algorithm}");
+                throw new UserInputException($"Unknown algorithm: {algorithm}");
             }
 
             int? destinationMatrixIndex = destination != null ? stops.Count + 1 : null;

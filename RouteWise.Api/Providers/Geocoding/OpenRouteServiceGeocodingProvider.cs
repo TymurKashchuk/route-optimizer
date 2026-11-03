@@ -87,7 +87,7 @@ namespace RouteWise.Api.Providers.Geocoding
             var first = results.FirstOrDefault();
             if (first == null)
             {
-                throw new InvalidOperationException($"Address not found: {address}");
+                throw new UserInputException($"Address not found: {address}");
             }
 
             return first.Coordinates;

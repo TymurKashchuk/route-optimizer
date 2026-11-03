@@ -29,7 +29,7 @@ namespace RouteWise.Api.Exceptions
             };
         }
 
-        public static BadRequestObjectResult ToActionResult(InvalidOperationException ex)
+        public static BadRequestObjectResult ToActionResult(UserInputException ex)
         {
             return new BadRequestObjectResult(new { error = ex.Message });
         }

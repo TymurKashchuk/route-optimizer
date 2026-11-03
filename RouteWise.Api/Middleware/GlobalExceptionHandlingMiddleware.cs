@@ -42,7 +42,7 @@ namespace RouteWise.Api.Middleware
             var (statusCode, message) = exception switch
             {
                 OpenRouteServiceException orsEx => (ApiExceptionMapper.ToStatusCode(orsEx), orsEx.Message),
-                InvalidOperationException invEx => (StatusCodes.Status400BadRequest, invEx.Message),
+                UserInputException invEx => (StatusCodes.Status400BadRequest, invEx.Message),
                 _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred. Please try again later.")
             };
 

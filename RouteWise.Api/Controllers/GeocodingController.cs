@@ -42,7 +42,7 @@ namespace RouteWise.Api.Controllers
             {
                 return ApiExceptionMapper.ToActionResult(ex);
             }
-            catch (InvalidOperationException ex)
+            catch (UserInputException ex)
             {
                 return ApiExceptionMapper.ToActionResult(ex);
             }
@@ -78,7 +78,7 @@ namespace RouteWise.Api.Controllers
             {
                 return ApiExceptionMapper.ToActionResult(ex);
             }
-            catch (InvalidOperationException ex)
+            catch (UserInputException ex)
             {
                 return ApiExceptionMapper.ToActionResult(ex);
             }
