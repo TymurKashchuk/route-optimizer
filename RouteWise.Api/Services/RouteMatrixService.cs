@@ -11,6 +11,7 @@ namespace RouteWise.Api.Services
         private readonly IRouteProvider _routeProvider;
         private readonly IMemoryCache? _cache;
         private static readonly TimeSpan GeocodingCacheDuration = TimeSpan.FromHours(24);
+        private static readonly SemaphoreSlim _geocodingThrottle = new(3, 3);
 
         public RouteMatrixService(
             IGeocodingProvider geocodingProvider,
@@ -109,18 +110,31 @@ namespace RouteWise.Api.Services
                 return cachedPoint;
             }
 
-            var resolved = await _geocodingProvider.GeocodeAsync(address, cancellationToken);
-
-            if (_cache != null)
+            await _geocodingThrottle.WaitAsync(cancellationToken);
+            try
             {
-                _cache.Set(cacheKey, resolved, new MemoryCacheEntryOptions
+                if (_cache != null && _cache.TryGetValue(cacheKey, out LocationPoint? cachedAfterWait) && cachedAfterWait != null)
                 {
-                    AbsoluteExpirationRelativeToNow = GeocodingCacheDuration,
-                    Size = 1
-                });
-            }
+                    return cachedAfterWait;
+                }
 
-            return resolved;
+                var resolved = await _geocodingProvider.GeocodeAsync(address, cancellationToken);
+
+                if (_cache != null)
+                {
+                    _cache.Set(cacheKey, resolved, new MemoryCacheEntryOptions
+                    {
+                        AbsoluteExpirationRelativeToNow = GeocodingCacheDuration,
+                        Size = 1
+                    });
+                }
+
+                return resolved;
+            }
+            finally
+            {
+                _geocodingThrottle.Release();
+            }
         }
     }
 }

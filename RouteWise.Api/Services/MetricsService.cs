@@ -37,6 +37,7 @@ namespace RouteWise.Api.Services
             return new RouteMetrics
             {
                 TotalTravelMinutes = totalTravelMinutes,
+                TotalTravelSeconds = totalTravelSeconds,
                 TotalDistanceKm = Math.Round(totalDistanceKm, 2),
                 TotalServiceMinutes = totalServiceMinutes
             };

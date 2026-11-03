@@ -46,10 +46,10 @@ namespace RouteWise.Tests.Middleware
         }
 
         [Fact]
-        public async Task InvokeAsync_WhenInvalidOperationException_Returns400BadRequest()
+        public async Task InvokeAsync_WhenUserInputException_Returns400BadRequest()
         {
             var middleware = new GlobalExceptionHandlingMiddleware(
-                _ => throw new InvalidOperationException("Invalid operation performed"),
+                _ => throw new UserInputException("Invalid operation performed"),
                 NullLogger<GlobalExceptionHandlingMiddleware>.Instance);
 
             var context = new DefaultHttpContext();
@@ -90,5 +90,60 @@ namespace RouteWise.Tests.Middleware
             Assert.NotNull(json);
             Assert.Equal("An unexpected error occurred. Please try again later.", json["error"]);
         }
-    }
+
+        [Fact]
+        public async Task InvokeAsync_WhenClientCancelsRequest_Returns499WithoutErrorBody()
+        {
+            using var cts = new CancellationTokenSource();
+            var middleware = new GlobalExceptionHandlingMiddleware(
+                _ =>
+                {
+                    cts.Cancel();
+                    throw new OperationCanceledException(cts.Token);
+                },
+                NullLogger<GlobalExceptionHandlingMiddleware>.Instance);
+
+            var context = new DefaultHttpContext();
+            context.RequestAborted = cts.Token;
+            context.Response.Body = new MemoryStream();
+
+            await middleware.InvokeAsync(context);
+
+            Assert.Equal(499, context.Response.StatusCode);
+            Assert.Equal(0, context.Response.Body.Length);
+        }
+
+        [Fact]
+        public async Task InvokeAsync_WhenCancellationNotFromClient_StillReturns500()
+        {
+            // e.g. an internal timeout: the client is still waiting, so it must get an error
+            var middleware = new GlobalExceptionHandlingMiddleware(
+                _ => throw new OperationCanceledException(),
+                NullLogger<GlobalExceptionHandlingMiddleware>.Instance);
+
+            var context = new DefaultHttpContext();
+            context.Response.Body = new MemoryStream();
+
+            await middleware.InvokeAsync(context);
+
+            Assert.Equal(StatusCodes.Status500InternalServerError, context.Response.StatusCode);
+        }
+
+        [Fact]
+        public async Task InvokeAsync_WhenInternalInvalidOperationException_Returns500AndHidesDetails()
+        {
+            var middleware = new GlobalExceptionHandlingMiddleware(
+                _ => throw new InvalidOperationException("Sequence contains no elements"),
+                NullLogger<GlobalExceptionHandlingMiddleware>.Instance);
+
+            var context = new DefaultHttpContext();
+            context.Response.Body = new MemoryStream();
+
+            await middleware.InvokeAsync(context);
+
+            Assert.Equal(StatusCodes.Status500InternalServerError, context.Response.StatusCode);
+            context.Response.Body.Seek(0, SeekOrigin.Begin);
+            var body = await new StreamReader(context.Response.Body).ReadToEndAsync();
+            Assert.DoesNotContain("Sequence contains", body);
+        }    }
 }

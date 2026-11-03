@@ -76,16 +76,27 @@ export function getServiceDuration(arrivalIso: string, departureIso: string): nu
 }
 
 /**
- * Returns current local time rounded up to the nearest 5-minute interval (HH:MM).
+ * Returns the current local moment rounded UP to the next 5 minutes,
+ * as a "YYYY-MM-DDTHH:mm" string. The date is taken from the rounded moment
+ * itself, so 23:58 correctly becomes "tomorrow 00:00" instead of "today 00:00" (the past).
  */
-export function getCurrentRoundedTimeString(): string {
-  const now = new Date();
-  const minutes = now.getMinutes();
-  const roundedMinutes = Math.ceil(minutes / 5) * 5;
-  now.setMinutes(roundedMinutes, 0, 0);
-  const h = String(now.getHours()).padStart(2, '0');
-  const m = String(now.getMinutes()).padStart(2, '0');
-  return `${h}:${m}`;
+export function getCurrentRoundedDateTimeString(now: Date = new Date()): string {
+  const rounded = new Date(now);
+  rounded.setMinutes(Math.ceil(rounded.getMinutes() / 5) * 5, 0, 0);
+  const y = rounded.getFullYear();
+  const mo = String(rounded.getMonth() + 1).padStart(2, '0');
+  const d = String(rounded.getDate()).padStart(2, '0');
+  const h = String(rounded.getHours()).padStart(2, '0');
+  const mi = String(rounded.getMinutes()).padStart(2, '0');
+  return `${y}-${mo}-${d}T${h}:${mi}`;
+}
+
+/**
+ * Returns only the time part (HH:MM) of {@link getCurrentRoundedDateTimeString}.
+ * Prefer the full date-time version whenever the date matters.
+ */
+export function getCurrentRoundedTimeString(now: Date = new Date()): string {
+  return getCurrentRoundedDateTimeString(now).split('T')[1];
 }
 
 /**

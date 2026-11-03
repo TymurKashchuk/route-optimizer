@@ -1,3 +1,4 @@
+using RouteWise.Api.Exceptions;
 using Microsoft.Extensions.Options;
 using RouteWise.Api.Contracts.Requests;
 using RouteWise.Api.Models;
@@ -28,7 +29,7 @@ namespace RouteWise.Tests.Services
 
             var service = new RouteExecutionService(
                 routeMatrixService,
-                optimizers,
+                new RouteOptimizerRegistry(optimizers),
                 new MetricsService(),
                 new TimelineService(),
                 new RouteComparisonService(),
@@ -87,7 +88,7 @@ namespace RouteWise.Tests.Services
         }
 
         [Fact]
-        public async Task Execute_WithUnknownAlgorithm_ThrowsInvalidOperationException()
+        public async Task Execute_WithUnknownAlgorithm_ThrowsUserInputException()
         {
             var staticRouteProvider = new StaticRouteProvider();
             var routeMatrixService = new RouteMatrixService(
@@ -102,7 +103,7 @@ namespace RouteWise.Tests.Services
 
             var service = new RouteExecutionService(
                 routeMatrixService,
-                optimizers,
+                new RouteOptimizerRegistry(optimizers),
                 new MetricsService(),
                 new TimelineService(),
                 new RouteComparisonService(),
@@ -137,7 +138,7 @@ namespace RouteWise.Tests.Services
                 Destination = null!
             };
 
-            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            await Assert.ThrowsAsync<UserInputException>(() =>
                 service.ExecuteAsync(request));
         }
 
@@ -211,7 +212,7 @@ namespace RouteWise.Tests.Services
 
             var service = new RouteExecutionService(
                 routeMatrixService,
-                optimizers,
+                new RouteOptimizerRegistry(optimizers),
                 new MetricsService(),
                 new TimelineService(),
                 new RouteComparisonService(),
@@ -283,7 +284,7 @@ namespace RouteWise.Tests.Services
 
             var service = new RouteExecutionService(
                 routeMatrixService,
-                optimizers,
+                new RouteOptimizerRegistry(optimizers),
                 new MetricsService(),
                 new TimelineService(),
                 new RouteComparisonService(),
@@ -378,7 +379,7 @@ namespace RouteWise.Tests.Services
 
             var service = new RouteExecutionService(
                 routeMatrixService,
-                optimizers,
+                new RouteOptimizerRegistry(optimizers),
                 new MetricsService(),
                 new TimelineService(),
                 new RouteComparisonService(),
@@ -426,9 +427,11 @@ namespace RouteWise.Tests.Services
             Assert.NotNull(result.RecommendedDepartureTime);
 
             var totalTripDuration = result.Optimized.TotalTravelMinutes + result.Optimized.TotalServiceMinutes;
-            var expectedDeparture = arrivalDeadline.AddMinutes(-totalTripDuration);
+            var roughDeparture = arrivalDeadline.AddMinutes(-totalTripDuration);
 
-            Assert.Equal(expectedDeparture, result.RecommendedDepartureTime.Value);
+            // Departure is computed from exact seconds, so it may differ from the rounded-minute value by < 1 min
+            Assert.InRange((result.RecommendedDepartureTime.Value - roughDeparture).TotalSeconds, -60, 60);
+            var expectedDeparture = result.RecommendedDepartureTime.Value;
 
             // Timeline starts at recommended departure time
             Assert.Equal(expectedDeparture, result.Timeline.First().DepartureTime);
@@ -458,7 +461,7 @@ namespace RouteWise.Tests.Services
 
             var service = new RouteExecutionService(
                 routeMatrixService,
-                optimizers,
+                new RouteOptimizerRegistry(optimizers),
                 new MetricsService(),
                 new TimelineService(),
                 new RouteComparisonService(),
@@ -503,7 +506,7 @@ namespace RouteWise.Tests.Services
             var staticRouteProvider = new StaticRouteProvider();
             var service = new RouteExecutionService(
                 new RouteMatrixService(new StaticGeocodingProvider(), staticRouteProvider),
-                new IRouteOptimizer[] { new TwoOptOptimizer(), new OriginalOrderOptimizer() },
+                new RouteOptimizerRegistry(new IRouteOptimizer[] { new TwoOptOptimizer(), new OriginalOrderOptimizer() }),
                 new MetricsService(),
                 new TimelineService(),
                 new RouteComparisonService(),

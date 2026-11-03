@@ -145,12 +145,12 @@ namespace RouteWise.Tests.Controllers
         }
 
         [Fact]
-        public async Task Search_WhenInvalidOperationException_Returns400BadRequest()
+        public async Task Search_WhenUserInputException_Returns400BadRequest()
         {
             var (controller, provider) = CreateController();
 
             provider.OnSearch = (_, _) =>
-                throw new InvalidOperationException("Invalid geocoding operation");
+                throw new UserInputException("Invalid geocoding operation");
 
             var result = await controller.Search("Kyiv");
 

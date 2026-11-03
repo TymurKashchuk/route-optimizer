@@ -49,17 +49,6 @@
   }
 }
 
-@media (max-width: 540px) {
-  .header-container {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .header-badge {
-    align-self: flex-start;
-  }
-}
-
 /* Cards & Sections */
 .card {
   background-color: var(--bg-card);
@@ -69,25 +58,7 @@
   box-shadow: var(--shadow-sm);
 }
 
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.25rem;
-}
 
-.section-title {
-  font-size: 1.15rem;
-  font-weight: 600;
-  color: var(--text-main);
-}
-
-.section-subtitle {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  display: block;
-  margin-top: 0.15rem;
-}
 
 
 /* Buttons */
@@ -129,14 +100,7 @@
   cursor: not-allowed;
 }
 
-.btn-primary {
-  background-color: var(--accent);
-  color: var(--on-accent);
-}
 
-.btn-primary:not(:disabled):hover {
-  background-color: var(--accent-hover);
-}
 
 .btn-secondary {
   background-color: var(--bg-app);
@@ -148,9 +112,7 @@
   background-color: var(--surface-sunken);
 }
 
-.btn-block {
-  width: 100%;
-}
+
 
 .btn-sm {
   padding: 0.35rem 0.75rem;

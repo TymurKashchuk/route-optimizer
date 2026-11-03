@@ -1,3 +1,4 @@
+using RouteWise.Api.Exceptions;
 using RouteWise.Api.Contracts.Requests;
 using RouteWise.Api.Contracts.Responses;
 using RouteWise.Api.Models;
@@ -8,16 +9,15 @@ namespace RouteWise.Api.Services
     public class RouteExecutionService
     {
         private readonly RouteMatrixService _routeMatrixService;
-        private readonly IEnumerable<IRouteOptimizer> _optimizers;
+        private readonly IRouteOptimizerRegistry _optimizerRegistry;
         private readonly MetricsService _metricsService;
         private readonly TimelineService _timelineService;
         private readonly RouteComparisonService _routeComparisonService;
         private readonly RouteExplanationService _routeExplanationService;
         private readonly RoutePreviewService _routePreviewService;
-
         public RouteExecutionService(
             RouteMatrixService routeMatrixService,
-            IEnumerable<IRouteOptimizer> optimizers,
+            IRouteOptimizerRegistry optimizerRegistry,
             MetricsService metricsService,
             TimelineService timelineService,
             RouteComparisonService routeComparisonService,
@@ -25,7 +25,7 @@ namespace RouteWise.Api.Services
             RoutePreviewService routePreviewService)
         {
             _routeMatrixService = routeMatrixService;
-            _optimizers = optimizers;
+            _optimizerRegistry = optimizerRegistry;
             _metricsService = metricsService;
             _timelineService = timelineService;
             _routeComparisonService = routeComparisonService;
@@ -50,15 +50,15 @@ namespace RouteWise.Api.Services
 
             var matrixResult = await _routeMatrixService.BuildMatrixAsync(start, stops, destination, travelMode, cancellationToken);
 
-            var originalOptimizer = _optimizers.First(o =>
-                o.AlgorithmName.Equals("original", StringComparison.OrdinalIgnoreCase));
+            var originalOptimizer = _optimizerRegistry.GetOptimizer("original")
+                ?? throw new InvalidOperationException("Default 'original' optimizer is not registered in the system.");
 
-            var selectedOptimizer = _optimizers.FirstOrDefault(o =>
-                o.AlgorithmName.Equals(algorithm, StringComparison.OrdinalIgnoreCase));
+            var selectedOptimizer = _optimizerRegistry.GetOptimizer(algorithm);
 
             if (selectedOptimizer is null)
             {
-                throw new InvalidOperationException($"Unknown algorithm: {algorithm}");
+                var available = string.Join(", ", _optimizerRegistry.GetAvailableAlgorithmNames());
+                throw new UserInputException($"Unknown algorithm: {algorithm}. Available algorithms: {available}");
             }
 
             int? destinationMatrixIndex = destination != null ? stops.Count + 1 : null;
@@ -81,14 +81,14 @@ namespace RouteWise.Api.Services
             var comparison = _routeComparisonService.Compare(originalMetrics, optimizedMetrics);
 
             var isArriveBy = string.Equals(planningMode, "arrive-by", StringComparison.OrdinalIgnoreCase);
-            var totalTripMinutes = optimizedMetrics.TotalTravelMinutes + optimizedMetrics.TotalServiceMinutes;
+            var totalTripSeconds = optimizedMetrics.TotalTravelSeconds + optimizedMetrics.TotalServiceMinutes * 60;
 
             DateTimeOffset effectiveDepartureTime;
             DateTimeOffset? recommendedDepartureTime = null;
 
             if (isArriveBy && arrivalBy.HasValue)
             {
-                effectiveDepartureTime = arrivalBy.Value.AddMinutes(-totalTripMinutes);
+                effectiveDepartureTime = arrivalBy.Value.AddSeconds(-totalTripSeconds);
                 recommendedDepartureTime = effectiveDepartureTime;
             }
             else

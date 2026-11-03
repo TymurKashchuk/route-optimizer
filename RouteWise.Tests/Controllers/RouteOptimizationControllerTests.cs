@@ -1,3 +1,4 @@
+using RouteWise.Api.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using RouteWise.Api.Contracts.Requests;
 using RouteWise.Api.Contracts.Responses;
@@ -17,7 +18,7 @@ namespace RouteWise.Tests.Controllers
             var staticRouteProvider = new StaticRouteProvider();
             return new RouteExecutionService(
                 new RouteMatrixService(new StaticGeocodingProvider(), staticRouteProvider),
-                new IRouteOptimizer[] { new OriginalOrderOptimizer(), new NearestNeighborOptimizer(), new TwoOptOptimizer() },
+                new RouteOptimizerRegistry(new IRouteOptimizer[] { new OriginalOrderOptimizer(), new NearestNeighborOptimizer(), new TwoOptOptimizer() }),
                 new MetricsService(),
                 new TimelineService(),
                 new RouteComparisonService(),
@@ -65,7 +66,7 @@ namespace RouteWise.Tests.Controllers
                 Destination = new AddressInput { Label = "End", Address = "Zhytomyr City Hospital" }
             };
 
-            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            await Assert.ThrowsAsync<UserInputException>(() =>
                 controller.Optimize(request, CancellationToken.None));
         }
     }

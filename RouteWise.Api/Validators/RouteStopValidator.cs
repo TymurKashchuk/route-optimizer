@@ -5,7 +5,8 @@ namespace RouteWise.Api.Validators
 {
     public class RouteStopValidator : AbstractValidator<RouteStop>
     {
-        public RouteStopValidator() {
+        public RouteStopValidator()
+        {
             RuleFor(x => x.Id)
                 .NotEmpty()
                 .WithMessage("Stop id is required");
@@ -18,11 +19,11 @@ namespace RouteWise.Api.Validators
                 .NotEmpty()
                 .WithMessage("Stop address is required")
                 .NotEqual("string")
-                .WithMessage("Stop address must be a real demo address, not 'string'");
+                .WithMessage("Stop address must be a valid address, not placeholder 'string'");
 
             RuleFor(x => x.ServiceMinutes)
-                .GreaterThanOrEqualTo(0)
-                .WithMessage("Service minutes must be 0 or greater");
+                .InclusiveBetween(0, 480)
+                .WithMessage("Service minutes must be between 0 and 480 minutes (up to 8 hours)");
 
             RuleFor(x => x.Latitude)
                 .InclusiveBetween(-90, 90)

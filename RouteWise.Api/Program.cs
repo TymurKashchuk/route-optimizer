@@ -21,8 +21,6 @@ namespace RouteWise.Api
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-
             builder.Services.AddControllers();
             builder.Services.AddFluentValidationAutoValidation();
 
@@ -88,13 +86,10 @@ namespace RouteWise.Api
             builder.Services.AddScoped<NearestNeighborOptimizer>();
             builder.Services.AddScoped<IRouteOptimizer>(sp => sp.GetRequiredService<NearestNeighborOptimizer>());
             builder.Services.AddScoped<IRouteOptimizer>(sp => new TwoOptOptimizer(sp.GetRequiredService<NearestNeighborOptimizer>()));
+            builder.Services.AddScoped<IRouteOptimizerRegistry, RouteOptimizerRegistry>();
 
             builder.Services.Configure<ForwardedHeadersOptions>(options =>
-            {
-                options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-                options.KnownNetworks.Clear();
-                options.KnownProxies.Clear();
-            });
+                ForwardedHeadersSetup.Configure(options, builder.Configuration));
 
             builder.Services.AddMemoryCache(options =>
             {
@@ -149,7 +144,6 @@ namespace RouteWise.Api
             app.UseForwardedHeaders();
             app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment() || builder.Configuration.GetValue<bool>("EnableSwagger", false))
             {
                 app.UseSwagger();

@@ -34,9 +34,7 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({
   isStale,
 }) => {
   return (
-    <div className="results-column-wrapper">
-      {/* 1. CENTRAL MAP (ALWAYS VISIBLE WITH FLOATING ACTIONS & HERO OVERLAY) */}
-      <div className="card map-stage-card">
+    <div className="results-column-wrapper">      <div className="card map-stage-card">
         <ErrorBoundary
           fallbackTitle="Не вдалося відобразити мапу"
           fallbackMessage="Виникла помилка під час рендерингу карти Leaflet."
@@ -69,10 +67,7 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({
             }
           />
         </ErrorBoundary>
-      </div>
-
-      {/* 2. BELOW THE MAP: EMPTY STATE / HOW IT WORKS (BEFORE RUN) */}
-      {!isLoading && !result && (
+      </div>      {!isLoading && !result && (
         <div className="card empty-guide-card">
           <div className="guide-header">
             <h3 className="guide-title">Як це працює</h3>
@@ -111,10 +106,7 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({
             </div>
           </div>
         </div>
-      )}
-
-      {/* 3. BELOW THE MAP: STEP-BY-STEP ITINERARY TIMELINE (AFTER RUN) */}
-      {!isLoading && result && (
+      )}      {!isLoading && result && (
         <div className="card timeline-card-wrap">
           <TimelineView
             timeline={result.timeline}

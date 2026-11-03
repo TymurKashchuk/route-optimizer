@@ -6,7 +6,7 @@ import { StopsSection } from './StopsSection';
 import { CustomDatePicker } from './CustomDatePicker';
 import { CustomTimePicker } from './CustomTimePicker';
 import { useGeolocation } from '../hooks/useGeolocation';
-import { adjustTimeString, getCurrentRoundedTimeString, getTodayDateString, isDateTimeInPast } from '../utils/dateTime';
+import { adjustTimeString, getCurrentRoundedDateTimeString, getCurrentRoundedTimeString, getTodayDateString, isDateTimeInPast } from '../utils/dateTime';
 import { resolveUpdatedLabel } from '../utils/address';
 
 const POPULAR_CITIES = [
@@ -128,6 +128,16 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
     }
   };
 
+  // "Now" must set date AND time together: near midnight the rounded time belongs to tomorrow.
+  const handleSetNow = () => {
+    const nowValue = getCurrentRoundedDateTimeString();
+    if (isArriveBy) {
+      onArrivalByChange(nowValue);
+    } else {
+      onDepartureTimeChange(nowValue);
+    }
+  };
+
   const isSelectedTimeInPast = isDateTimeInPast(datePart, timePart);
 
   const handleCtaClick = () => {
@@ -140,9 +150,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
   };
 
   return (
-    <section className="card form-planner-card" aria-labelledby="form-planner-title">
-      {/* CARD HEADER */}
-      <div className="planner-card-header">
+    <section className="card form-planner-card" aria-labelledby="form-planner-title">      <div className="planner-card-header">
         <div className="planner-heading-group">
           <h2 id="form-planner-title" className="planner-main-title">
             Новий маршрут
@@ -285,10 +293,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
               )}
             </div>
           </div>
-          {locationError && <p className="form-error-sm">{locationError}</p>}
-
-          {/* INTERMEDIATE STOPS */}
-          <StopsSection
+          {locationError && <p className="form-error-sm">{locationError}</p>}          <StopsSection
             stops={stops}
             isLoading={isLoading}
             onAddStop={onAddStop}
@@ -420,7 +425,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
           <button
             type="button"
             className="preset-time-chip"
-            onClick={() => handleTimeChange(getCurrentRoundedTimeString())}
+            onClick={handleSetNow}
             disabled={isLoading}
           >
             Зараз

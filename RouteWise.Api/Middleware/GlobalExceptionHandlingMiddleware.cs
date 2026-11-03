@@ -21,6 +21,13 @@ namespace RouteWise.Api.Middleware
             {
                 await _next(context);
             }
+            catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
+            {
+                // The client hung up (e.g. the browser cancelled the request). Nobody is listening,
+                // so this is not an error: log quietly and use 499 ("Client Closed Request").
+                _logger.LogDebug("Request {Path} was cancelled by the client", context.Request.Path);
+                context.Response.StatusCode = 499;
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An unhandled exception occurred while processing request {Path}", context.Request.Path);
@@ -35,7 +42,7 @@ namespace RouteWise.Api.Middleware
             var (statusCode, message) = exception switch
             {
                 OpenRouteServiceException orsEx => (ApiExceptionMapper.ToStatusCode(orsEx), orsEx.Message),
-                InvalidOperationException invEx => (StatusCodes.Status400BadRequest, invEx.Message),
+                UserInputException invEx => (StatusCodes.Status400BadRequest, invEx.Message),
                 _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred. Please try again later.")
             };
 

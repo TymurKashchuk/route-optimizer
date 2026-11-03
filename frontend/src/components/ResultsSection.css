@@ -1,4 +1,4 @@
-/* Empty State & Placeholder in Results */
+/* Empty State & Error Boundary Styles */
 .empty-state {
   text-align: center;
   padding: 2.5rem 1rem;
@@ -6,14 +6,6 @@
   border-radius: var(--radius-md);
   background-color: var(--bg-app);
   margin-bottom: 1.5rem;
-}
-
-.empty-state-icon {
-  font-size: 2.5rem;
-  margin-bottom: 0.75rem;
-  color: var(--text-light);
-  display: flex;
-  justify-content: center;
 }
 
 .empty-state-title {
@@ -29,33 +21,4 @@
   max-width: 480px;
   margin: 0 auto;
   line-height: 1.5;
-}
-
-.badge-success {
-  font-size: 0.8rem;
-  color: var(--success);
-  background-color: var(--success-bg);
-  padding: 0.2rem 0.6rem;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--success-line);
-  font-weight: 500;
-}
-
-.results-header-badges {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.badge-travel-mode {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.8rem;
-  color: var(--primary);
-  background-color: var(--accent-soft);
-  padding: 0.2rem 0.6rem;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--accent-line);
-  font-weight: 600;
 }

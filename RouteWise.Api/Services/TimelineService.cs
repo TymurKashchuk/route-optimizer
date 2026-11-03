@@ -31,8 +31,9 @@ namespace RouteWise.Api.Services
                 var stop = orderedStops[i];
                 var nextMatrixIndex = orderedStopIndices[i] + 1;
 
-                var travelMinutes = matrix.GetTravelTimeMinutes(currentMatrixIndex, nextMatrixIndex);
-                currentTime = currentTime.AddMinutes(travelMinutes);
+                // Seconds, not rounded minutes: rounding every leg separately drifts from the real total.
+                var travelSeconds = matrix.GetTravelTimeSeconds(currentMatrixIndex, nextMatrixIndex);
+                currentTime = currentTime.AddSeconds(travelSeconds);
 
                 var arrivalTime = currentTime;
                 var departureFromStop = arrivalTime.AddMinutes(stop.ServiceMinutes);
@@ -51,8 +52,8 @@ namespace RouteWise.Api.Services
             if (destination != null)
             {
                 var destIndex = destinationMatrixIndex ?? (orderedStops.Count + 1);
-                var travelMinutes = matrix.GetTravelTimeMinutes(currentMatrixIndex, destIndex);
-                currentTime = currentTime.AddMinutes(travelMinutes);
+                var travelSeconds = matrix.GetTravelTimeSeconds(currentMatrixIndex, destIndex);
+                currentTime = currentTime.AddSeconds(travelSeconds);
 
                 timeline.Add(new TimelineItem
                 {

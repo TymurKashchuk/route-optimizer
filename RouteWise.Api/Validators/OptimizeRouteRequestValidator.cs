@@ -1,20 +1,29 @@
 using FluentValidation;
 using RouteWise.Api.Contracts.Requests;
 using RouteWise.Api.Models;
+using RouteWise.Api.Optimizers;
 
 namespace RouteWise.Api.Validators
 {
     public class OptimizeRouteRequestValidator : AbstractValidator<OptimizeRouteRequest>
     {
-        public OptimizeRouteRequestValidator()
+        private static readonly string[] DefaultAlgorithms = { "original", "nearest-neighbor", "two-opt" };
+
+        public OptimizeRouteRequestValidator(IRouteOptimizerRegistry? registry = null)
         {
+            var supportedAlgorithms = registry?.GetAvailableAlgorithmNames().ToArray();
+            if (supportedAlgorithms == null || supportedAlgorithms.Length == 0)
+            {
+                supportedAlgorithms = DefaultAlgorithms;
+            }
+
+            var allowedAlgorithmsText = string.Join(", ", supportedAlgorithms.Select(a => $"'{a}'"));
+
             RuleFor(x => x.Algorithm)
                 .NotEmpty()
                 .WithMessage("Algorithm is required")
-                .Must(a => string.Equals(a, "original", StringComparison.OrdinalIgnoreCase) ||
-                           string.Equals(a, "nearest-neighbor", StringComparison.OrdinalIgnoreCase) ||
-                           string.Equals(a, "two-opt", StringComparison.OrdinalIgnoreCase))
-                .WithMessage("Algorithm must be either 'original', 'nearest-neighbor' or 'two-opt'");
+                .Must(a => registry?.IsSupported(a) ?? DefaultAlgorithms.Contains(a, StringComparer.OrdinalIgnoreCase))
+                .WithMessage($"Algorithm must be one of: {allowedAlgorithmsText}");
 
             RuleFor(x => x.PlanningMode)
                 .Must(m => string.IsNullOrEmpty(m) ||
