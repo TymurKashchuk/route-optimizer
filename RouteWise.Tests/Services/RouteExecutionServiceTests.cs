@@ -29,7 +29,7 @@ namespace RouteWise.Tests.Services
 
             var service = new RouteExecutionService(
                 routeMatrixService,
-                optimizers,
+                new RouteOptimizerRegistry(optimizers),
                 new MetricsService(),
                 new TimelineService(),
                 new RouteComparisonService(),
@@ -103,7 +103,7 @@ namespace RouteWise.Tests.Services
 
             var service = new RouteExecutionService(
                 routeMatrixService,
-                optimizers,
+                new RouteOptimizerRegistry(optimizers),
                 new MetricsService(),
                 new TimelineService(),
                 new RouteComparisonService(),
@@ -212,7 +212,7 @@ namespace RouteWise.Tests.Services
 
             var service = new RouteExecutionService(
                 routeMatrixService,
-                optimizers,
+                new RouteOptimizerRegistry(optimizers),
                 new MetricsService(),
                 new TimelineService(),
                 new RouteComparisonService(),
@@ -284,7 +284,7 @@ namespace RouteWise.Tests.Services
 
             var service = new RouteExecutionService(
                 routeMatrixService,
-                optimizers,
+                new RouteOptimizerRegistry(optimizers),
                 new MetricsService(),
                 new TimelineService(),
                 new RouteComparisonService(),
@@ -379,7 +379,7 @@ namespace RouteWise.Tests.Services
 
             var service = new RouteExecutionService(
                 routeMatrixService,
-                optimizers,
+                new RouteOptimizerRegistry(optimizers),
                 new MetricsService(),
                 new TimelineService(),
                 new RouteComparisonService(),
@@ -461,7 +461,7 @@ namespace RouteWise.Tests.Services
 
             var service = new RouteExecutionService(
                 routeMatrixService,
-                optimizers,
+                new RouteOptimizerRegistry(optimizers),
                 new MetricsService(),
                 new TimelineService(),
                 new RouteComparisonService(),
@@ -506,7 +506,7 @@ namespace RouteWise.Tests.Services
             var staticRouteProvider = new StaticRouteProvider();
             var service = new RouteExecutionService(
                 new RouteMatrixService(new StaticGeocodingProvider(), staticRouteProvider),
-                new IRouteOptimizer[] { new TwoOptOptimizer(), new OriginalOrderOptimizer() },
+                new RouteOptimizerRegistry(new IRouteOptimizer[] { new TwoOptOptimizer(), new OriginalOrderOptimizer() }),
                 new MetricsService(),
                 new TimelineService(),
                 new RouteComparisonService(),

@@ -15,7 +15,6 @@ namespace RouteWise.Api.Services
         private readonly RouteComparisonService _routeComparisonService;
         private readonly RouteExplanationService _routeExplanationService;
         private readonly RoutePreviewService _routePreviewService;
-
         public RouteExecutionService(
             RouteMatrixService routeMatrixService,
             IRouteOptimizerRegistry optimizerRegistry,
@@ -32,25 +31,6 @@ namespace RouteWise.Api.Services
             _routeComparisonService = routeComparisonService;
             _routeExplanationService = routeExplanationService;
             _routePreviewService = routePreviewService;
-        }
-
-        public RouteExecutionService(
-            RouteMatrixService routeMatrixService,
-            IEnumerable<IRouteOptimizer> optimizers,
-            MetricsService metricsService,
-            TimelineService timelineService,
-            RouteComparisonService routeComparisonService,
-            RouteExplanationService routeExplanationService,
-            RoutePreviewService routePreviewService)
-            : this(
-                routeMatrixService,
-                new RouteOptimizerRegistry(optimizers),
-                metricsService,
-                timelineService,
-                routeComparisonService,
-                routeExplanationService,
-                routePreviewService)
-        {
         }
 
         public async Task<OptimizeRouteResponse> ExecuteAsync(

@@ -18,7 +18,7 @@ namespace RouteWise.Tests.Controllers
             var staticRouteProvider = new StaticRouteProvider();
             return new RouteExecutionService(
                 new RouteMatrixService(new StaticGeocodingProvider(), staticRouteProvider),
-                new IRouteOptimizer[] { new OriginalOrderOptimizer(), new NearestNeighborOptimizer(), new TwoOptOptimizer() },
+                new RouteOptimizerRegistry(new IRouteOptimizer[] { new OriginalOrderOptimizer(), new NearestNeighborOptimizer(), new TwoOptOptimizer() }),
                 new MetricsService(),
                 new TimelineService(),
                 new RouteComparisonService(),
