@@ -90,11 +90,7 @@ namespace RouteWise.Api
             builder.Services.AddScoped<IRouteOptimizer>(sp => new TwoOptOptimizer(sp.GetRequiredService<NearestNeighborOptimizer>()));
 
             builder.Services.Configure<ForwardedHeadersOptions>(options =>
-            {
-                options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-                options.KnownNetworks.Clear();
-                options.KnownProxies.Clear();
-            });
+                ForwardedHeadersSetup.Configure(options, builder.Configuration));
 
             builder.Services.AddMemoryCache(options =>
             {

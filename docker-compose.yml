@@ -9,6 +9,8 @@ services:
       - EnableSwagger=${ENABLE_SWAGGER:-false}
       - ASPNETCORE_HTTP_PORTS=8080
       - OpenRouteService__ApiKey=${OPENROUTE_SERVICE_API_KEY:-}
+      # Only the frontend (nginx) container may tell the API the real client IP
+      - ForwardedHeaders__KnownProxies__0=172.28.0.10
     ports:
       - "5044:8080"
     networks:
@@ -25,9 +27,13 @@ services:
     depends_on:
       - backend
     networks:
-      - routewise-network
+      routewise-network:
+        ipv4_address: 172.28.0.10
     restart: unless-stopped
 
 networks:
   routewise-network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
