@@ -72,7 +72,7 @@ docker compose up --build -d
 
 ## Скриншоти
 
-### Маршрут у темній темі
+### Маршрут у світлій темі
 
 Маршрут Житомир → Брусилів → Фастів → Київ із часом перебування на зупинках, підсумковими метриками та розкладом поїздки.
 
@@ -147,7 +147,7 @@ npm run dev
 
 ## Тести та перевірки
 
-Поточний набір містить 123 тести бекенду та 30 тестів фронтенду.
+Поточний набір містить 210 тестів бекенду та 33 тести фронтенду (разом 243 тести).
 
 ### Бекенд
 
@@ -237,29 +237,28 @@ GitHub Actions виконує перевірки бекенду та фронт�
 
 ```text
 route-optimizer/
-├── .github/workflows/        # Автоматичні перевірки: build, lint, tests
+├── .github/workflows/        # Автоматичні перевірки: build, lint, tests (із кешуванням NuGet/npm)
 ├── RouteWise.Api/            # ASP.NET Core Web API
 │   ├── Controllers/          # REST-ендпоінти
-│   ├── Middleware/           # Глобальна обробка помилок
-│   ├── Models/               # Внутрішні моделі
+│   ├── Middleware/           # Глобальна обробка помилок (тихий 499 для Cancel, 500)
+│   ├── Exceptions/           # UserInputException (400), ApiExceptionMapper
+│   ├── Models/               # Доменні моделі (AddressInput, RouteStop тощо)
 │   ├── Contracts/            # DTO запитів і відповідей
-│   ├── Optimizers/           # original, nearest-neighbor, two-opt
-│   ├── Providers/            # OpenRouteService і демонстраційні провайдери
-│   ├── Services/             # Виконання запитів, метрики, розклад, прев’ю
-│   └── Validators/           # Валідація через FluentValidation
-├── RouteWise.Tests/          # Тести бекенду
+│   ├── Optimizers/           # IRouteOptimizerRegistry, TwoOpt, NearestNeighbor
+│   ├── Options/              # Конфігурація OpenRouteService та ForwardedHeaders
+│   ├── Providers/            # OpenRouteService (із retry на 429) і демонстраційні провайдери
+│   ├── Services/             # Виконання запитів, метрики, розклад, прев’ю, троттлінг
+│   └── Validators/           # Єдина валідація через FluentValidation (SSOT)
+├── RouteWise.Tests/          # 210 юніт-тестів бекенду
 ├── frontend/                 # React SPA
 │   └── src/
 │       ├── api/              # Клієнти взаємодії з бекендом
 │       ├── components/       # UI-компоненти та розташовані поруч стилі
 │       │   └── results/      # Карта, розклад і метрики
 │       ├── hooks/            # useGeolocation, useTripDraft
-│       └── utils/            # Утиліти та їхні тести
-├── docs/
-│   ├── screenshot-route-light.jpg
-│   ├── screenshot-route-dark-2.jpg
-│   └── screenshot-initial-3.jpg
-└── docker-compose.yml        # Конфігурація запуску сервісів
+│       ├── types/            # TypeScript визначення типів
+│       └── utils/            # 33 юніт-тести та утиліти
+└── docker-compose.yml        # Конфігурація запуску сервісів (Healthcheck, Non-root, Nginx)
 ```
 
 ## Обмеження
