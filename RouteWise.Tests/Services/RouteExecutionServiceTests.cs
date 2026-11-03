@@ -426,9 +426,11 @@ namespace RouteWise.Tests.Services
             Assert.NotNull(result.RecommendedDepartureTime);
 
             var totalTripDuration = result.Optimized.TotalTravelMinutes + result.Optimized.TotalServiceMinutes;
-            var expectedDeparture = arrivalDeadline.AddMinutes(-totalTripDuration);
+            var roughDeparture = arrivalDeadline.AddMinutes(-totalTripDuration);
 
-            Assert.Equal(expectedDeparture, result.RecommendedDepartureTime.Value);
+            // Departure is computed from exact seconds, so it may differ from the rounded-minute value by < 1 min
+            Assert.InRange((result.RecommendedDepartureTime.Value - roughDeparture).TotalSeconds, -60, 60);
+            var expectedDeparture = result.RecommendedDepartureTime.Value;
 
             // Timeline starts at recommended departure time
             Assert.Equal(expectedDeparture, result.Timeline.First().DepartureTime);

@@ -174,5 +174,35 @@ namespace RouteWise.Tests.Services
                     Assert.Equal(new DateTimeOffset(2026, 7, 31, 10, 6, 0, TimeSpan.Zero), item.DepartureTime);
                 });
         }
+
+        [Fact]
+        public void Build_WithSecondsMatrix_DoesNotLoseTimeToPerLegRounding()
+        {
+            var service = new TimelineService();
+            var start = new AddressInput { Label = "A", Address = "a" };
+            var departure = new DateTimeOffset(2026, 7, 31, 9, 0, 0, TimeSpan.Zero);
+            var stops = new List<RouteStop>
+            {
+                new() { Id = "1", Label = "S1", Address = "s1" },
+                new() { Id = "2", Label = "S2", Address = "s2" }
+            };
+
+            // 3 legs x 85s = 255s. Rounding each leg to whole minutes (1 min) would give only 3 min.
+            var matrix = new RouteMatrix
+            {
+                TravelTimesSeconds = new List<List<int>>
+                {
+                    new() { 0, 85, 0, 0 },
+                    new() { 0, 0, 85, 0 },
+                    new() { 0, 0, 0, 85 },
+                    new() { 0, 0, 0, 0 }
+                }
+            };
+
+            var result = service.Build(start, departure, stops, new List<int> { 0, 1 }, matrix,
+                new AddressInput { Label = "B", Address = "b" }, destinationMatrixIndex: 3);
+
+            Assert.Equal(departure.AddSeconds(255), result.Last().ArrivalTime);
+        }
     }
 }

@@ -81,14 +81,14 @@ namespace RouteWise.Api.Services
             var comparison = _routeComparisonService.Compare(originalMetrics, optimizedMetrics);
 
             var isArriveBy = string.Equals(planningMode, "arrive-by", StringComparison.OrdinalIgnoreCase);
-            var totalTripMinutes = optimizedMetrics.TotalTravelMinutes + optimizedMetrics.TotalServiceMinutes;
+            var totalTripSeconds = optimizedMetrics.TotalTravelSeconds + optimizedMetrics.TotalServiceMinutes * 60;
 
             DateTimeOffset effectiveDepartureTime;
             DateTimeOffset? recommendedDepartureTime = null;
 
             if (isArriveBy && arrivalBy.HasValue)
             {
-                effectiveDepartureTime = arrivalBy.Value.AddMinutes(-totalTripMinutes);
+                effectiveDepartureTime = arrivalBy.Value.AddSeconds(-totalTripSeconds);
                 recommendedDepartureTime = effectiveDepartureTime;
             }
             else
