@@ -150,9 +150,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
   };
 
   return (
-    <section className="card form-planner-card" aria-labelledby="form-planner-title">
-      {/* CARD HEADER */}
-      <div className="planner-card-header">
+    <section className="card form-planner-card" aria-labelledby="form-planner-title">      <div className="planner-card-header">
         <div className="planner-heading-group">
           <h2 id="form-planner-title" className="planner-main-title">
             Новий маршрут
@@ -295,10 +293,7 @@ export const RouteFormSection: React.FC<RouteFormSectionProps> = ({
               )}
             </div>
           </div>
-          {locationError && <p className="form-error-sm">{locationError}</p>}
-
-          {/* INTERMEDIATE STOPS */}
-          <StopsSection
+          {locationError && <p className="form-error-sm">{locationError}</p>}          <StopsSection
             stops={stops}
             isLoading={isLoading}
             onAddStop={onAddStop}

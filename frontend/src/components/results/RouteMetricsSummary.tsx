@@ -32,9 +32,7 @@ export const RouteMetricsSummary: React.FC<RouteMetricsSummaryProps> = ({
     planningMode === 'arrive-by' && isTimestampInPast(recommendedDepartureTime);
 
   return (
-    <div className={`hero-metrics-card ${isStale ? 'is-stale' : ''}`}>
-      {/* Mini top caption */}
-      <div className="hero-caption-row">
+    <div className={`hero-metrics-card ${isStale ? 'is-stale' : ''}`}>      <div className="hero-caption-row">
         <div className="hero-caption-left">
           <span className="hero-caption">ЗАГАЛЬНИЙ ЧАС</span>
           {isStale && (
@@ -57,15 +55,9 @@ export const RouteMetricsSummary: React.FC<RouteMetricsSummaryProps> = ({
             {isDepartureInPast && ' (минув)'}
           </span>
         )}
-      </div>
-
-      {/* Main Hero Accent: Total Travel Time */}
-      <div className="hero-time-value tabular-nums">
+      </div>      <div className="hero-time-value tabular-nums">
         {formatDuration(totalTripMinutes)}
-      </div>
-
-      {/* Subtext with distance, driving and stay times */}
-      <div className="hero-subline tabular-nums">
+      </div>      <div className="hero-subline tabular-nums">
         <span>{optimized.totalDistanceKm.toFixed(0)} км</span>
         <span className="hero-subdot">·</span>
         <span>{optimized.totalTravelMinutes} хв у русі</span>
@@ -75,10 +67,7 @@ export const RouteMetricsSummary: React.FC<RouteMetricsSummaryProps> = ({
             <span>{optimized.totalServiceMinutes} хв на зупинках</span>
           </>
         )}
-      </div>
-
-      {/* Savings pills & Comparison toggle */}
-      <div className="hero-actions-row">
+      </div>      <div className="hero-actions-row">
         {hasSavings ? (
           <div className="hero-savings-chips">
             {hasTimeSavings && (
@@ -113,10 +102,7 @@ export const RouteMetricsSummary: React.FC<RouteMetricsSummaryProps> = ({
             {showComparison ? 'Сховати' : 'Порівняти з вихідним'}
           </button>
         )}
-      </div>
-
-      {/* Collapsible Comparison Details (Secondary) */}
-      {hasSavings && showComparison && (
+      </div>      {hasSavings && showComparison && (
         <div className="hero-compare-expanded">
           <div className="compare-mini-col">
             <span className="compare-mini-label">Вихідний:</span>

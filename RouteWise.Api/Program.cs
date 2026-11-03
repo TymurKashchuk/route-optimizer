@@ -21,8 +21,6 @@ namespace RouteWise.Api
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-
             builder.Services.AddControllers();
             builder.Services.AddFluentValidationAutoValidation();
 
@@ -145,7 +143,6 @@ namespace RouteWise.Api
             app.UseForwardedHeaders();
             app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment() || builder.Configuration.GetValue<bool>("EnableSwagger", false))
             {
                 app.UseSwagger();

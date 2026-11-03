@@ -299,9 +299,7 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({
     '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
   return (
-    <div className="map-canvas-container">
-      {/* FLOATING ACTION BUTTONS (GOOGLE MAPS & COPY LINK) */}
-      {preview && googleMapsUrl && (
+    <div className="map-canvas-container">      {preview && googleMapsUrl && (
         <div className="map-floating-actions">
           <a
             href={googleMapsUrl}
@@ -326,17 +324,11 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({
             <span className="btn-label-short">{copied ? 'Скопійовано!' : 'Поділитися'}</span>
           </button>
         </div>
-      )}
-
-      {/* FLOATING HERO OVERLAY (WHEN RESULT EXISTS) */}
-      {renderHeroOverlay && (
+      )}      {renderHeroOverlay && (
         <div className="map-hero-overlay-slot">
           {renderHeroOverlay}
         </div>
-      )}
-
-      {/* LEAFLET MAP */}
-      <MapContainer
+      )}      <MapContainer
         center={mapCenter}
         zoom={preRoutePoints.length > 0 || preview ? 12 : 6}
         scrollWheelZoom={true}
@@ -348,13 +340,8 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({
           url={tileUrl}
         />
 
-        {pointsToFit.length > 0 && <MapBoundsUpdater points={pointsToFit} />}
-
-        {/* 1. CALCULATED PREVIEW MARKERS & ROUTE */}
-        {preview && (
-          <>
-            {/* Start Marker A */}
-            <Marker
+        {pointsToFit.length > 0 && <MapBoundsUpdater points={pointsToFit} />}        {preview && (
+          <>            <Marker
               position={[preview.startPoint.latitude, preview.startPoint.longitude]}
               icon={getNumberedIcon('A', 'start')}
             >
@@ -364,10 +351,7 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({
                   <p>{preview.startPoint.address}</p>
                 </div>
               </Popup>
-            </Marker>
-
-            {/* Stops Markers 1..N */}
-            {preview.orderedStops.map((stop) => (
+            </Marker>            {preview.orderedStops.map((stop) => (
               <Marker
                 key={stop.id}
                 position={[stop.latitude, stop.longitude]}
@@ -380,10 +364,7 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({
                   </div>
                 </Popup>
               </Marker>
-            ))}
-
-            {/* Destination Marker B */}
-            {preview.destinationPoint && preview.destinationPoint.address && (
+            ))}            {preview.destinationPoint && preview.destinationPoint.address && (
               <Marker
                 position={[preview.destinationPoint.latitude, preview.destinationPoint.longitude]}
                 icon={getNumberedIcon('B', 'destination')}
@@ -395,10 +376,7 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({
                   </div>
                 </Popup>
               </Marker>
-            )}
-
-            {/* Orange Bold Route Polyline from mockup */}
-            {polylinePositions.length > 1 && (
+            )}            {polylinePositions.length > 1 && (
               <Polyline
                 positions={polylinePositions}
                 pathOptions={{
@@ -411,10 +389,7 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({
               />
             )}
           </>
-        )}
-
-        {/* 2. DRAFT FALLBACK MARKERS (BEFORE CALCULATION) */}
-        {!preview && (
+        )}        {!preview && (
           <>
             {fallbackStart?.latitude && fallbackStart?.longitude && (
               <Marker
@@ -572,10 +547,7 @@ export const RouteMapPreview: React.FC<RouteMapPreviewProps> = ({
             </Popup>
           </Marker>
         )}
-      </MapContainer>
-
-      {/* LOADING OVERLAY OVER MAP */}
-      {isLoading && (
+      </MapContainer>      {isLoading && (
         <div className="map-loading-overlay" aria-busy="true">
           <div className="map-loading-spinner-box">
             <svg className="btn-spinner" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">

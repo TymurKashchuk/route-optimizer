@@ -99,17 +99,12 @@ export const StopsSection: React.FC<StopsSectionProps> = ({
                 onDragOver={(e) => handleDragOver(e, index)}
                 onDrop={(e) => handleDrop(e, index)}
                 onDragEnd={handleDragEnd}
-              >
-                {/* Outlined Numbered Circle Marker */}
-                <div
+              >                <div
                   className="stop-circle-marker"
                   title={stops.length >= 2 ? `Зупинка ${index + 1} (потягніть, щоб змінити порядок)` : `Зупинка ${index + 1}`}
                 >
                   <span className="stop-circle-num">{index + 1}</span>
-                </div>
-
-                {/* Input Fields Wrapper */}
-                <div className="stop-fields-wrap">
+                </div>                <div className="stop-fields-wrap">
                   <div className="stop-address-box">
                     <AddressAutocompleteInput
                       id={`stop-address-${stop.id}`}
@@ -140,10 +135,7 @@ export const StopsSection: React.FC<StopsSectionProps> = ({
                       }}
                       disabled={isLoading}
                     />
-                  </div>
-
-                  {/* Service / Stay Duration Input */}
-                  <div className="stop-stay-box" title="Час перебування на зупинці (хвилини)">
+                  </div>                  <div className="stop-stay-box" title="Час перебування на зупинці (хвилини)">
                     <input
                       id={`stop-service-${stop.id}`}
                       type="number"
@@ -169,10 +161,7 @@ export const StopsSection: React.FC<StopsSectionProps> = ({
                       aria-label={`Час перебування на зупинці ${index + 1}`}
                     />
                     <span className="stop-stay-unit">хв</span>
-                  </div>
-
-                  {/* Reorder Stop Buttons (Mobile & Keyboard accessibility) */}
-                  {stops.length >= 2 && (
+                  </div>                  {stops.length >= 2 && (
                     <div className="stop-reorder-group">
                       <button
                         type="button"
@@ -199,10 +188,7 @@ export const StopsSection: React.FC<StopsSectionProps> = ({
                         </svg>
                       </button>
                     </div>
-                  )}
-
-                  {/* Remove Stop Button */}
-                  <button
+                  )}                  <button
                     type="button"
                     className="stop-remove-btn"
                     title={`Видалити зупинку ${index + 1}`}
@@ -230,10 +216,7 @@ export const StopsSection: React.FC<StopsSectionProps> = ({
             );
           })}
         </div>
-      )}
-
-      {/* Compact Add Stop Pill Button */}
-      <div className="stops-action-row">
+      )}      <div className="stops-action-row">
         <button
           type="button"
           className="btn-add-stop-pill"

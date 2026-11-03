@@ -64,10 +64,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
           const isStart = index === 0;
           const isLast = index === timeline.length - 1;
           const isDestination = isLast && timeline.length > 1;
-          const legStep = explanationSteps[index];
-
-          // Primary display time
-          const mainTime = isStart
+          const legStep = explanationSteps[index];          const mainTime = isStart
             ? formatTime(item.departureTime)
             : formatTime(item.arrivalTime);
 
@@ -76,17 +73,12 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
             : null;
 
           return (
-            <div key={`${item.label}-${index}`} className={`schedule-step-item ${isLast ? 'is-last' : ''}`}>
-              {/* 1. Time Column */}
-              <div className="schedule-time-col">
+            <div key={`${item.label}-${index}`} className={`schedule-step-item ${isLast ? 'is-last' : ''}`}>              <div className="schedule-time-col">
                 <span className="schedule-main-time tabular-nums">{mainTime}</span>
                 {subTime && (
                   <span className="schedule-sub-time tabular-nums">{subTime}</span>
                 )}
-              </div>
-
-              {/* 2. Spine Track: Marker Dot & Continuous Stem Line */}
-              <div className="schedule-spine-col">
+              </div>              <div className="schedule-spine-col">
                 <span
                   className={`timeline-dot ${
                     isStart ? 'dot-start' : isDestination ? 'dot-dest' : 'dot-stop'
@@ -94,10 +86,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
                   aria-hidden="true"
                 />
                 {!isLast && <span className="timeline-continuous-stem" aria-hidden="true" />}
-              </div>
-
-              {/* 3. Stop Details & Transit Pill */}
-              <div className="schedule-body-col">
+              </div>              <div className="schedule-body-col">
                 <div className="schedule-stop-header">
                   <div className="schedule-name-text">
                     {isStart && item.label}
@@ -115,10 +104,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
                       serviceMinutes > 0 ? `Стоянка ${serviceMinutes} хв` : 'Коротка зупинка'
                     )}
                   </div>
-                </div>
-
-                {/* Transit pill between stops */}
-                {!isLast && (
+                </div>                {!isLast && (
                   <div className="schedule-transit-chip-row">
                     <span className="schedule-leg-pill tabular-nums">
                       {legStep ? `${legStep.travelMinutes} хв у дорозі` : 'У дорозі'}

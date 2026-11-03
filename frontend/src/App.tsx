@@ -75,9 +75,7 @@ function getInitialTheme(): ThemeMode {
   return 'light';
 }
 
-export const App: React.FC = () => {
-  // Theme State
-  const [theme, setTheme] = useState<ThemeMode>(getInitialTheme);
+export const App: React.FC = () => {  const [theme, setTheme] = useState<ThemeMode>(getInitialTheme);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -94,10 +92,7 @@ export const App: React.FC = () => {
 
   const handleToggleTheme = () => {
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
-  };
-
-  // Form State
-  const [start, setStart] = useState<AddressInput>(initialDraftValues.initialStart);
+  };  const [start, setStart] = useState<AddressInput>(initialDraftValues.initialStart);
   const [destination, setDestination] = useState<AddressInput>(initialDraftValues.initialDestination);
   const [planningMode, setPlanningMode] = useState<PlanningMode>(initialDraftValues.initialPlanningMode);
   const [travelMode, setTravelMode] = useState<TravelMode>(initialDraftValues.initialTravelMode);
@@ -135,10 +130,7 @@ export const App: React.FC = () => {
       const timePart = departureTime.split('T')[1] || '09:00';
       setDepartureTime(`${datePart}T${timePart}`);
     }
-  };
-
-  // Request & Execution State
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  };  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const [result, setResult] = useState<OptimizeRouteResponse | null>(null);
   const [lastOptimizedSignature, setLastOptimizedSignature] = useState<string | null>(null);

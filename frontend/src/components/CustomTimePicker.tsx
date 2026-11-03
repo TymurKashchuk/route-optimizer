@@ -100,9 +100,7 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
 
       {isOpen && (
         <div className="custom-picker-dropdown custom-time-dropdown" role="dialog" aria-label="Вибір часу">
-          <div className="time-picker-columns">
-            {/* Hours Column */}
-            <div className="time-picker-column">
+          <div className="time-picker-columns">            <div className="time-picker-column">
               <div className="time-col-header">Год</div>
               <div className="time-scroll-list" ref={hoursListRef}>
                 {HOURS.map((h) => {
@@ -119,10 +117,7 @@ export const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
                   );
                 })}
               </div>
-            </div>
-
-            {/* Minutes Column */}
-            <div className="time-picker-column">
+            </div>            <div className="time-picker-column">
               <div className="time-col-header">Хв</div>
               <div className="time-scroll-list" ref={minutesListRef}>
                 {MINUTES.map((m) => {
