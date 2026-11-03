@@ -90,5 +90,42 @@ namespace RouteWise.Tests.Middleware
             Assert.NotNull(json);
             Assert.Equal("An unexpected error occurred. Please try again later.", json["error"]);
         }
-    }
+
+        [Fact]
+        public async Task InvokeAsync_WhenClientCancelsRequest_Returns499WithoutErrorBody()
+        {
+            using var cts = new CancellationTokenSource();
+            var middleware = new GlobalExceptionHandlingMiddleware(
+                _ =>
+                {
+                    cts.Cancel();
+                    throw new OperationCanceledException(cts.Token);
+                },
+                NullLogger<GlobalExceptionHandlingMiddleware>.Instance);
+
+            var context = new DefaultHttpContext();
+            context.RequestAborted = cts.Token;
+            context.Response.Body = new MemoryStream();
+
+            await middleware.InvokeAsync(context);
+
+            Assert.Equal(499, context.Response.StatusCode);
+            Assert.Equal(0, context.Response.Body.Length);
+        }
+
+        [Fact]
+        public async Task InvokeAsync_WhenCancellationNotFromClient_StillReturns500()
+        {
+            // e.g. an internal timeout: the client is still waiting, so it must get an error
+            var middleware = new GlobalExceptionHandlingMiddleware(
+                _ => throw new OperationCanceledException(),
+                NullLogger<GlobalExceptionHandlingMiddleware>.Instance);
+
+            var context = new DefaultHttpContext();
+            context.Response.Body = new MemoryStream();
+
+            await middleware.InvokeAsync(context);
+
+            Assert.Equal(StatusCodes.Status500InternalServerError, context.Response.StatusCode);
+        }    }
 }
