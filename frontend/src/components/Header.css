@@ -175,11 +175,3 @@
   box-shadow: var(--shadow-soft);
 }
 
-.badge-muted {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  background: var(--bg-app);
-  padding: 0.2rem 0.6rem;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-color);
-}
