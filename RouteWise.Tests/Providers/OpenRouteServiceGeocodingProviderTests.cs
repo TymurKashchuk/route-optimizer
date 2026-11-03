@@ -359,5 +359,70 @@ namespace RouteWise.Tests.Providers
 
             Assert.Null(result);
         }
+
+        [Fact]
+        public async Task SearchAsync_WhenFirstCallReturns429_RetriesAndSucceeds()
+        {
+            var callCount = 0;
+            var successJson = """
+            {
+              "type": "FeatureCollection",
+              "features": [
+                {
+                  "type": "Feature",
+                  "geometry": { "type": "Point", "coordinates": [30.52, 50.45] },
+                  "properties": { "label": "Kyiv, Ukraine" }
+                }
+              ]
+            }
+            """;
+
+            var handler = new TestHttpMessageHandler(req =>
+            {
+                callCount++;
+                if (callCount == 1)
+                {
+                    return new HttpResponseMessage(HttpStatusCode.TooManyRequests);
+                }
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(successJson, System.Text.Encoding.UTF8, "application/json")
+                };
+            });
+
+            var httpClient = new HttpClient(handler) { BaseAddress = new Uri("https://api.openrouteservice.org/") };
+            var options = Microsoft.Extensions.Options.Options.Create(new OpenRouteServiceOptions
+            {
+                BaseUrl = "https://api.openrouteservice.org/",
+                ApiKey = "test-key",
+                TimeoutSeconds = 10
+            });
+            var provider = new OpenRouteServiceGeocodingProvider(httpClient, options);
+
+            var results = await provider.SearchAsync("Kyiv");
+
+            Assert.Single(results);
+            Assert.Equal("Kyiv, Ukraine", results[0].Address);
+            Assert.Equal(2, handler.Requests.Count);
+        }
+
+        [Fact]
+        public async Task SearchAsync_WhenAllRetriesReturn429_ThrowsOpenRouteServiceException()
+        {
+            var handler = new TestHttpMessageHandler(req => new HttpResponseMessage(HttpStatusCode.TooManyRequests));
+            var httpClient = new HttpClient(handler) { BaseAddress = new Uri("https://api.openrouteservice.org/") };
+            var options = Microsoft.Extensions.Options.Options.Create(new OpenRouteServiceOptions
+            {
+                BaseUrl = "https://api.openrouteservice.org/",
+                ApiKey = "test-key",
+                TimeoutSeconds = 10
+            });
+            var provider = new OpenRouteServiceGeocodingProvider(httpClient, options);
+
+            var ex = await Assert.ThrowsAsync<OpenRouteServiceException>(() => provider.SearchAsync("Kyiv"));
+
+            Assert.Contains("rate limit exceeded", ex.Message);
+            Assert.Equal(3, handler.Requests.Count);
+        }
     }
 }

@@ -235,6 +235,29 @@ namespace RouteWise.Tests.Services
             Assert.Equal(1, spyGeocodingProvider.GeocodeCallCount);
         }
 
+        [Fact]
+        public async Task BuildMatrix_WithMultipleUncachedAddresses_ResolvesAllAddresses()
+        {
+            var spyGeocodingProvider = new SpyGeocodingProvider();
+            var routeProvider = new StaticRouteProvider();
+            var service = new RouteMatrixService(spyGeocodingProvider, routeProvider);
+
+            var start = new AddressInput { Label = "Start", Address = "Uncached St 0" };
+            var stops = new List<RouteStop>
+            {
+                new() { Id = "1", Label = "S1", Address = "Uncached St 1" },
+                new() { Id = "2", Label = "S2", Address = "Uncached St 2" },
+                new() { Id = "3", Label = "S3", Address = "Uncached St 3" },
+                new() { Id = "4", Label = "S4", Address = "Uncached St 4" }
+            };
+            var destination = new AddressInput { Label = "Dest", Address = "Uncached St 5" };
+
+            var result = await service.BuildMatrixAsync(start, stops, destination, TravelMode.Driving);
+
+            Assert.Equal(6, result.Locations.Count);
+            Assert.Equal(6, spyGeocodingProvider.GeocodeCallCount);
+        }
+
         private class SpyGeocodingProvider : IGeocodingProvider
         {
             public int GeocodeCallCount { get; private set; }
