@@ -237,7 +237,7 @@ GitHub Actions виконує перевірки бекенду та фронт�
 
 ```text
 route-optimizer/
-├── .github/workflows/        # Автоматичні перевірки: build, lint, tests (із кешуванням NuGet/npm)
+├── .github/workflows/        # Автоматичні перевірки: build, lint, tests
 ├── RouteWise.Api/            # ASP.NET Core Web API
 │   ├── Controllers/          # REST-ендпоінти
 │   ├── Middleware/           # Глобальна обробка помилок (тихий 499 для Cancel, 500)
