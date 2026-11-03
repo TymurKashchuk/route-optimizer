@@ -240,5 +240,29 @@ namespace RouteWise.Tests.Validators
             result.ShouldHaveValidationErrorFor(x => x.TravelMode)
                 .WithErrorMessage("TravelMode must be either 'driving', 'walking' or 'cycling'");
         }
+
+        [Fact]
+        public void Validate_StopWithServiceMinutesGreaterThan480_HasValidationError()
+        {
+            var request = CreateValidBaseRequest();
+            request.Stops[0].ServiceMinutes = 500;
+
+            var result = _validator.TestValidate(request);
+
+            result.ShouldHaveValidationErrorFor("Stops[0].ServiceMinutes")
+                .WithErrorMessage("Service minutes must be between 0 and 480 minutes (up to 8 hours)");
+        }
+
+        [Fact]
+        public void Validate_StopWithAddressStringPlaceholder_HasValidationError()
+        {
+            var request = CreateValidBaseRequest();
+            request.Stops[0].Address = "string";
+
+            var result = _validator.TestValidate(request);
+
+            result.ShouldHaveValidationErrorFor("Stops[0].Address")
+                .WithErrorMessage("Stop address must be a valid address, not placeholder 'string'");
+        }
     }
 }
