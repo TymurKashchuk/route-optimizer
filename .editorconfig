@@ -1,0 +1,48 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# Top-most EditorConfig file
+root = true
+
+# Default settings for all files
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# C# files
+[*.cs]
+indent_size = 4
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_prefer_braces = true:silent
+csharp_style_var_for_built_in_types = false:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_elsewhere = true:suggestion
+
+# Web and Frontend files
+[*.{js,jsx,ts,tsx,css,html,json}]
+indent_size = 2
+
+# Configuration, Markdown, and CI/CD files
+[*.{yml,yaml,md}]
+indent_size = 2
+
+# Markdown specific rules (keep two spaces for line breaks)
+[*.md]
+trim_trailing_whitespace = false
+
+# XML / csproj / props / targets
+[*.{csproj,props,targets,xml,config}]
+indent_size = 2
+
+# Shell scripts and Docker
+[*.{sh,bash}]
+end_of_line = lf
+
+[Dockerfile*]
+indent_size = 2
