@@ -9,52 +9,17 @@ import { optimizeRoute } from './api/routeClient';
 import { getInitialDraft, useTripDraft } from './hooks/useTripDraft';
 import { getCurrentRoundedDateTimeString, getTodayDateString } from './utils/dateTime';
 import { deriveStopLabel, isDefaultOrDerivedLabel } from './utils/address';
+import {
+  createExampleRoute,
+  DEFAULT_DESTINATION,
+  DEFAULT_START,
+  DEFAULT_STOPS,
+  generateId,
+  getRouteSignature,
+  MAX_STOPS,
+} from './utils/routeHelpers';
 
-function generateId(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID();
-  }
-  return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-}
-
-const DEFAULT_START: AddressInput = {
-  label: 'Старт',
-  address: '',
-};
-
-const DEFAULT_DESTINATION: AddressInput = {
-  label: 'Фініш',
-  address: '',
-};
-
-const DEFAULT_STOPS: RouteStop[] = [];
 const initialDraftValues = getInitialDraft();
-
-function getRouteSignature(params: {
-  start: AddressInput;
-  destination: AddressInput;
-  stops: RouteStop[];
-  planningMode: PlanningMode;
-  travelMode: TravelMode;
-  departureTime: string;
-  arrivalBy: string;
-  algorithm: AlgorithmType;
-}): string {
-  return JSON.stringify({
-    s: { a: params.start.address.trim(), lat: params.start.latitude, lng: params.start.longitude },
-    d: { a: params.destination.address.trim(), lat: params.destination.latitude, lng: params.destination.longitude },
-    stops: params.stops.map((s) => ({
-      a: s.address.trim(),
-      lat: s.latitude,
-      lng: s.longitude,
-      m: s.serviceMinutes,
-    })),
-    pm: params.planningMode,
-    tm: params.travelMode,
-    t: params.planningMode === 'arrive-by' ? params.arrivalBy : params.departureTime,
-    alg: params.algorithm,
-  });
-}
 
 export type ThemeMode = 'light' | 'dark';
 
@@ -153,7 +118,7 @@ export const App: React.FC = () => {  const [theme, setTheme] = useState<ThemeM
   );
 
   const handleAddStop = () => {
-    if (stops.length >= 10) {
+    if (stops.length >= MAX_STOPS) {
       setToast({
         message: 'Досягнуто ліміт: максимум 10 зупинок для одного маршруту.',
         type: 'error',
@@ -212,7 +177,7 @@ export const App: React.FC = () => {  const [theme, setTheme] = useState<ThemeM
   };
 
   const handleAddStopFromMap = (address: string, lat?: number, lng?: number) => {
-    if (stops.length >= 10) {
+    if (stops.length >= MAX_STOPS) {
       setToast({
         message: 'Досягнуто ліміт: максимум 10 зупинок для одного маршруту.',
         type: 'error',
@@ -238,36 +203,10 @@ export const App: React.FC = () => {  const [theme, setTheme] = useState<ThemeM
 
 
   const handleTryExample = () => {
-    setStart({
-      label: 'Житомир, майдан Корольова',
-      address: 'Житомир, майдан Корольова',
-      latitude: 50.2547,
-      longitude: 28.6587,
-    });
-    setStops([
-      {
-        id: `stop-${generateId()}`,
-        label: 'Брусилів, АЗС',
-        address: 'Брусилів, АЗС',
-        serviceMinutes: 15,
-        latitude: 50.2882,
-        longitude: 29.5312,
-      },
-      {
-        id: `stop-${generateId()}`,
-        label: 'Фастів, вокзал',
-        address: 'Фастів, вокзал',
-        serviceMinutes: 20,
-        latitude: 50.0789,
-        longitude: 29.9168,
-      },
-    ]);
-    setDestination({
-      label: 'Київ, Хрещатик',
-      address: 'Київ, Хрещатик',
-      latitude: 50.4501,
-      longitude: 30.5234,
-    });
+    const example = createExampleRoute();
+    setStart(example.start);
+    setStops(example.stops);
+    setDestination(example.destination);
     setTravelMode('driving');
     setPlanningMode('depart-at');
     setDepartureTime(getCurrentRoundedDateTimeString());
