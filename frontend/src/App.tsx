@@ -3,11 +3,12 @@ import './App.css';
 import { Header } from './components/Header';
 import { RouteFormSection } from './components/RouteFormSection';
 import { ResultsSection } from './components/ResultsSection';
-import { Toast, type ToastType } from './components/Toast';
+import { Toast } from './components/Toast';
 import type { AddressInput, AlgorithmType, OptimizeRouteResponse, PlanningMode, RouteStop, SearchScope, TravelMode } from './types/route';
 import { optimizeRoute } from './api/routeClient';
 import { getInitialDraft, useTripDraft } from './hooks/useTripDraft';
 import { useTheme } from './hooks/useTheme';
+import { useToast } from './hooks/useToast';
 import { getCurrentRoundedDateTimeString, getTodayDateString } from './utils/dateTime';
 import { deriveStopLabel, isDefaultOrDerivedLabel } from './utils/address';
 import {
@@ -64,8 +65,9 @@ export const App: React.FC = () => {
       const timePart = departureTime.split('T')[1] || '09:00';
       setDepartureTime(`${datePart}T${timePart}`);
     }
-  };  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+  };
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { toast, showToast, clearToast } = useToast();
   const [result, setResult] = useState<OptimizeRouteResponse | null>(null);
   const [lastOptimizedSignature, setLastOptimizedSignature] = useState<string | null>(null);
 
@@ -88,10 +90,7 @@ export const App: React.FC = () => {
 
   const handleAddStop = () => {
     if (stops.length >= MAX_STOPS) {
-      setToast({
-        message: 'Досягнуто ліміт: максимум 10 зупинок для одного маршруту.',
-        type: 'error',
-      });
+      showToast('Досягнуто ліміт: максимум 10 зупинок для одного маршруту.', 'error');
       return;
     }
     const newStop: RouteStop = {
@@ -125,10 +124,7 @@ export const App: React.FC = () => {
       latitude: lat,
       longitude: lng,
     });
-    setToast({
-      message: `Початок маршруту встановлено: ${label}`,
-      type: 'info',
-    });
+    showToast(`Початок маршруту встановлено: ${label}`, 'info');
   };
 
   const handleSetDestinationFromMap = (address: string, lat?: number, lng?: number) => {
@@ -139,18 +135,12 @@ export const App: React.FC = () => {
       latitude: lat,
       longitude: lng,
     });
-    setToast({
-      message: `Фініш маршруту встановлено: ${label}`,
-      type: 'info',
-    });
+    showToast(`Фініш маршруту встановлено: ${label}`, 'info');
   };
 
   const handleAddStopFromMap = (address: string, lat?: number, lng?: number) => {
     if (stops.length >= MAX_STOPS) {
-      setToast({
-        message: 'Досягнуто ліміт: максимум 10 зупинок для одного маршруту.',
-        type: 'error',
-      });
+      showToast('Досягнуто ліміт: максимум 10 зупинок для одного маршруту.', 'error');
       return;
     }
     const label = deriveStopLabel(address, `Зупинка ${stops.length + 1}`);
@@ -163,10 +153,7 @@ export const App: React.FC = () => {
       serviceMinutes: 15,
     };
     setStops((prev) => [...prev, newStop]);
-    setToast({
-      message: `Додано зупинку: ${label}`,
-      type: 'info',
-    });
+    showToast(`Додано зупинку: ${label}`, 'info');
   };
 
 
@@ -181,7 +168,7 @@ export const App: React.FC = () => {
     setDepartureTime(getCurrentRoundedDateTimeString());
     setAlgorithm('two-opt');
     setSearchScope('all-ukraine');
-    setToast(null);
+    clearToast();
   };
 
   const handleResetDraft = () => {
@@ -198,7 +185,7 @@ export const App: React.FC = () => {
       setSelectedCity('Житомир');
       setResult(null);
       setLastOptimizedSignature(null);
-      setToast(null);
+      clearToast();
     });
   };
 
@@ -211,7 +198,7 @@ export const App: React.FC = () => {
     abortControllerRef.current = controller;
 
     setIsLoading(true);
-    setToast(null);
+    clearToast();
 
     try {
       const data = await optimizeRoute(
@@ -249,12 +236,9 @@ export const App: React.FC = () => {
         return;
       }
       if (err instanceof Error) {
-        setToast({ message: err.message, type: 'error' });
+        showToast(err.message, 'error');
       } else {
-        setToast({
-          message: 'Під час розрахунку маршруту сталася неочікувана помилка.',
-          type: 'error',
-        });
+        showToast('Під час розрахунку маршруту сталася неочікувана помилка.', 'error');
       }
     } finally {
       if (abortControllerRef.current === controller) {
@@ -268,7 +252,7 @@ export const App: React.FC = () => {
       <Toast
         message={toast?.message ?? null}
         type={toast?.type ?? 'error'}
-        onClose={() => setToast(null)}
+        onClose={clearToast}
       />
       <Header theme={theme} onToggleTheme={handleToggleTheme} />
       <main className="main-container">
